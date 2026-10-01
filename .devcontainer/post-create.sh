@@ -22,6 +22,11 @@ if [ ! -f "$DEVIN_DATA/cli/sessions.db" ] && [ -d "$SEED" ]; then
   echo "devin: restored CLI data seed into the devin-data volume"
 fi
 
+# The bind-mounted workspace is host-owned, which trips git's dubious
+# ownership check. Whitelist it globally (~/.gitconfig lives in the
+# container layer, so do this on every recreate).
+git config --global --add safe.directory /workspaces/jnctn
+
 # uv manages the backend (backend/pyproject.toml). It's not in the image, so
 # install on every (re)create — pipx puts it on PATH at /usr/local/py-utils/bin.
 command -v uv >/dev/null || pipx install uv
