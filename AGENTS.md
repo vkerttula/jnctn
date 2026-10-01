@@ -27,9 +27,12 @@ Dev scaffolding plus a minimal, verified app skeleton:
   `~/.local/share/devin` (Devin CLI sessions) across rebuilds —
   `post-create.sh` fixes its ownership on fresh volumes and installs `uv`
 - `backend/` — FastAPI app (`app/main.py`), `/api/health` and `/api/db-ping`
-  routers, pymongo client in `app/db.py`, pytest + ruff configured
+  routers plus `/api/notes` (GET/POST — the reference CRUD slice: pydantic
+  validation, ObjectId handling, Mongo writes), pymongo client in `app/db.py`,
+  pytest + ruff configured
 - `frontend/` — Vite + React + TS + Tailwind v4 (vite plugin); `src/App.tsx`
-  is a status page that exercises the UI → API → Mongo path; the dev server
+  is a status page that exercises the UI → API → Mongo path and includes a
+  working notes list (the pattern to copy for new features); the dev server
   proxies `/api` → `localhost:8000`
 - `docs/` — `VISION.md` (TODO), plus `topics/` and `ideas/` for hackathon
   brainstorming
