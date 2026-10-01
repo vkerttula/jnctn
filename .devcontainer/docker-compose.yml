@@ -3,21 +3,47 @@ services:
     image: mcr.microsoft.com/devcontainers/javascript-node:5-24-bookworm
     volumes:
       - ../..:/workspaces:cached
+      # Devin CLI sessions, logs and plugins — survives container rebuilds.
+      - devin-data:/home/node/.local/share/devin
+      # gh CLI auth — survives rebuilds so `gh auth login` is one-time.
+      - gh-data:/home/node/.config/gh
 
-    # Overrides default command so things don't shut down after the process ends.
-    command: sleep infinity
+    # Start dev servers (detached, /tmp/dev.log) then stay alive. Doing it here
+    # rather than postStartCommand makes it independent of devcontainer tooling
+    # lifecycle hooks. To run servers in a foreground terminal instead, kill them
+    # and re-run scripts/dev.sh (see README).
+    command: bash -c "nohup /workspaces/jnctn/scripts/dev.sh > /tmp/dev.log 2>&1 & exec sleep infinity"
 
-    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json to function.
-    network_mode: service:db
+    depends_on:
+      - db
 
-    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
-    # (Adding the "ports" property to this file will not forward from a Codespace.)
+    # Published so the app is reachable from the host browser/tools.
+    # Requires servers inside to bind 0.0.0.0 (vite host:true, uvicorn --host 0.0.0.0).
+    ports:
+      - "5173:5173"   # vite dev server
+      - "8000:8000"   # FastAPI / uvicorn
+
+    # Mongo is on the compose network as "db", not localhost.
+    environment:
+      - MONGODB_URI=mongodb://db:27017
+
+    networks:
+      - app
 
   db:
     image: mongo:8
     restart: unless-stopped
+    # Cap WiredTiger cache — default is ~50% of VM RAM, which would starve the
+    # app container. 0.5 GB is plenty for a dev database.
+    command: --wiredTigerCacheSizeGB 0.5
+    mem_limit: 1g
     volumes:
       - mongodb-data:/data/db
+    # Exposed on the host for local tools (mongosh, Compass).
+    ports:
+      - "27017:27017"
+    networks:
+      - app
 
     # Uncomment to enable auth / change startup options
     # environment:
@@ -25,5 +51,25 @@ services:
     #  MONGO_INITDB_ROOT_PASSWORD: example
     #  MONGO_INITDB_DATABASE: jnctn
 
+  # Browser UI for MongoDB — full CRUD on collections/documents.
+  # Reachable on the host at http://localhost:8081, no login (dev only).
+  mongo-express:
+    image: mongo-express:latest
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://db:27017
+      ME_CONFIG_BASICAUTH: "false"
+    networks:
+      - app
+
+networks:
+  app:
+
 volumes:
   mongodb-data:
+  devin-data:
+  gh-data:

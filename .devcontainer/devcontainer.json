@@ -4,7 +4,12 @@
   "service": "app",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "remoteUser": "node",
-  "forwardPorts": [27017],
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  // The remote server + extension hosts need ~1.5 GB; MongoDB needs ~0.5 GB.
+  // Anything under 4 GB host RAM OOM-kills the IDE processes.
+  "hostRequirements": {
+    "memory": "4gb"
+  },
   "features": {
     "ghcr.io/devcontainers/features/python:1": {
       "version": "3.12"
@@ -17,12 +22,8 @@
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
-        "formulahendry.auto-rename-tag",
-        "christian-kohler.path-intellisense",
         "ms-python.python",
-        "ms-python.vscode-pylance",
-        "eamod.gitlens",
-        "mongodb.mongodb-vscode"
+        "ms-python.vscode-pylance"
       ],
       "settings": {
         "editor.formatOnSave": true,
