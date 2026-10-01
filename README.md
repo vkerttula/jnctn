@@ -1,5 +1,8 @@
 # jnctn
 
+[![CI](https://github.com/vkerttula/jnctn/actions/workflows/ci.yml/badge.svg)](https://github.com/vkerttula/jnctn/actions/workflows/ci.yml)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm--NC-blue)](LICENSE)
+
 Weekend hackathon project. Currently a working scaffold: a FastAPI backend,
 a Vite + React frontend, and a MongoDB database, all running inside a
 devcontainer. See `docs/VISION.md` for what it's meant to become (TODO).
