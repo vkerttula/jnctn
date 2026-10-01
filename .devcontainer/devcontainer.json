@@ -1,7 +1,10 @@
 {
   "name": "jnctn",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:5-24-bookworm",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "remoteUser": "node",
+  "forwardPorts": [27017],
   "features": {
     "ghcr.io/devcontainers/features/python:1": {
       "version": "3.12"
@@ -18,7 +21,8 @@
         "christian-kohler.path-intellisense",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "eamod.gitlens"
+        "eamod.gitlens",
+        "mongodb.mongodb-vscode"
       ],
       "settings": {
         "editor.formatOnSave": true,
