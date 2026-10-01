@@ -1,5 +1,7 @@
 # jnctn
 
+*no time for vowels — see [HCKTN.md](HCKTN.md)*
+
 [![CI](https://github.com/vkerttula/jnctn/actions/workflows/ci.yml/badge.svg)](https://github.com/vkerttula/jnctn/actions/workflows/ci.yml)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm--NC-blue)](LICENSE)
 
