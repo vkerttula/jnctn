@@ -8,6 +8,12 @@ Guidance for agents working on this repository. Read this first.
 codebase coherent — another agent or human may pick up where you left off at any
 point. Leave the repo in a state you could hand over without explanation.
 
+**Read `docs/VISION.md` first.** It is written for you, the agent — it states
+what the product is, who it's for, and what the demo should prove. Treat it as
+the north star: when a choice isn't specified anywhere else, pick the option
+that serves the vision. If it's still a TODO, ask the human for the vision
+before building features.
+
 ### Stack
 
 - **Backend:** FastAPI (Python 3.12), package management with `uv`, pymongo
@@ -34,8 +40,8 @@ Dev scaffolding plus a minimal, verified app skeleton:
   is a status page that exercises the UI → API → Mongo path and includes a
   working notes list (the pattern to copy for new features); the dev server
   proxies `/api` → `localhost:8000`
-- `docs/` — `VISION.md` (TODO), plus `topics/` and `ideas/` for hackathon
-  brainstorming
+- `docs/` — `VISION.md` (the product vision, written for agents — see above),
+  plus `topics/` and `ideas/` for hackathon brainstorming
 - `Makefile` — devcontainer lifecycle helpers
 - `.github/workflows/ci.yml` — backend (ruff + pytest against a real MongoDB
   service) and frontend (oxlint + build) on push/PR. No devcontainer build in
