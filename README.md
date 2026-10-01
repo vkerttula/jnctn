@@ -7,7 +7,6 @@ devcontainer CLI (`npm i -g @devcontainers/cli`) installed:
 
 ```bash
 make start    # build & start the devcontainer
-make shell    # shell into it
 make mongo    # open mongosh
 make stop     # stop everything
 make rebuild  # rebuild after changing .devcontainer

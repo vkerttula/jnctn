@@ -1,15 +1,11 @@
 # Requires Docker + the devcontainer CLI:
 #   npm i -g @devcontainers/cli
 
-.PHONY: start shell mongo stop rebuild status
+.PHONY: start mongo stop rebuild status
 
 ## Start (and build) the devcontainer
 start:
 	devcontainer up --workspace-folder .
-
-## Open a shell inside the devcontainer
-shell:
-	devcontainer exec --workspace-folder . bash
 
 ## Open mongosh against the devcontainer's MongoDB
 mongo:
