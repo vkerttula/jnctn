@@ -17,7 +17,10 @@ stop:
 	-docker compose -f .devcontainer/docker-compose.yml -p $(notdir $(CURDIR))_devcontainer down
 
 ## Rebuild from scratch (after changing .devcontainer config)
+## compose down first: removes all service containers (incl. orphans) and
+## frees published ports before the new stack comes up. Volumes survive.
 rebuild:
+	-docker compose -f .devcontainer/docker-compose.yml -p $(notdir $(CURDIR))_devcontainer down
 	devcontainer up --workspace-folder . --remove-existing-container
 
 ## Show devcontainer + MongoDB containers
