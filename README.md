@@ -72,6 +72,20 @@ colima stop && colima start --cpu 4 --memory 8   # colima/lima
 Verify with `docker info | grep -i "total memory"` on the host, or `free -h`
 inside the container.
 
+## Deploy
+
+Quick demo without deploying anything:
+`cloudflared tunnel --url http://localhost:5173` — the Vite proxy serves the
+whole stack behind that one public URL (works only while the container runs).
+
+Real deploy (~30 min, free tiers):
+
+- **Backend**: `backend/Dockerfile` → Render / Fly.io / Koyeb; set
+  `MONGODB_URI`, `MONGODB_DB` and `CORS_ORIGINS` env vars
+- **Frontend**: `npm run build` → static `dist/` → Cloudflare Pages / Vercel /
+  GitHub Pages, with `VITE_API_URL` set to the backend URL
+- **Database**: MongoDB Atlas M0 (free)
+
 ## License
 
 PolyForm Noncommercial 1.0.0 — free to use, modify and share for

@@ -42,12 +42,14 @@ Keep this section and the commands below up to date as the structure grows.
 
 ## Environment
 
-- Node.js 24, Python 3.12, `uv` (pipx, installed by `post-create.sh`),
-  MongoDB sidecar (`db:27017`)
+- **Everything runs inside the devcontainer — including you.** Run commands
+  directly; don't reach for `docker`/`make` (host-side) or install tools —
+  Node.js 24, Python 3.12, `uv`, pytest, ruff and npm are already here.
+- Host-reachable URLs: UI `localhost:5173`, API `localhost:8000` (root →
+  `/docs`), mongo-express `localhost:8081`, MongoDB `localhost:27017` on the
+  host / `db:27017` inside.
 - The Docker VM needs ~8 GB RAM / 4 CPUs — under that the OOM killer SIGKILLs
-  the remote server / extension hosts and the IDE drops its connection
-- Everything runs inside the devcontainer; the host only needs Docker +
-  `@devcontainers/cli`
+  the remote server / extension hosts and the IDE drops its connection.
 
 ## Commands
 
@@ -111,5 +113,8 @@ cd frontend && npm run lint && npm run build
   co-author trailers, or any other agent signature to commit messages.
 - Commit message should explain **why**, not just what.
 - Don't commit code you haven't verified at least minimally.
+- **Commit directly to `main`** — hackathon speed, CI runs the checks. Before
+  pushing, run both check suites (`uv run pytest` + `ruff check .`,
+  `npm run lint` + `npm run build`).
 - **Do not push or open PRs unless explicitly asked.**
 - Do not amend history or force-push.
