@@ -27,4 +27,5 @@ fi
 command -v uv >/dev/null || pipx install uv
 
 # If gh is authenticated (gh-data volume), wire git to use it for pushes.
-gh auth status >/dev/null 2>&1 && gh auth setup-git
+# || true: unauthenticated gh (e.g. CI) must not fail the whole post-create.
+gh auth status >/dev/null 2>&1 && gh auth setup-git || true
