@@ -34,7 +34,9 @@ Dev scaffolding plus a minimal, verified app skeleton:
 - `docs/` — `VISION.md` (TODO), plus `topics/` and `ideas/` for hackathon
   brainstorming
 - `Makefile` — devcontainer lifecycle helpers
-- `.github/workflows/devcontainer.yml` — CI that builds the devcontainer
+- `.github/workflows/` — `ci.yml` runs backend (ruff + pytest against a real
+  MongoDB service) and frontend (oxlint + build) on push/PR;
+  `devcontainer.yml` builds the devcontainer when `.devcontainer/` changes
 
 Keep this section and the commands below up to date as the structure grows.
 
