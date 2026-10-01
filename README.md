@@ -71,3 +71,8 @@ colima stop && colima start --cpu 4 --memory 8   # colima/lima
 
 Verify with `docker info | grep -i "total memory"` on the host, or `free -h`
 inside the container.
+
+## License
+
+PolyForm Noncommercial 1.0.0 — free to use, modify and share for
+noncommercial purposes; commercial use requires permission. See `LICENSE`.
