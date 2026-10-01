@@ -118,3 +118,5 @@ cd frontend && npm run lint && npm run build
   `npm run lint` + `npm run build`).
 - **Do not push or open PRs unless explicitly asked.**
 - Do not amend history or force-push.
+- If `git commit` fails with *Author identity unknown*, run
+  `./scripts/git-identity.sh` (requires `gh auth login` first).

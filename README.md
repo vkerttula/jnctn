@@ -56,6 +56,16 @@ make stop     # stop everything
 make rebuild  # rebuild after changing .devcontainer
 ```
 
+### New developer onboarding
+
+1. On the host: Docker + `npm i -g @devcontainers/cli`, clone the repo.
+2. `make start` — post-create installs `uv`, dev servers auto-start; open
+   http://localhost:5173. That's all — development needs nothing else.
+3. To commit/push from inside the container: `gh auth login` once, then
+   `./scripts/git-identity.sh` — it sets a repo-local git identity (GitHub
+   noreply email) and wires gh as the credential helper. Both survive
+   rebuilds via the gh-data volume and the workspace mount.
+
 MongoDB runs in a sidecar container on the same compose network. From VS Code,
 use "Dev Containers: Reopen in Container" instead of the Makefile.
 

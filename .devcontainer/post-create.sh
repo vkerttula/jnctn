@@ -26,6 +26,10 @@ fi
 # install on every (re)create — pipx puts it on PATH at /usr/local/py-utils/bin.
 command -v uv >/dev/null || pipx install uv
 
-# If gh is authenticated (gh-data volume), wire git to use it for pushes.
-# || true: unauthenticated gh (e.g. CI) must not fail the whole post-create.
-gh auth status >/dev/null 2>&1 && gh auth setup-git || true
+# If gh is authenticated (gh-data volume), wire git pushes and set a
+# repo-local commit identity. || true: unauthenticated gh (e.g. CI) must not
+# fail the whole post-create.
+if gh auth status >/dev/null 2>&1; then
+  gh auth setup-git
+  bash "$(dirname "$0")/../scripts/git-identity.sh" || true
+fi
