@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 
+// Empty in dev — the Vite proxy forwards /api to the backend. See .env.example.
+const API_URL = import.meta.env.VITE_API_URL ?? ''
+
 type Status = 'loading' | 'ok' | 'error'
 
 function useCheck(path: string) {
@@ -7,7 +10,7 @@ function useCheck(path: string) {
   const [detail, setDetail] = useState('')
 
   useEffect(() => {
-    fetch(path)
+    fetch(`${API_URL}${path}`)
       .then(async (r) => {
         setDetail(JSON.stringify(await r.json()))
         setStatus(r.ok ? 'ok' : 'error')
