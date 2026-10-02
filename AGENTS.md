@@ -35,14 +35,15 @@ Dev scaffolding plus a minimal, verified app skeleton:
   volume persists
   `~/.local/share/devin` (Devin CLI sessions) across rebuilds —
   `post-create.sh` fixes its ownership on fresh volumes and installs `uv`
-- `backend/` — FastAPI app (`app/main.py`), `/api/health` and `/api/db-ping`
-  routers plus `/api/notes` (GET/POST — the reference CRUD slice: pydantic
-  validation, ObjectId handling, Mongo writes), pymongo client in `app/db.py`,
-  pytest + ruff configured
+- `backend/` — FastAPI app (`app/main.py`), `/api/health` + `/api/db-ping`,
+  `/api/notes` (GET/POST — the reference CRUD slice: pydantic validation,
+  ObjectId handling, Mongo writes), and `/api/stats` (GET aggregates counts;
+  POST `/api/stats/track` records a page view in the `page_views`
+  collection), pymongo client in `app/db.py`, pytest + ruff configured
 - `frontend/` — Vite + React + TS + Tailwind v4 (vite plugin); `src/App.tsx`
-  is a status page that exercises the UI → API → Mongo path and includes a
-  working notes list (the pattern to copy for new features); the dev server
-  proxies `/api` → `localhost:8000`
+  is a Junction X Vaasa–themed stats landing page (Zen Dots display font,
+  starfield + fuchsia glow) showing live `/api/stats` and writing to Mongo;
+  the dev server proxies `/api` → `localhost:8000`
 - `docs/` — `VISION.md` (the product vision, written for agents — see above),
   plus `topics/` and `ideas/` for hackathon brainstorming
 - `Makefile` — devcontainer lifecycle helpers
