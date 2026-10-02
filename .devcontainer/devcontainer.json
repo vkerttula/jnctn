@@ -4,6 +4,10 @@
   "service": "app",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "remoteUser": "node",
+  // Keep the compose service's `command:` (auto-starts scripts/dev.sh, then
+  // sleep infinity). Without this the devcontainer CLI replaces it with a
+  // bare keep-alive and the dev servers never start.
+  "overrideCommand": false,
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   // The remote server + extension hosts need ~1.5 GB; MongoDB needs ~0.5 GB.
   // Anything under 4 GB host RAM OOM-kills the IDE processes.

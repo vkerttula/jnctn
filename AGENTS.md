@@ -29,7 +29,10 @@ Dev scaffolding plus a minimal, verified app skeleton:
 
 - `.devcontainer/` — devcontainer (Node 24 image + Python 3.12 feature) with
   MongoDB + mongo-express sidecars via docker-compose; the compose `command`
-  auto-starts `scripts/dev.sh`; a `devin-data` named volume persists
+  auto-starts `scripts/dev.sh` (`overrideCommand: false` in devcontainer.json
+  keeps the CLI from replacing it — don't remove it), and the app service runs
+  as `node` so `.venv`/`node_modules` stay non-root; a `devin-data` named
+  volume persists
   `~/.local/share/devin` (Devin CLI sessions) across rebuilds —
   `post-create.sh` fixes its ownership on fresh volumes and installs `uv`
 - `backend/` — FastAPI app (`app/main.py`), `/api/health` and `/api/db-ping`
