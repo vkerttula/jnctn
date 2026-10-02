@@ -1,6 +1,9 @@
 services:
   app:
     image: mcr.microsoft.com/devcontainers/javascript-node:5-24-bookworm
+    # Run as node (uid 1000 — same as remoteUser and the bind-mounted
+    # workspace owner) so .venv/node_modules aren't created root-owned.
+    user: node
     volumes:
       - ../..:/workspaces:cached
       # Devin CLI sessions, logs and plugins — survives container rebuilds.

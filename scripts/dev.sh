@@ -56,6 +56,11 @@ start_frontend() {
     echo "frontend already running — skipping"
     return
   fi
+  # Fresh clones have no node_modules (the bind mount persists it afterwards).
+  if [ ! -d frontend/node_modules ]; then
+    echo "installing frontend dependencies..."
+    npm --prefix frontend install
+  fi
   setsid bash -c 'cd frontend && exec npm run dev' &
   pids+=($!)
 }
