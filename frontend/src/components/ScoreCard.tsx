@@ -111,45 +111,75 @@ const AREA_OF_ZONE: Record<Zone, Area['id']> = {
   crawl_space: 'crawl_space',
 }
 
-// The area chips double as the attention feed: when an attention item
-// touches an area, its chip becomes a quiet link to that sensor's page.
+// The area chips double as the attention feed. Clicking one never leaves
+// the page — it opens a small card saying whether all is well or what's
+// going on, like the score explainer above.
 function Areas({ state }: { state: HouseState }) {
   const navigate = useNavigate()
+  const [open, setOpen] = useState<Area['id'] | null>(null)
   const zoneOf = new Map(state.sensors.map((s) => [s.id, s.zone]))
   const hitFor = (id: Area['id']) =>
     state.attention.find((i) => AREA_OF_ZONE[zoneOf.get(i.sensor_id) ?? 'ridge'] === id)
+  const openArea = state.areas.find((a) => a.id === open)
+  const openHit = open ? hitFor(open) : undefined
+  const openSensor = openHit && state.sensors.find((s) => s.id === openHit.sensor_id)
   return (
-    <div className="flex w-full justify-center gap-2">
-      {state.areas.map((a) => {
-        const hit = hitFor(a.id)
-        const cls =
-          'flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors ' +
-          (hit
-            ? 'cursor-pointer border-white/25 bg-white/10 text-white hover:bg-white/20'
-            : 'border-white/10 bg-white/5 text-white/80')
-        const inner = (
-          <>
-            <span className="h-2 w-2 rounded-full" style={{ background: STATUS_COLOR[a.status] }} />
-            {a.name}
-            <span className="font-semibold text-white">{AREA_WORD[a.status]}</span>
-            {hit && <span aria-hidden>›</span>}
-          </>
-        )
-        return hit ? (
+    <div className="flex w-full flex-col items-center gap-2">
+      <div className="flex justify-center gap-2">
+        {state.areas.map((a) => (
           <button
             key={a.id}
-            className={cls}
-            title={hit.message.split(' — ')[0]}
-            onClick={() => navigate(`/sensors/${hit.sensor_id}`)}
+            onClick={() => setOpen(open === a.id ? null : a.id)}
+            aria-expanded={open === a.id}
+            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] whitespace-nowrap transition-colors ${
+              open === a.id
+                ? 'border-white/40 bg-white/15 text-white'
+                : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
+            }`}
           >
-            {inner}
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: STATUS_COLOR[a.status] }} />
+            {a.name}
+            <span className="font-semibold text-white">{AREA_WORD[a.status]}</span>
           </button>
-        ) : (
-          <span key={a.id} className={cls}>
-            {inner}
-          </span>
-        )
-      })}
+        ))}
+      </div>
+      {openArea && (
+        <div className="relative w-full rounded-2xl bg-white/10 p-3.5 text-left text-xs leading-relaxed text-white/80">
+          <button
+            onClick={() => setOpen(null)}
+            aria-label="Close"
+            className="absolute top-2 right-3 text-base text-white/50 hover:text-white"
+          >
+            ×
+          </button>
+          <p className="pr-4 font-display text-sm font-semibold text-white">
+            {openArea.name} —{' '}
+            <span style={{ color: STATUS_COLOR[openArea.status] }}>
+              {AREA_WORD[openArea.status]}
+            </span>
+          </p>
+          {openHit ? (
+            <>
+              <p className="mt-1.5">{openHit.message.split(' — ')[1] ?? openHit.message}</p>
+              <p className="mt-1.5 text-white/60">
+                {openHit.severity === 'alert'
+                  ? 'Worth having someone look at it — services are listed below.'
+                  : "We're keeping an eye on it — nothing to do yet."}
+              </p>
+              {openSensor && (
+                <button
+                  onClick={() => navigate(`/sensors/${openSensor.id}`)}
+                  className="mt-2 font-medium text-white underline underline-offset-2 hover:text-white/80"
+                >
+                  See {openSensor.name} →
+                </button>
+              )}
+            </>
+          ) : (
+            <p className="mt-1.5">Dry and healthy — nothing to do here.</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
