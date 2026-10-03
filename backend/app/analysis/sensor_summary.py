@@ -24,8 +24,14 @@ RANGE_LABEL = {
     "24h": "the last 24 hours",
     "7d": "the past week",
     "30d": "the past month",
+    "1y": "the past year",
 }
-PERIOD_KEY_FORMAT = {"24h": "%Y-%m-%dT%H", "7d": "%Y-%m-%d", "30d": "%Y-%m-%d"}
+PERIOD_KEY_FORMAT = {
+    "24h": "%Y-%m-%dT%H",
+    "7d": "%Y-%m-%d",
+    "30d": "%Y-%m-%d",
+    "1y": "%Y-%m",
+}
 
 
 def _col(points: list[dict], key: str) -> list[float]:

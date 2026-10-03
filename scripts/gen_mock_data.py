@@ -163,13 +163,18 @@ def normal_band(points: list[dict]) -> dict | None:
     }
 
 
-RANGE_LABEL = {"24h": "the last 24 hours", "7d": "the past week", "30d": "the past month"}
+RANGE_LABEL = {
+    "24h": "the last 24 hours",
+    "7d": "the past week",
+    "30d": "the past month",
+    "1y": "the past year",
+}
 
 
 def write_series(sensor_id: str, kind: str, points: list[dict], end: datetime) -> None:
     normal = normal_band(points)
     last = points[-1]["t"]
-    for label, days in [("24h", 1), ("7d", 7), ("30d", 30)]:
+    for label, days in [("24h", 1), ("7d", 7), ("30d", 30), ("1y", 365)]:
         window = [p for p in points if p["t"] >= last - timedelta(days=days)]
         summary = (
             f"The fan ran steadily over {RANGE_LABEL[label]}."
