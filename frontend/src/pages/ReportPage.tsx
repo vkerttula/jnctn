@@ -12,7 +12,7 @@ import {
   YAxis,
 } from 'recharts'
 import { Link } from 'react-router-dom'
-import { api, type Report } from '../api'
+import { api, type Report, type ReportStructure } from '../api'
 import Spinner from '../components/Spinner'
 
 // Moisture History Report — the sellable "structures healthy for N years"
@@ -51,6 +51,16 @@ function verdict(report: Report) {
   if (risks === 0) return `${base} No mold-risk periods detected.`
   return `${base} ${risks} mold-risk period${risks === 1 ? '' : 's'} detected — highest index ${peak.peak_mold_index.toFixed(1)} in ${peak.name} (${fmtMonth(peak.peak_month)}).`
 }
+
+// Red only when mold growth was actually reached (index >= threshold);
+// elevated-but-sub-threshold readings stay amber.
+function statusTone(s: ReportStructure, threshold: number) {
+  if (s.status === 'Dry') return 'ok'
+  return s.peak_mold_index >= threshold ? 'alert' : 'watch'
+}
+
+const TONE_BG = { ok: 'bg-ok/15', watch: 'bg-watch/15', alert: 'bg-alert/15' } as const
+const TONE_TEXT = { ok: 'text-ok', watch: 'text-watch', alert: 'text-alert' } as const
 
 export default function ReportPage() {
   const [report, setReport] = useState<Report | null>(null)
@@ -129,22 +139,24 @@ export default function ReportPage() {
                 </span>
                 <p className="text-sm leading-relaxed text-navy">{verdict(report)}</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {report.structures.map((s) => (
-                    <span
-                      key={s.name}
-                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                        s.status === 'Dry'
-                          ? 'bg-ok/15 text-ok'
-                          : 'bg-alert/15 text-alert'
-                      }`}
-                    >
-                      {s.name} · {s.status}
-                    </span>
-                  ))}
+                  {report.structures.map((s) => {
+                    const tone = statusTone(s, report.mold_threshold)
+                    return (
+                      <span
+                        key={s.name}
+                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${TONE_BG[tone]} ${TONE_TEXT[tone]}`}
+                      >
+                        {s.name} · {s.status}
+                      </span>
+                    )
+                  })}
                 </div>
               </div>
-              <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                <span className="text-ok">✓</span> Sensor verified {report.verified}
+              <span className="flex items-center gap-2 rounded-full bg-navy px-3.5 py-1.5">
+                <img src="/vilpe-logo.png" alt="VILPE" className="h-3 w-auto" />
+                <span className="text-[11px] font-semibold text-white/85">
+                  Sensor verified {report.verified}
+                </span>
               </span>
             </section>
 
@@ -220,7 +232,9 @@ export default function ReportPage() {
                         <td className="py-2 pr-4 tabular-nums">{s.risk_periods}</td>
                         <td className="py-2 pr-4 tabular-nums">{s.coverage_pct.toFixed(1)} %</td>
                         <td className="py-2">
-                          <span className="rounded-full bg-ok/15 px-2.5 py-1 text-xs font-semibold text-navy">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold text-navy ${TONE_BG[statusTone(s, report.mold_threshold)]}`}
+                          >
                             {s.status}
                           </span>
                         </td>
