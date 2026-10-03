@@ -183,10 +183,15 @@ def test_house_contract():
     )
     assert len(body["sensors"]) == 7
     for s in body["sensors"]:
-        assert {"id", "name", "kind", "zone", "status", "latest", "last_reading_at"} <= set(s)
+        assert {"id", "name", "kind", "zone", "status", "latest", "last_reading_at",
+                "state_label"} <= set(s)
         assert s["kind"] in ("leak_sensor", "fan", "climate_sensor")
         assert s["zone"] in ("roof_south", "roof_north", "ridge", "crawl_space")
         assert s["status"] in ("ok", "watch", "alert")
+    assert {a["id"] for a in body["areas"]} == {"roof", "crawl_space"}
+    for a in body["areas"]:
+        assert a["status"] in ("ok", "watch", "alert")
+    assert isinstance(body["open_requests"], list)
     for a in body["attention"]:
         assert {"sensor_id", "severity", "message", "since", "actions"} <= set(a)
         assert a["severity"] in ("watch", "alert")
@@ -204,6 +209,10 @@ def test_sensor_detail_and_series():
     assert r.status_code == 200
     body = r.json()
     assert body["id"] == "crawl-space"
+    assert "normal" in body
+    if body["normal"]:
+        lo, hi = body["normal"]["rh_pct"]
+        assert 0 <= lo < hi <= 100
     for p in body["points"][:50]:
         assert {"t", "temp_c", "rh_pct", "mold_index"} <= set(p)
 
@@ -214,12 +223,17 @@ def test_sensor_detail_and_series():
 
 
 def test_help_request():
-    r = client.post(
-        "/api/help-requests", json={"kind": "expert", "sensor_id": "crawl-space"}
-    )
-    assert r.status_code == 200
-    assert r.json()["message"]
-    assert client.post("/api/help-requests", json={"kind": "nope"}).status_code == 422
+    try:
+        r = client.post(
+            "/api/help-requests", json={"kind": "expert", "sensor_id": "crawl-space"}
+        )
+        assert r.status_code == 200
+        assert r.json()["message"]
+        assert client.post("/api/help-requests", json={"kind": "nope"}).status_code == 422
+        open_reqs = client.get("/api/house").json()["open_requests"]
+        assert any(r["kind"] == "expert" and r["status_text"] for r in open_reqs)
+    finally:
+        db.help_requests.delete_many({})
 
 
 def test_report():
