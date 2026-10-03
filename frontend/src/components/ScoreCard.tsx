@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   api,
   type Area,
@@ -7,7 +7,6 @@ import {
   type HelpKind,
   type HelpRequest,
   type HouseState,
-  type ScoreFactor,
   type ScoreWord,
   type SensorStatus,
   type Zone,
@@ -26,115 +25,27 @@ const TREND_LABEL = {
   declining: 'Going down this week',
 } as const
 
-const FACTOR_SEV_COLOR = {
-  info: 'rgba(255,255,255,0.45)',
-  watch: 'var(--color-watch)',
-  attention: 'var(--color-alert)',
-} as const
-
-// Plain-language line for one score factor, keeping the real number the
-// analysis detected (mould index peak, hours, %).
-function factorText(f: ScoreFactor): string {
-  const loc = f.location ? ` in ${f.location}` : ''
-  const d = f.detail
-  switch (f.code) {
-    case 'MOLD_INDEX_ELEVATED':
-      return `Mould index reached ${typeof d.peak === 'number' ? d.peak.toFixed(1) : 'a high level'}${loc}`
-    case 'RH_SUSTAINED_HIGH':
-      return `Humidity stayed high${loc}${typeof d.duration_hours === 'number' ? ` for about ${Math.round(d.duration_hours)} h` : ''}`
-    case 'AH_INVERSION':
-      return `The structure is holding more moisture than the outdoor air${loc}`
-    case 'LEAK_SIMULATED':
-    case 'SENSOR_LEAK_SIMULATED':
-      return `Sudden moisture rise${loc} — looks like a leak`
-    case 'FAN_STOPPED':
-      return `A ventilation fan stopped${loc}`
-    case 'FAN_NO_DATA':
-      return `A ventilation fan isn't reporting${loc}`
-    case 'SENSOR_OFFLINE':
-      return `A sensor went offline${loc}`
-    case 'GRID_HUMID':
-      return typeof d.pct_sensors_high === 'number'
-        ? `${Math.round(d.pct_sensors_high)}% of structure sensors are very humid`
-        : `Structure sensors are very humid`
-    default:
-      return f.code.replace(/_/g, ' ').toLowerCase() + loc
-  }
-}
-
-// Score breakdown — opens when the ring is tapped. Shows the actual
-// detected factors the number is deducted from, the live mould index
-// readings, and how the score is really computed.
-function ScoreDetail({ state, onClose }: { state: HouseState; onClose: () => void }) {
-  const molds = state.sensors.filter((s) => s.latest.mold_index != null)
+// Tiny hint behind the ? — the full breakdown lives on the /score page.
+function ScoreHint({ onClose }: { onClose: () => void }) {
   return (
-    <div className="relative flex w-full flex-col gap-3 rounded-2xl bg-white/10 p-4 text-left text-xs leading-relaxed text-white/80">
+    <div className="relative w-full rounded-2xl bg-white/10 px-3.5 py-3 text-left text-xs leading-relaxed text-white/80">
       <button
         onClick={onClose}
         aria-label="Close"
-        className="absolute top-2.5 right-3 text-base text-white/50 hover:text-white"
+        className="absolute top-1.5 right-2.5 text-base text-white/50 hover:text-white"
       >
         ×
       </button>
-      <p className="pr-4 font-display text-sm font-semibold text-white">What goes into the score</p>
-
-      {state.score_factors.length > 0 ? (
-        <ul className="flex flex-col gap-1.5">
-          {state.score_factors.map((f, i) => (
-            <li key={i} className="flex items-start gap-2">
-              <span
-                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ background: FACTOR_SEV_COLOR[f.severity] }}
-              />
-              {factorText(f)}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Nothing is pulling the score down — every reading is in its normal range.</p>
-      )}
-
-      {molds.length > 0 && (
-        <p className="text-white/60">
-          Mould index now:{' '}
-          {molds
-            .map((s) => `${s.name.toLowerCase()} ${s.latest.mold_index!.toFixed(1)}`)
-            .join(' · ')}
-        </p>
-      )}
-
-      <div className="flex gap-1.5">
-        {(
-          [
-            ['75–100', 'Good', 'var(--color-ok)'],
-            ['60–74', 'Fair', 'var(--color-watch)'],
-            ['0–59', 'Attention', 'var(--color-alert)'],
-          ] as const
-        ).map(([range, word, c]) => (
-          <span key={word} className="flex flex-1 flex-col items-center rounded-lg bg-white/5 py-1.5">
-            <span className="font-semibold" style={{ color: c }}>
-              {word}
-            </span>
-            <span className="text-[10px] text-white/50">{range}</span>
-          </span>
-        ))}
-      </div>
-
-      <p>
-        <span className="font-semibold text-white">How it's worked out:</span> the score starts
-        at 100 and points come off for what the sensors actually find. The mould index — the
-        Finnish mould growth model developed by VTT — weighs most. Then humidity that stays high
-        after we've accounted for the outdoor air, and fans that stop or go quiet. It changes
-        slowly — one damp day won't move it.
+      <p className="pr-4">
+        Starts at 100 — points come off for the mould index, humidity that
+        stays high, and fans that stop.
       </p>
-      <a
-        href="https://www.vilpe.com/en/vilpe-sense-mould-index/"
-        target="_blank"
-        rel="noreferrer"
-        className="font-medium text-white underline-offset-2 hover:underline"
+      <Link
+        to="/score"
+        className="mt-1.5 inline-block font-medium text-white underline underline-offset-2 hover:text-white/80"
       >
-        About the mould growth model ↗
-      </a>
+        See the details →
+      </Link>
     </div>
   )
 }
@@ -325,12 +236,12 @@ export default function ScoreCard({
 }) {
   const color = WORD_COLOR[state.score_word]
   const [explain, setExplain] = useState(false)
+  const navigate = useNavigate()
   return (
     <section className="flex flex-col items-center gap-4 text-center">
       <button
-        onClick={() => setExplain((v) => !v)}
-        aria-expanded={explain}
-        aria-label="What goes into the score"
+        onClick={() => navigate('/score')}
+        aria-label="Open the Home score details"
         className="relative flex cursor-pointer items-center justify-center rounded-full transition-transform hover:scale-[1.02]"
       >
         <ScoreRing score={state.score} color={color} />
@@ -361,7 +272,7 @@ export default function ScoreCard({
           ?
         </button>
       </div>
-      {explain && <ScoreDetail state={state} onClose={() => setExplain(false)} />}
+      {explain && <ScoreHint onClose={() => setExplain(false)} />}
       <Areas state={state} onRequested={onRequested} />
     </section>
   )

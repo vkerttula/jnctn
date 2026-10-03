@@ -13,6 +13,7 @@ import {
 } from 'recharts'
 import { Link } from 'react-router-dom'
 import { api, type Report } from '../api'
+import Spinner from '../components/Spinner'
 
 // Moisture History Report — the sellable "structures healthy for N years"
 // document from the vision (e.g. for house sales). Mirrors the concept
@@ -71,7 +72,7 @@ export default function ReportPage() {
         </div>
 
         {failed && <p className="text-sm text-alert">The report is not available right now.</p>}
-        {!report && !failed && <p className="text-sm text-muted">Loading report…</p>}
+        {!report && !failed && <Spinner label="Loading report…" />}
 
         {report && (
           <article className="flex flex-col gap-7 rounded-3xl border border-line bg-white p-8 shadow-sm print:rounded-none print:border-0 print:p-0 print:shadow-none">

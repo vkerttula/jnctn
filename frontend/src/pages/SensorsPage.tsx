@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { HouseSensor } from '../api'
+import Spinner from '../components/Spinner'
 import { useHouse } from '../hooks/useHouse'
 import { KIND_LABEL, ZONE_LABEL, keyValues, timeAgo } from '../labels'
 import { STATUS_COLOR } from '../theme'
@@ -16,7 +17,7 @@ export default function SensorsPage() {
           ← Back to overview
         </Link>
         <h1 className="font-display text-xl font-bold text-navy">Sensors</h1>
-        {!state && <p className="text-sm text-muted">Loading sensors…</p>}
+        {!state && <Spinner label="Loading sensors…" />}
         {groups.map((group) => (
           <section key={group} className="flex flex-col gap-2">
             <h2 className="text-xs font-semibold tracking-[0.2em] text-muted uppercase">
