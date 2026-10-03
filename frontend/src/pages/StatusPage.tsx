@@ -5,6 +5,7 @@ import {
   useState,
   type FormEvent,
 } from 'react'
+import { api } from '../api'
 
 // Empty in dev — the Vite proxy forwards /api to the backend. See .env.example.
 const API_URL = import.meta.env.VITE_API_URL ?? ''
@@ -109,6 +110,55 @@ function DbPing({ onSent }: { onSent: () => void }) {
   )
 }
 
+function DemoControls() {
+  const [busy, setBusy] = useState(false)
+  const [running, setRunning] = useState<boolean | null>(null)
+
+  const run = async (action: 'leak' | 'reset') => {
+    setBusy(true)
+    try {
+      if (action === 'leak') await api.simulateLeak()
+      else await api.resetDemo()
+      setRunning(action === 'leak')
+    } catch {
+      setRunning(null)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="flex w-full max-w-md flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm">
+      <div className="text-[0.65rem] font-medium uppercase tracking-[0.25em] text-white/50">
+        Demo leak simulation
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => run('leak')}
+          disabled={busy}
+          className="flex-1 rounded-lg bg-fuchsia-400 px-4 py-2 text-sm font-bold uppercase tracking-wider text-black transition-colors hover:bg-fuchsia-300 disabled:opacity-50"
+        >
+          Simulate leak
+        </button>
+        <button
+          onClick={() => run('reset')}
+          disabled={busy}
+          className="rounded-lg border border-white/15 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 disabled:opacity-50"
+        >
+          Reset
+        </button>
+      </div>
+      <div className="text-xs text-white/40">
+        {running === null
+          ? 'Injects a synthetic moisture event — watch the score react on /.'
+          : running
+            ? 'Leak simulation running — the house reacts over ~4 min.'
+            : 'Simulation cleared.'}
+      </div>
+    </div>
+  )
+}
+
 function StatusPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [apiOk, setApiOk] = useState<boolean | null>(null)
@@ -185,7 +235,10 @@ function StatusPage() {
           />
         </section>
 
-        <DbPing onSent={loadStats} />
+        <div className="flex w-full max-w-4xl flex-wrap justify-center gap-3">
+          <DbPing onSent={loadStats} />
+          <DemoControls />
+        </div>
 
         <footer className="font-mono text-xs text-white/30">
           live from MongoDB · inspect at mongo-express :8081 ·{' '}
