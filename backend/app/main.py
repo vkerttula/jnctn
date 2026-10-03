@@ -4,8 +4,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.types import Scope
 
 from app.routers import analysis, dataset, health, house, notes, stats
 
@@ -59,8 +61,23 @@ STATIC_DIR = Path(
     os.getenv("STATIC_DIR", str(Path(__file__).resolve().parents[2] / "frontend" / "dist"))
 )
 
+# React-router paths like /sensors/xyz or /login would otherwise 404 on
+# refresh or a direct link — fall back to index.html and let the client
+# router take over. /api/* never reaches this: API routers are registered
+# before the mount.
+class SPAStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope: Scope) -> Response:
+        try:
+            return await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            # Keep unmatched /api/* a real 404, not the SPA shell.
+            if exc.status_code != 404 or path == "api" or path.startswith("api/"):
+                raise
+            return await super().get_response("index.html", scope)
+
+
 if STATIC_DIR.is_dir():
-    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="frontend")
+    app.mount("/", SPAStaticFiles(directory=STATIC_DIR, html=True), name="frontend")
 else:
 
     @app.get("/", include_in_schema=False)
