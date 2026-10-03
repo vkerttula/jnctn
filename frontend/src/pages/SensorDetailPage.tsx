@@ -71,19 +71,14 @@ export default function SensorDetailPage() {
   }, [id, range])
 
   return (
-    <main className="min-h-svh bg-mist">
+    <div className="h-full overflow-y-auto">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-5 py-6">
-        <header className="flex items-center justify-between">
-          <Link
-            to="/"
-            className="text-sm font-medium text-sense hover:underline"
-          >
-            ← Back to your house
-          </Link>
-          <div className="rounded-2xl bg-navy px-4 py-3 shadow-lg shadow-navy/20">
-            <img src="/vilpe-logo.png" alt="VILPE" className="h-4 w-auto" />
-          </div>
-        </header>
+        <Link
+          to="/"
+          className="self-start text-sm font-medium text-sense hover:underline"
+        >
+          ← Back to overview
+        </Link>
 
         {error && !detail && (
           <div className="rounded-2xl border border-alert/30 bg-alert/5 p-4 text-sm text-alert">
@@ -147,6 +142,6 @@ export default function SensorDetailPage() {
           </>
         )}
       </div>
-    </main>
+    </div>
   )
 }
