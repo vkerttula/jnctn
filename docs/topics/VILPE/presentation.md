@@ -25,3 +25,55 @@ Expected outcome:
 winning: customer value, innovation, business potential (scalable), practicality
 
 ## Idea
+
+**"Oura for a house"** — see docs/VISION.md. Consumer-facing health view on
+top of VILPE Sense data: one score, plain-language summaries, rotatable 3D
+house with clickable sensors. VILPE measures; jnctn interprets.
+
+### PDF analysis (VILPE X Vaasa Hackaton deck)
+
+Their problem: moisture damage stays hidden until expensive; owners need
+information *before* problems get serious. Today Sense = professional
+monitoring. Deck explicitly invites: new customer groups, subscription /
+pay-for-results models, insurer partnerships, decision support — "surprise
+us".
+
+Our mapping:
+
+- "New customer groups" → B2C: homeowner, not facility manager
+- "Subscription services" → monthly sub is the core business model
+- "Insurers" → roadmap story: aggregated sensor data → area-level building
+  health → insurable risk (US market angle)
+- "Surprise us" → interpretation layer + consumer UX, not another dashboard
+- "Working prototype" → 3D + live score + leak-simulation demo
+
+Pitch gaps to cover:
+
+1. Willingness to pay — the core is *certainty*, not savings. The home is
+   the owner's biggest asset; moisture damage is hidden and largely
+   uninsured. The product sells peace of mind: "something is watching your
+   house 24/7 and tells you — in words you understand — the moment things
+   start trending wrong." Like Oura: you don't pay for data, you pay to
+   know you're fine and to hear first when you're not. (Needs more
+   thinking: exact framing/price anchor.)
+2. "How could VILPE test after hackathon" → the pilot is nearly free for
+   VILPE: existing Sense customers already produce all the data points —
+   the only missing piece is this UI, which is exactly what we're building.
+   Opt-in consumer view for existing customers, measure engagement.
+3. Practicality — ingest adapter boundary: VILPE can plug the real Sense
+   feed into the same API the simulator writes to.
+
+### Future development (pitch ammo, not this build)
+
+- **Inspection marketplace** — when values trend wrong, the app lets the
+  owner book a structural inspection from local contractors directly. VILPE
+  takes a cut; homeowners get a one-tap path from "alert" to "fixed".
+- **Remote expert review** — send the sensor data via the app to a VILPE /
+  third-party expert for assessment without a site visit.
+- **Structural moisture report (PDF)** — sellable document generated from
+  the sensor history, e.g. for house sales: a certified "this house's
+  structures have been healthy for N years" report adds transaction value.
+- **Aggregated data products** — admin map view (zoom to street level, see
+  every sensored house's condition) → insights on how climate affects
+  buildings per area. Valuable to insurers, especially the US market where
+  moisture risk products barely exist.
