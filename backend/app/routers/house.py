@@ -90,6 +90,11 @@ HELP_MESSAGES = {
     "expert": "Sent to a VILPE expert. You'll get their assessment of the "
     "readings within 24 hours.",
 }
+HELP_STATUS = {
+    "inspection": "Inspector calls within 1 working day",
+    "expert": "Reply within 24 hours",
+}
+FAN_LABELS = {"roof-fan": "Running", "crawl-fan": "Drying"}
 
 
 class LeakRequest(BaseModel):
@@ -209,6 +214,15 @@ def _latest_for(sensor_id: str, quads: dict[str, list[dict]]) -> dict[str, Any]:
     return {"latest": latest, "last_reading_at": _iso(last_ts)}
 
 
+def _state_label(entry: dict, latest: dict) -> str | None:
+    """One-word operating state — fans only; None for passive sensors."""
+    if entry["kind"] != "fan":
+        return None
+    if not latest.get("fan_rpm"):
+        return "Stopped"
+    return FAN_LABELS[entry["id"]]
+
+
 def _finding_sensor_id(finding: dict, serial_quad: dict[str, str]) -> str | None:
     """Map a finding's ref (device slug / serial / logical id) to a catalog id."""
     ref = finding.get("ref")
@@ -277,10 +291,41 @@ def house_state() -> dict[str, Any]:
                 "status": st,
                 "latest": base["latest"],
                 "works_with": entry.get("works_with"),
+                "state_label": _state_label(entry, base["latest"]),
                 "last_reading_at": base["last_reading_at"],
                 "primary": True,
             }
         )
+
+    rank = {"alert": 2, "watch": 1, "ok": 0}
+    by_id = {s["id"]: s["status"] for s in sensors}
+    areas = [
+        {
+            "id": "roof",
+            "name": "Roof",
+            "status": max(
+                (by_id[i] for i in ("roof-sw", "roof-se", "roof-nw", "roof-ne", "roof-fan")),
+                key=lambda s: rank[s],
+            ),
+        },
+        {
+            "id": "crawl_space",
+            "name": "Crawl space",
+            "status": max(
+                (by_id[i] for i in ("crawl-space", "crawl-fan")), key=lambda s: rank[s]
+            ),
+        },
+    ]
+
+    open_requests = [
+        {
+            "kind": r["kind"],
+            "sensor_id": r.get("sensor_id"),
+            "requested_at": _iso(r["created_at"]),
+            "status_text": HELP_STATUS[r["kind"]],
+        }
+        for r in db.help_requests.find(sort=[("created_at", 1)])
+    ]
 
     attention = []
     if sim:
@@ -357,11 +402,13 @@ def house_state() -> dict[str, Any]:
         "score": score,
         "score_word": score_word,
         "score_trend": "declining" if sim else analysis["score_trend"],
+        "areas": areas,
         "headline": headline,
         "summary": summary,
         "weather": weather.current(),
         "attention": attention,
         "sensors": sensors,
+        "open_requests": open_requests,
         "simulating": bool(sim),
         "updated_at": _iso(datetime.now(UTC)),
     }
@@ -414,6 +461,7 @@ def sensor_detail(sensor_id: str) -> dict[str, Any]:
         "status_text": status_text,
         "latest": base["latest"],
         "works_with": entry.get("works_with"),
+        "state_label": _state_label(entry, base["latest"]),
         "last_reading_at": base["last_reading_at"],
         "updated_at": _iso(datetime.now(UTC)),
     }
@@ -460,8 +508,37 @@ def sensor_series(
 
     end = (coll.find_one(match, {"ts": 1}, sort=[("ts", -1)]) or {}).get("ts")
     if end is None:
-        return {"id": sensor_id, "range": range, "points": []}
+        return {"id": sensor_id, "range": range, "normal": None, "points": []}
     start = end - timedelta(days=days)
+
+    # "Normal for <month>": the device's own 20th–80th percentile humidity
+    # over the last 30 days, widened a little (same rule as the mock).
+    normal = None
+    if "rh_pct" in agg:
+        rh_rows = [
+            r["v"]
+            for r in coll.aggregate(
+                [
+                    {"$match": {**match, "ts": {"$gte": end - timedelta(days=30)}}},
+                    {
+                        "$group": {
+                            "_id": {
+                                "$dateTrunc": {"date": "$ts", "unit": "hour"}
+                            },
+                            "v": {"$avg": agg["rh_pct"]},
+                        }
+                    },
+                ]
+            )
+            if r["v"] is not None
+        ]
+        rh_rows.sort()
+        if len(rh_rows) >= 10:
+            lo, hi = rh_rows[len(rh_rows) // 5], rh_rows[len(rh_rows) * 4 // 5]
+            normal = {
+                "label": f"Normal for {end.strftime('%B')}",
+                "rh_pct": [max(0, round(lo - 3)), min(100, round(hi + 3))],
+            }
 
     # Bucket by hour, averaging across whatever members feed this sensor.
     rows = list(
@@ -504,7 +581,7 @@ def sensor_series(
                 continue
             p["rh_pct"] = round(p["rh_pct"] + (SIM_RH_TARGET - p["rh_pct"]) * t * k, 1)
 
-    return {"id": sensor_id, "range": range, "points": points}
+    return {"id": sensor_id, "range": range, "normal": normal, "points": points}
 
 
 def _round(v, nd):
@@ -703,13 +780,15 @@ def _risk_months(device_ids: list[int]) -> int:
 
 @router.post("/help-requests")
 def help_request(req: HelpRequest) -> dict[str, Any]:
-    db.help_requests.insert_one(
-        {
-            "kind": req.kind,
-            "sensor_id": req.sensor_id,
-            "created_at": datetime.now(UTC).replace(tzinfo=None),
-        }
-    )
+    # One open request per kind — same dedupe rule as the mock client.
+    if not db.help_requests.find_one({"kind": req.kind}):
+        db.help_requests.insert_one(
+            {
+                "kind": req.kind,
+                "sensor_id": req.sensor_id,
+                "created_at": datetime.now(UTC).replace(tzinfo=None),
+            }
+        )
     return {"message": HELP_MESSAGES[req.kind]}
 
 
@@ -728,4 +807,5 @@ def simulate_leak(req: LeakRequest) -> dict[str, Any]:
 @router.post("/simulate/reset")
 def simulate_reset() -> dict[str, Any]:
     simulate.stop()
+    db.help_requests.delete_many({})
     return {"simulating": False}
