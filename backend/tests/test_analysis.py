@@ -259,7 +259,7 @@ def test_help_request():
         db.help_requests.delete_many({})
 
 
-def test_report():
+def test_report(seeded_device):
     r = client.get("/api/report")
     assert r.status_code == 200
     body = r.json()
