@@ -30,7 +30,10 @@ export default function App() {
               path="/report"
               element={getUser()?.dataMode === 'dc' ? <Navigate to="/" replace /> : <ReportPage />}
             />
-            <Route path="/score" element={<ScorePage />} />
+            <Route
+              path="/score"
+              element={getUser()?.dataMode === 'dc' ? <Navigate to="/" replace /> : <ScorePage />}
+            />
           </Route>
         </Route>
         <Route path="/status" element={<StatusPage />} />
