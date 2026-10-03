@@ -211,8 +211,9 @@ frontend.
   limits). Click dot or callout → `/sensors/:id`. Callouts on the far side
   of the house fade, and hide while they would cover a front callout. No on-screen usage hints
   ("drag to rotate" etc.) — the homeowner shouldn't need instructions.
-- **AttentionFeed** — list of `attention[]` as calm sentence cards with a
-  small severity dot (amber/red). Empty state: "Everything looks normal."
+- **AttentionFeed** (sidebar) — `attention[]` as calm sentence cards with a
+  severity accent (amber/red) and action buttons. Hidden entirely when
+  empty — the overview headline already says all is well.
 - **Demo controls** — small, secondary: "Simulate leak" button and, while
   `simulating`, "Reset demo".
 
