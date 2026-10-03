@@ -74,7 +74,6 @@ Frontend polls `GET /api/house`; everything else is on demand.
   "score": 82,
   "score_word": "Good",
   "score_trend": "stable",
-  "score_history": [{ "date": "2026-09-04", "score": 85 }, { "date": "2026-10-03", "score": 86 }],
   "areas": [
     { "id": "roof", "name": "Roof", "status": "ok" },
     { "id": "crawl_space", "name": "Crawl space", "status": "ok" }
@@ -110,7 +109,7 @@ Frontend polls `GET /api/house`; everything else is on demand.
   "open_requests": [
     { "kind": "inspection", "sensor_id": "roof-nw",
       "requested_at": "2026-10-03T18:40:00Z",
-      "status_text": "Inspector will call within 1 working day" }
+      "status_text": "Inspector calls within 1 working day" }
   ],
   "simulating": false,
   "updated_at": "2026-10-03T12:00:00Z"
@@ -123,10 +122,10 @@ Frontend polls `GET /api/house`; everything else is on demand.
   `actions` lists one-tap next steps (`inspection` = book a local inspector,
   `expert` = remote VILPE expert review) — the vision's alert → fixed path.
 - `open_requests[]` keeps a requested service visibly active (sidebar
-  Services row and the attention item both show "Requested" + `status_text`)
+  Services row shows a "Requested" badge + `status_text`, the attention item
+  a short confirmation)
   until it is resolved; one open request per `kind`.
-- `score_history` is one point per day for the last 30 days (oldest first,
-  last = today), drawn as a small line under the score ring. `areas` are
+- `areas` are
   structure-level verdicts (`ok | watch | alert` → "Good / Watch / Check")
   shown as pills under the ring — what the score is made of, no numbers.
 - `home` is the address shown over the 3D view; `headline` is a short
