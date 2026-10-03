@@ -59,6 +59,7 @@ def get_analysis(
         "score_trend": score_mod.score_trend(digest),
         "tone": scored["tone"],
         "findings": scored["findings"],
+        "headline": narrative.headline,
         "summary": narrative.summary,
         "attention_items": [i.model_dump() for i in narrative.attention_items],
         "recommendations": narrative.recommendations,
@@ -86,6 +87,7 @@ def _no_data():
     from app.analysis.models import Narrative
 
     return Narrative(
+        headline="Waiting for sensor data",
         summary="We don't have sensor data for this house yet — "
         "check back once the sensors report in.",
         attention_items=[],
@@ -102,6 +104,7 @@ def _response(doc: dict[str, Any]) -> dict[str, Any]:
         "score": doc["score"],
         "score_trend": doc.get("score_trend", "stable"),
         "tone": doc["tone"],
+        "headline": doc.get("headline") or doc["summary"].split(".")[0],
         "summary": doc["summary"],
         "attention_items": doc["attention_items"],
         "recommendations": doc["recommendations"],

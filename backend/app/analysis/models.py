@@ -12,6 +12,7 @@ class AttentionItem(BaseModel):
 class Narrative(BaseModel):
     """The user-facing words for one analysis window."""
 
+    headline: str = Field(max_length=120)
     summary: str = Field(max_length=500)
     attention_items: list[AttentionItem] = Field(default_factory=list, max_length=5)
     recommendations: list[str] = Field(default_factory=list, max_length=5)
