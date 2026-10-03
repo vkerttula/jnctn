@@ -8,16 +8,25 @@ leak" demo moment. POST /api/simulate/reset clears it.
 Only the analysis/narration layer reacts — raw readings are never modified.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from app.db import db
 
 sims = db["simulation"]
 
+# A forgotten sim must not stick: while one is active every analysis call
+# bypasses the cache, so an abandoned demo leaks latency (and LLM calls)
+# forever. 15 min is well past the ~4 min demo arc.
+SIM_TTL = timedelta(minutes=15)
+
 
 def active() -> dict[str, Any] | None:
-    return sims.find_one({"_id": "active"})
+    doc = sims.find_one({"_id": "active"})
+    if doc and datetime.now(UTC).replace(tzinfo=None) - doc["started_at"] > SIM_TTL:
+        sims.delete_one({"_id": "active"})
+        return None
+    return doc
 
 
 def start(sensor_id: str, device: str | None, label: str) -> dict[str, Any]:
