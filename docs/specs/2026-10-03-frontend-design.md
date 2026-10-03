@@ -227,7 +227,12 @@ frontend.
   a large title with `summary` underneath, and an outdoor weather panel
   (temperature, condition, humidity, wind). Callouts stay below it.
 - **ScoreCard** (sidebar) — Oura-style SVG ring, big score number,
-  `score_word`, trend hint. No raw sensor values.
+  `score_word`, plain trend ("Steady this week"). A "?" opens an inline
+  explainer: what the score covers, the Good / Fair / Attention bands
+  (75+ / 60–74 / <60 — must match the backend's `score_word` thresholds),
+  that it is built on VILPE Sense's Finnish mould growth model (VTT) plus
+  weather and season, and when the homeowner is alerted. No raw sensor
+  values.
 - **HouseScene** — fills the content area; each device is a status-colored
   dot with a leader line to a callout card (status dot, name, 2–3 key
   values). Very slow auto-rotate that pauses while hovering any dot or
