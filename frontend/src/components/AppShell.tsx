@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { api, apiMode } from '../api'
+import { getUser, signOut } from '../auth'
 import Clock from './Clock'
 import ScoreCard from './ScoreCard'
 import ServicesList from './ServicesList'
@@ -16,6 +17,7 @@ const NAV = [
 export default function AppShell() {
   const { state, error, refresh } = useHouseState()
   const [busy, setBusy] = useState(false)
+  const user = getUser()
 
   const demo = async (action: 'leak' | 'reset') => {
     setBusy(true)
@@ -70,6 +72,23 @@ export default function AppShell() {
         <ServicesList requests={state?.open_requests ?? []} onRequested={refresh} />
 
         <div className="mt-auto flex flex-col gap-3 border-t border-white/10 pt-4">
+          {user && (
+            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sense text-xs font-semibold">
+                {user.initials}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{user.name}</p>
+                <p className="truncate text-xs text-white/50">{user.home}</p>
+              </div>
+              <button
+                onClick={signOut}
+                className="shrink-0 text-xs text-white/50 underline-offset-2 transition-colors hover:text-white hover:underline"
+              >
+                Log out
+              </button>
+            </div>
+          )}
           <Clock />
           <div className="flex items-center gap-2">
             {apiMode === 'mock' &&
