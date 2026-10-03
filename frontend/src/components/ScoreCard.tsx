@@ -10,6 +10,7 @@ import {
   type ScoreWord,
   type Zone,
 } from '../api'
+import { getUser } from '../auth'
 import { AREA_WORD } from '../labels'
 import { STATUS_COLOR } from '../theme'
 
@@ -243,40 +244,56 @@ export default function ScoreCard({
   const color = WORD_COLOR[state.score_word]
   const [explain, setExplain] = useState(false)
   const navigate = useNavigate()
+  // the score detail page is homeowner-facing — the enterprise demo keeps
+  // the ring as a pure indicator
+  const dc = getUser()?.dataMode === 'dc'
+  const ring = (
+    <>
+      <ScoreRing score={state.score} color={color} />
+      <div className="absolute flex flex-col items-center">
+        <span className="font-display text-6xl font-bold text-white">
+          {state.score}
+        </span>
+        <span
+          className="font-display text-base font-semibold tracking-wide"
+          style={{ color }}
+        >
+          {state.score_word}
+        </span>
+      </div>
+    </>
+  )
   return (
     <section className="flex flex-col items-center gap-4 text-center">
-      <button
-        onClick={() => navigate('/score')}
-        aria-label="Open the Home score details"
-        className="relative flex cursor-pointer items-center justify-center rounded-full transition-transform hover:scale-[1.02]"
-      >
-        <ScoreRing score={state.score} color={color} />
-        <div className="absolute flex flex-col items-center">
-          <span className="font-display text-6xl font-bold text-white">
-            {state.score}
-          </span>
-          <span
-            className="font-display text-base font-semibold tracking-wide"
-            style={{ color }}
-          >
-            {state.score_word}
-          </span>
+      {dc ? (
+        <div className="relative flex items-center justify-center rounded-full">
+          {ring}
         </div>
-      </button>
-      <div className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-white/60">
-        Home score · {TREND_LABEL[state.score_trend]}
+      ) : (
         <button
-          onClick={() => setExplain((v) => !v)}
-          aria-expanded={explain}
-          aria-label="What is the Home score?"
-          className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[11px] font-bold transition-colors ${
-            explain
-              ? 'border-white bg-white text-navy'
-              : 'border-white/40 text-white/70 hover:border-white hover:text-white'
-          }`}
+          onClick={() => navigate('/score')}
+          aria-label="Open the Home score details"
+          className="relative flex cursor-pointer items-center justify-center rounded-full transition-transform hover:scale-[1.02]"
         >
-          ?
+          {ring}
         </button>
+      )}
+      <div className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-white/60">
+        {dc ? 'Site score' : 'Home score'} · {TREND_LABEL[state.score_trend]}
+        {!dc && (
+          <button
+            onClick={() => setExplain((v) => !v)}
+            aria-expanded={explain}
+            aria-label="What is the Home score?"
+            className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[11px] font-bold transition-colors ${
+              explain
+                ? 'border-white bg-white text-navy'
+                : 'border-white/40 text-white/70 hover:border-white hover:text-white'
+            }`}
+          >
+            ?
+          </button>
+        )}
       </div>
       {explain && <ScoreHint onClose={() => setExplain(false)} />}
       <Areas state={state} onRequested={onRequested} />
