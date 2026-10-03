@@ -6,6 +6,9 @@ WORKDIR /build
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend ./
+# frontend/.env is gitignored, so the deploy build must set the mode here —
+# otherwise the bundle defaults to mock fixtures and never calls /api.
+ENV VITE_API_MODE=live
 RUN npm run build
 
 FROM python:3.12-slim
