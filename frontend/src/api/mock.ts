@@ -22,7 +22,9 @@ let sim: { startedAt: number; targetId: string } | null = null
 
 async function mockFetch<T>(path: string): Promise<T> {
   const r = await fetch(`/mock/${path}.json`)
-  if (!r.ok) throw new Error(`mock ${r.status}: ${path}`)
+  // A missing public file comes back as the SPA's index.html with a 200.
+  if (!r.ok || !r.headers.get('content-type')?.includes('json'))
+    throw new Error(`mock fixture missing: ${path}`)
   return r.json() as Promise<T>
 }
 

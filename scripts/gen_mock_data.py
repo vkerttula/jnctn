@@ -19,7 +19,6 @@ Run from the repo root:  python scripts/gen_mock_data.py
 import csv
 import json
 import math
-import shutil
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -118,8 +117,18 @@ def ventilation_series(end: datetime) -> list[dict]:
     return points
 
 
+WRITTEN: set[Path] = set()
+
+
 def write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, separators=(",", ":")))
+    WRITTEN.add(path)
+
+
+def shift_to(points: list[dict], end: datetime) -> list[dict]:
+    # The zip-export RHT history stops in Sept; slide it so the demo is "live".
+    delta = end - points[-1]["t"]
+    return [{**p, "t": p["t"] + delta} for p in points]
 
 
 def write_series(sensor_id: str, points: list[dict]) -> None:
@@ -137,10 +146,10 @@ def write_series(sensor_id: str, points: list[dict]) -> None:
 
 
 def main() -> None:
-    # The mock dir is fully generated — rebuild it from scratch.
+    # Overwrite in place and prune stale files afterwards — deleting the dirs
+    # under a running Vite dev server makes it stop serving them.
     for sub in ("sensors", "series"):
-        shutil.rmtree(OUT / sub, ignore_errors=True)
-        (OUT / sub).mkdir(parents=True)
+        (OUT / sub).mkdir(parents=True, exist_ok=True)
 
     devices = {d["id"]: d for d in json.loads((DATA / "devices.json").read_text())}
     rhts = {s["sensor_id"]: s for s in json.loads((DATA / "sensors.json").read_text())}
@@ -153,28 +162,26 @@ def main() -> None:
     house_sensors = []
     for sid, name, kind, zone, source in DEVICES:
         src_kind, _, src_id = source.partition(":")
+        rpm = mold = None
         if src_kind == "rht":
-            lat = rhts[int(src_id)]["latest"]
-            latest = {
-                "temp_c": lat["temperature"]["value"],
-                "rh_pct": lat["relative_humidity"]["value"],
-                "mold_index": None,
-                "fan_rpm": None,
-            }
-            series = rht_series(int(src_id))
+            series = shift_to(rht_series(int(src_id)), updated)
         elif src_kind == "fan":
             lat = devices[src_id]["latest"]
-            val = lambda k: (lat.get(k) or {}).get("value")  # noqa: E731
-            latest = {
-                "temp_c": val("temperature_indoor"),
-                "rh_pct": val("relative_humidity_indoor"),
-                "mold_index": val("mold_index"),
-                "fan_rpm": val("fan_rpm") if kind == "fan" else None,
-            }
+            mold = (lat.get("mold_index") or {}).get("value")
+            if kind == "fan":
+                rpm = (lat.get("fan_rpm") or {}).get("value")
             series = fan_series(src_id)
         else:
-            latest = {"temp_c": 21.2, "rh_pct": 39.0, "mold_index": None, "fan_rpm": 1450}
+            rpm = 1450
             series = ventilation_series(updated)
+        # Callout values must match the chart's last point.
+        last = series[-1]
+        latest = {
+            "temp_c": last["temp_c"],
+            "rh_pct": last["rh_pct"],
+            "mold_index": mold,
+            "fan_rpm": rpm,
+        }
 
         base = {"id": sid, "name": name, "kind": kind, "zone": zone, "status": "ok"}
         house_sensors.append({**base, "primary": True, "latest": latest})
@@ -206,6 +213,9 @@ def main() -> None:
             "updated_at": iso(updated),
         },
     )
+    for sub in ("sensors", "series"):
+        for stale in set((OUT / sub).glob("*.json")) - WRITTEN:
+            stale.unlink()
     print(f"wrote {len(house_sensors)} devices, updated_at={iso(updated)}")
 
 

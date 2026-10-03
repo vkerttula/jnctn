@@ -39,27 +39,28 @@ function Latest({ detail }: { detail: SensorDetail }) {
 
 export default function SensorDetailPage() {
   const { id = '' } = useParams()
-  const [detail, setDetail] = useState<SensorDetail | null>(null)
   const [range, setRange] = useState<SeriesRange>('7d')
-  const [series, setSeries] = useState<SensorSeries | null>(null)
-  const [error, setError] = useState(false)
+  // Results are keyed by request so a stale sensor/range never renders.
+  const [loaded, setLoaded] = useState<SensorDetail | null>(null)
+  const [failedId, setFailedId] = useState<string>()
+  const [series, setSeries] = useState<{ key: string; data: SensorSeries | null }>()
+  const detail = loaded?.id === id ? loaded : null
+  const error = failedId === id
+  const current = series?.key === `${id}/${range}` ? series : undefined
 
   useEffect(() => {
     api
       .getSensor(id)
-      .then(setDetail)
-      .catch(() => setError(true))
+      .then(setLoaded)
+      .catch(() => setFailedId(id))
   }, [id])
 
   useEffect(() => {
-    let dead = false
+    const key = `${id}/${range}`
     api
       .getSeries(id, range)
-      .then((s) => !dead && setSeries(s))
-      .catch(() => !dead && setError(true))
-    return () => {
-      dead = true
-    }
+      .then((data) => setSeries({ key, data }))
+      .catch(() => setSeries({ key, data: null }))
   }, [id, range])
 
   return (
@@ -123,11 +124,11 @@ export default function SensorDetailPage() {
                   ))}
                 </div>
               </div>
-              {series && series.range === range ? (
-                <SensorChart series={series} />
+              {current?.data ? (
+                <SensorChart series={current.data} />
               ) : (
                 <div className="flex h-64 items-center justify-center text-sm text-muted">
-                  Loading trend…
+                  {current ? 'Trend data is not available right now.' : 'Loading trend…'}
                 </div>
               )}
             </section>
