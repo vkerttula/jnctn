@@ -1,0 +1,1 @@
+{"id":"roof-se","name":"South-east roof","kind":"leak_sensor","zone":"roof_south","status":"ok","status_text":"The roof structure here is dry \u2014 moisture is normal for the season.","latest":{"temp_c":17.38,"rh_pct":55.85,"mold_index":null,"fan_rpm":null},"updated_at":"2026-10-03T12:01:34Z"}

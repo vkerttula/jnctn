@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, type SensorDetail, type SensorSeries, type SeriesRange } from '../api'
 import SensorChart from '../components/SensorChart'
+import { KIND_LABEL, ZONE_LABEL } from '../labels'
 import { STATUS_COLOR } from '../theme'
 
 const RANGES: { id: SeriesRange; label: string }[] = [
@@ -9,15 +10,6 @@ const RANGES: { id: SeriesRange; label: string }[] = [
   { id: '7d', label: '7 days' },
   { id: '30d', label: '30 days' },
 ]
-
-const KIND_LABEL = { fan: 'Ventilation fan', leak_sensor: 'Humidity sensor' }
-const ZONE_LABEL: Record<string, string> = {
-  flat_roof: 'Flat roof',
-  green_roof: 'Green roof',
-  ridge: 'Roof ridge',
-  crawl_space: 'Crawl space',
-  wall: 'South wall',
-}
 
 function Latest({ detail }: { detail: SensorDetail }) {
   const { latest } = detail
