@@ -99,8 +99,14 @@ export default function ReportPage() {
                 </h2>
                 <span className="text-sm text-muted">{report.address}</span>
               </div>
-              <div className="rounded-xl bg-navy px-4 py-2.5">
-                <img src="/vilpe-logo.png" alt="VILPE" className="h-5 w-auto" />
+              <div className="flex items-center gap-3 rounded-xl bg-navy px-4 py-3">
+                <img src="/vilpe-logo.png" alt="VILPE" className="h-6 w-auto" />
+                <span className="h-6 w-px bg-white/25" aria-hidden />
+                <span className="font-display text-[11px] leading-tight font-semibold tracking-wide text-white/80">
+                  Peace of mind
+                  <br />
+                  for your home
+                </span>
               </div>
             </header>
 
