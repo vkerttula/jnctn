@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import type { HouseSensor } from '../api'
 import { useHouse } from '../hooks/useHouse'
-import { KIND_LABEL, ZONE_LABEL, keyValues } from '../labels'
+import { KIND_LABEL, ZONE_LABEL, keyValues, timeAgo } from '../labels'
 import { STATUS_COLOR } from '../theme'
 
 export default function SensorsPage() {
@@ -36,8 +36,13 @@ export default function SensorsPage() {
                       <span className="text-sm font-medium text-navy">{s.name}</span>
                       <span className="text-xs text-muted">{KIND_LABEL[s.kind]}</span>
                     </span>
-                    <span className="text-xs text-muted tabular-nums">
-                      {keyValues(s.latest).join(' · ')}
+                    <span className="flex flex-col items-end">
+                      <span className="text-xs text-navy/80 tabular-nums">
+                        {keyValues(s.latest).join(' · ')}
+                      </span>
+                      <span className="text-[11px] text-muted">
+                        {timeAgo(s.last_reading_at)}
+                      </span>
                     </span>
                     <span className="text-muted">→</span>
                   </Link>

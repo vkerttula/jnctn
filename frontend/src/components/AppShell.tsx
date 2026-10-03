@@ -10,24 +10,6 @@ const NAV = [
   { to: '/sensors', label: 'Sensors', end: false },
 ]
 
-function WeatherChip({
-  temp,
-  condition,
-  location,
-}: {
-  temp: number
-  condition: string
-  location: string
-}) {
-  return (
-    <div className="flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs text-white/70">
-      <span className="font-semibold text-white">{temp.toFixed(0)}°C</span>
-      <span>{condition}</span>
-      <span className="text-white/50">· {location}</span>
-    </div>
-  )
-}
-
 // Persistent app frame: navy rail with brand, nav and house status; the
 // routed view fills the rest of the viewport.
 export default function AppShell() {
@@ -76,13 +58,6 @@ export default function AppShell() {
         )}
 
         {state && <ScoreCard state={state} />}
-        {state && (
-          <WeatherChip
-            temp={state.weather.temp_c}
-            condition={state.weather.condition}
-            location={state.weather.location}
-          />
-        )}
         {state && <AttentionFeed items={state.attention} />}
 
         <div className="mt-auto flex flex-col gap-3 pt-4">

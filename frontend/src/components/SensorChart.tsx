@@ -8,21 +8,24 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import type { SeriesRange, SensorSeries } from '../api'
+import type { SeriesPoint, SeriesRange, SensorSeries } from '../api'
 
-type Row = { t: number; rh_pct: number | null; temp_c: number | null; mold_index: number | null }
+type Field = Exclude<keyof SeriesPoint, 't'>
+
+// Every reading a device may report; only the ones present in the series
+// are offered. Each gets its own (hidden) axis so scales don't fight.
+const LINES: { key: Field; label: string; color: string; unit: string; domain?: [number, number] }[] = [
+  { key: 'rh_pct', label: 'Humidity', color: '#004f9f', unit: '%', domain: [0, 100] },
+  { key: 'temp_c', label: 'Temperature', color: '#e3530f', unit: '°C' },
+  { key: 'fan_rpm', label: 'Fan speed', color: '#01273e', unit: ' rpm' },
+  { key: 'mold_index', label: 'Mold index', color: '#df0a15', unit: '' },
+]
 
 function tickFormat(range: SeriesRange) {
   return (t: number) =>
     range === '24h'
-      ? new Date(t).toLocaleTimeString('en-GB', {
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      : new Date(t).toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'short',
-        })
+      ? new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+      : new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
 function Toggle({
@@ -55,48 +58,52 @@ function Toggle({
 }
 
 export default function SensorChart({ series }: { series: SensorSeries }) {
-  const hasMold = series.points.some((p) => p.mold_index != null)
-  const [showTemp, setShowTemp] = useState(true)
-  const [showMold, setShowMold] = useState(hasMold)
+  const available = useMemo(
+    () => LINES.filter((l) => series.points.some((p) => p[l.key] != null)),
+    [series],
+  )
+  const [hidden, setHidden] = useState<Set<Field>>(new Set())
+  const shown = available.filter((l) => !hidden.has(l.key))
+  const axis = shown[0]
 
-  const rows: Row[] = useMemo(
-    () =>
-      series.points.map((p) => ({
-        t: Date.parse(p.t),
-        rh_pct: p.rh_pct,
-        temp_c: p.temp_c,
-        mold_index: p.mold_index,
-      })),
+  const rows = useMemo(
+    () => series.points.map((p) => ({ ...p, t: Date.parse(p.t) })),
     [series],
   )
 
+  const toggle = (key: Field) =>
+    setHidden((h) => {
+      const next = new Set(h)
+      if (next.has(key)) next.delete(key)
+      else if (shown.length > 1) next.add(key) // keep at least one line
+      return next
+    })
+
+  if (!available.length)
+    return (
+      <div className="flex h-64 items-center justify-center text-sm text-muted">
+        No readings in this period.
+      </div>
+    )
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Toggle
-          label="Humidity"
-          active
-          color="var(--color-sense)"
-          onClick={() => {}}
-        />
-        <Toggle
-          label="Temperature"
-          active={showTemp}
-          color="var(--color-vilpe-orange)"
-          onClick={() => setShowTemp((v) => !v)}
-        />
-        {hasMold && (
-          <Toggle
-            label="Mold index"
-            active={showMold}
-            color="var(--color-alert)"
-            onClick={() => setShowMold((v) => !v)}
-          />
-        )}
-      </div>
+      {available.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {available.map((l) => (
+            <Toggle
+              key={l.key}
+              label={l.label}
+              color={l.color}
+              active={!hidden.has(l.key)}
+              onClick={() => toggle(l.key)}
+            />
+          ))}
+        </div>
+      )}
       <div className="h-64 w-full">
         <ResponsiveContainer>
-          <LineChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: -14 }}>
+          <LineChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: -6 }}>
             <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" />
             <XAxis
               dataKey="t"
@@ -107,16 +114,18 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
               tick={{ fontSize: 11 }}
               minTickGap={48}
             />
-            <YAxis
-              yAxisId="rh"
-              domain={[0, 100]}
-              unit="%"
-              stroke="var(--color-muted)"
-              tick={{ fontSize: 11 }}
-              width={52}
-            />
-            <YAxis yAxisId="temp" orientation="right" hide />
-            <YAxis yAxisId="mold" orientation="right" hide />
+            {shown.map((l) => (
+              <YAxis
+                key={l.key}
+                yAxisId={l.key}
+                hide={l !== axis}
+                domain={l.domain ?? ['auto', 'auto']}
+                unit={l.unit}
+                stroke="var(--color-muted)"
+                tick={{ fontSize: 11 }}
+                width={60}
+              />
+            ))}
             <Tooltip
               contentStyle={{
                 background: '#fff',
@@ -126,40 +135,20 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
               }}
               labelFormatter={(t) => new Date(Number(t)).toLocaleString('en-GB')}
             />
-            <Line
-              yAxisId="rh"
-              dataKey="rh_pct"
-              name="Humidity %"
-              stroke="#004f9f"
-              strokeWidth={2}
-              type="monotone"
-              dot={false}
-              connectNulls
-            />
-            {showTemp && (
+            {shown.map((l) => (
               <Line
-                yAxisId="temp"
-                dataKey="temp_c"
-                name="Temp °C"
-                stroke="#e3530f"
-                strokeWidth={1.5}
+                key={l.key}
+                yAxisId={l.key}
+                dataKey={l.key}
+                name={l.label}
+                unit={l.unit}
+                stroke={l.color}
+                strokeWidth={l === axis ? 2 : 1.5}
                 type="monotone"
                 dot={false}
                 connectNulls
               />
-            )}
-            {hasMold && showMold && (
-              <Line
-                yAxisId="mold"
-                dataKey="mold_index"
-                name="Mold index"
-                stroke="#df0a15"
-                strokeWidth={1.5}
-                type="monotone"
-                dot={false}
-                connectNulls
-              />
-            )}
+            ))}
           </LineChart>
         </ResponsiveContainer>
       </div>

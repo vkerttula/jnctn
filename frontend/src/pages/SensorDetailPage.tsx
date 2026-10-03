@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, type SensorDetail, type SensorSeries, type SeriesRange } from '../api'
 import SensorChart from '../components/SensorChart'
-import { KIND_LABEL, ZONE_LABEL } from '../labels'
+import { useHouse } from '../hooks/useHouse'
+import { KIND_LABEL, ZONE_LABEL, formatDateTime, timeAgo } from '../labels'
 import { STATUS_COLOR } from '../theme'
 
 const RANGES: { id: SeriesRange; label: string }[] = [
@@ -39,6 +40,7 @@ function Latest({ detail }: { detail: SensorDetail }) {
 
 export default function SensorDetailPage() {
   const { id = '' } = useParams()
+  const { state } = useHouse()
   const [range, setRange] = useState<SeriesRange>('7d')
   // Results are keyed by request so a stale sensor/range never renders.
   const [loaded, setLoaded] = useState<SensorDetail | null>(null)
@@ -47,6 +49,7 @@ export default function SensorDetailPage() {
   const detail = loaded?.id === id ? loaded : null
   const error = failedId === id
   const current = series?.key === `${id}/${range}` ? series : undefined
+  const pair = state?.sensors.find((s) => s.id === detail?.works_with)
 
   useEffect(() => {
     api
@@ -99,6 +102,21 @@ export default function SensorDetailPage() {
               <p className="max-w-2xl text-base leading-relaxed text-navy/85">
                 {detail.status_text}
               </p>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-ok" />
+                  Last reading {formatDateTime(detail.last_reading_at)} ·{' '}
+                  {timeAgo(detail.last_reading_at)}
+                </span>
+                {pair && (
+                  <Link
+                    to={`/sensors/${pair.id}`}
+                    className="font-medium text-sense hover:underline"
+                  >
+                    Works together with {pair.name} →
+                  </Link>
+                )}
+              </div>
             </section>
 
             <Latest detail={detail} />

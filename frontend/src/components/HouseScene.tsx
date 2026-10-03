@@ -42,6 +42,7 @@ function onSlope(side: 'south' | 'north', x: number, d: number, lift = 0.03): Ve
 
 const FAN_BASE = onSlope('south', 0.9, 0.6, 0)
 const FAN_H = 0.75
+const CRAWL_FAN_X = -1.25 // between the front window and the door
 
 // Anchor slots per zone, filled in sensor order; each with a callout offset.
 const SLOTS: Record<Zone, { at: Vec3; callout: Vec3 }[]> = {
@@ -59,11 +60,10 @@ const SLOTS: Record<Zone, { at: Vec3; callout: Vec3 }[]> = {
       callout: [0.3, 0.7, 0.2],
     },
   ],
+  // the crawl space package: humidity sensor at the vent + the drying fan
   crawl_space: [
     { at: [-2.4, PLINTH / 2, D / 2 + 0.05], callout: [-0.7, 0.9, 1.2] },
-  ],
-  indoor: [
-    { at: [W / 2 + 0.12, EAVE_Y - 0.7, -1.0], callout: [1.3, 0.8, -0.3] },
+    { at: [CRAWL_FAN_X, PLINTH / 2 + 0.02, D / 2 + 0.25], callout: [0.6, 0.9, 1.2] },
   ],
 }
 
@@ -155,11 +155,21 @@ function HouseModel() {
         </mesh>
       </group>
 
-      {/* ventilation unit exhaust hood on the east gable */}
-      <mesh position={[W / 2 + 0.06, EAVE_Y - 0.7, -1.0]}>
-        <boxGeometry args={[0.12, 0.35, 0.35]} />
-        <meshStandardMaterial color={COLORS.metal} />
-      </mesh>
+      {/* crawl space fan: housing on the plinth, exhaust pipe up the wall */}
+      <group position={[CRAWL_FAN_X, 0, D / 2 + 0.13]}>
+        <mesh position={[0, PLINTH / 2 + 0.02, 0]}>
+          <boxGeometry args={[0.36, 0.36, 0.2]} />
+          <meshStandardMaterial color={COLORS.metal} />
+        </mesh>
+        <mesh position={[0, (PLINTH + EAVE_Y) / 2 + 0.05, -0.02]}>
+          <cylinderGeometry args={[0.065, 0.065, EAVE_Y - PLINTH - 0.2, 16]} />
+          <meshStandardMaterial color={COLORS.metal} />
+        </mesh>
+        <mesh position={[0, EAVE_Y - 0.12, -0.02]}>
+          <cylinderGeometry args={[0.11, 0.09, 0.12, 16]} />
+          <meshStandardMaterial color={COLORS.metal} />
+        </mesh>
+      </group>
 
       {/* windows + door */}
       <Window at={[-2.2, wallMid + 0.15, front]} size={[1.2, 1.1]} />
@@ -236,13 +246,21 @@ function SensorDot({
 
 const GAP = 8
 const MARGIN = 12
-const RELAX_STEPS = 8
+const RELAX_STEPS = 16
 
 type Placed = { sensor: HouseSensor; at: Vec3; out: Vec3 }
 type Els = Map<string, { card?: HTMLButtonElement | null; line?: SVGLineElement | null }>
 type Box = { id: string; ax: number; ay: number; x: number; y: number; w: number; h: number; front: boolean }
 
-function CalloutLayout({ placed, els }: { placed: Placed[]; els: RefObject<Els> }) {
+function CalloutLayout({
+  placed,
+  els,
+  insetTop,
+}: {
+  placed: Placed[]
+  els: RefObject<Els>
+  insetTop: number
+}) {
   const { camera, size } = useThree()
   const pos = useRef(new Map<string, { x: number; y: number }>())
   const v = useMemo(() => new Vector3(), [])
@@ -269,10 +287,10 @@ function CalloutLayout({ placed, els }: { placed: Placed[]; els: RefObject<Els> 
 
     const clamp = (b: Box) => {
       b.x = Math.min(Math.max(b.x, MARGIN), W - MARGIN - b.w)
-      b.y = Math.min(Math.max(b.y, MARGIN), H - MARGIN - b.h)
+      b.y = Math.min(Math.max(b.y, MARGIN + insetTop), H - MARGIN - b.h)
     }
     boxes.forEach(clamp)
-    // Push overlapping cards apart vertically; back-side cards yield first.
+    // Push overlapping cards apart until none collide.
     for (let step = 0; step < RELAX_STEPS; step++) {
       let moved = false
       for (let i = 0; i < boxes.length; i++) {
@@ -283,15 +301,37 @@ function CalloutLayout({ placed, els }: { placed: Placed[]; els: RefObject<Els> 
           const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) + GAP
           if (ox <= 0 || oy <= 0) continue
           moved = true
-          const [upper, lower] = a.y + a.h / 2 <= b.y + b.h / 2 ? [a, b] : [b, a]
-          const share = upper.front === lower.front ? 0.5 : upper.front ? 0 : 1
-          upper.y -= oy * share
-          lower.y += oy * (1 - share)
-          clamp(upper)
-          clamp(lower)
+          // Separate along the cheaper axis; a back-side card yields to a front one.
+          const horizontal = ox < oy
+          const ac = horizontal ? a.x + a.w / 2 : a.y + a.h / 2
+          const bc = horizontal ? b.x + b.w / 2 : b.y + b.h / 2
+          const [first, second] = ac <= bc ? [a, b] : [b, a]
+          const share = first.front === second.front ? 0.5 : first.front ? 0 : 1
+          const d = horizontal ? ox : oy
+          if (horizontal) {
+            first.x -= d * share
+            second.x += d * (1 - share)
+          } else {
+            first.y -= d * share
+            second.y += d * (1 - share)
+          }
+          clamp(first)
+          clamp(second)
         }
       }
       if (!moved) break
+    }
+
+    // Back-side cards that still collide are hidden until they rotate clear;
+    // front cards always win.
+    const overlaps = (a: Box, b: Box) =>
+      a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+    const shown: Box[] = boxes.filter((b) => b.front)
+    const visible = new Set(shown.map((b) => b.id))
+    for (const b of boxes.filter((b) => !b.front)) {
+      if (shown.some((o) => overlaps(b, o))) continue
+      shown.push(b)
+      visible.add(b.id)
     }
 
     for (const b of boxes) {
@@ -301,7 +341,8 @@ function CalloutLayout({ placed, els }: { placed: Placed[]; els: RefObject<Els> 
       const el = els.current.get(b.id)
       if (el?.card) {
         el.card.style.transform = `translate(${s.x}px, ${s.y}px)`
-        el.card.style.opacity = b.front ? '1' : '0.4'
+        el.card.style.opacity = b.front ? '1' : visible.has(b.id) ? '0.4' : '0'
+        el.card.style.pointerEvents = visible.has(b.id) ? 'auto' : 'none'
         el.card.style.zIndex = b.front ? '2' : '1'
       }
       if (el?.line) {
@@ -309,7 +350,7 @@ function CalloutLayout({ placed, els }: { placed: Placed[]; els: RefObject<Els> 
         el.line.setAttribute('y1', String(b.ay))
         el.line.setAttribute('x2', String(s.x + b.w / 2))
         el.line.setAttribute('y2', String(s.y + b.h))
-        el.line.style.opacity = b.front ? '0.45' : '0.15'
+        el.line.style.opacity = b.front ? '0.45' : visible.has(b.id) ? '0.15' : '0'
       }
     }
   })
@@ -356,9 +397,12 @@ function CalloutCard({
 
 export default function HouseScene({
   sensors,
+  insetTop = 0,
   onSelect,
 }: {
   sensors: HouseSensor[]
+  // px reserved at the top for overlays; callouts stay below it
+  insetTop?: number
   onSelect: (s: HouseSensor) => void
 }) {
   const [hovered, setHovered] = useState<string | null>(null)
@@ -384,7 +428,7 @@ export default function HouseScene({
 
   return (
     <div className="relative h-full w-full">
-      <Canvas camera={{ position: [10, 6.5, 12], fov: 34 }}>
+      <Canvas camera={{ position: [11.5, 8, 13.8], fov: 34 }}>
         <hemisphereLight args={['#ffffff', '#dfe5ea', 0.7]} />
         <directionalLight position={[8, 12, 6]} intensity={1.4} />
         <directionalLight position={[-6, 6, -8]} intensity={0.35} />
@@ -398,14 +442,14 @@ export default function HouseScene({
             onSelect={onSelect}
           />
         ))}
-        <CalloutLayout placed={placed} els={els} />
+        <CalloutLayout placed={placed} els={els} insetTop={insetTop} />
         <mesh rotation-x={-Math.PI / 2} position={[0, -0.01, 0]}>
           <circleGeometry args={[14, 64]} />
           <meshStandardMaterial color={COLORS.ground} />
         </mesh>
         <ContactShadows position={[0, 0, 0]} opacity={0.35} scale={20} blur={2.4} far={5} />
         <OrbitControls
-          target={[0, 2, 0]}
+          target={[0, 2.6, 0]}
           autoRotate={hovered === null}
           autoRotateSpeed={0.35}
           enableDamping

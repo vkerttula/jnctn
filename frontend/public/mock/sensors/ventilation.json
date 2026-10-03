@@ -1,1 +1,0 @@
-{"id":"ventilation","name":"Ventilation unit","kind":"ventilation_unit","zone":"indoor","status":"ok","status_text":"Indoor air is fresh and humidity is comfortable.","latest":{"temp_c":21.58,"rh_pct":40.91,"mold_index":null,"fan_rpm":1450},"updated_at":"2026-10-03T12:01:34Z"}
