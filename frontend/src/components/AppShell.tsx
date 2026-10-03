@@ -89,14 +89,14 @@ export default function AppShell() {
               </button>
             </div>
           )}
-          <Clock />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
+            <Clock />
             {apiMode === 'mock' &&
               (state?.simulating ? (
                 <button
                   onClick={() => demo('reset')}
                   disabled={busy}
-                  className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-50"
+                  className="rounded-full border border-watch/40 bg-watch/15 px-2.5 py-1 text-[11px] font-medium text-watch transition-colors hover:bg-watch/25 disabled:opacity-50"
                 >
                   Reset demo
                 </button>
@@ -104,16 +104,11 @@ export default function AppShell() {
                 <button
                   onClick={() => demo('leak')}
                   disabled={busy}
-                  className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/20 disabled:opacity-50"
+                  className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/70 transition-colors hover:bg-white/20 disabled:opacity-50"
                 >
                   Simulate leak
                 </button>
               ))}
-            {apiMode === 'mock' && state?.simulating && (
-              <span className="rounded-full bg-watch/20 px-3 py-1.5 text-xs font-semibold text-watch">
-                demo running
-              </span>
-            )}
             <span className="ml-auto flex gap-3">
               <Link
                 to="/status"

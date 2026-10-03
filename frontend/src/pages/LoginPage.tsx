@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { findByEmail, signIn, USERS } from '../auth'
+import type { User } from '../auth'
+import Spinner from '../components/Spinner'
 
 // Brand-styled login: navy panel with the VILPE lockup on the left, a sign-in
 // card on the right. Two preset demo accounts fill/skip the form — any
@@ -9,6 +11,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [pending, setPending] = useState<User | null>(null)
+
+  // Brief fake loading beat before the reload — makes the demo read like a
+  // real session starting instead of an instant page swap.
+  const begin = (user: User) => {
+    setPending(user)
+    window.setTimeout(() => signIn(user.id), 1400)
+  }
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -17,7 +27,7 @@ export default function LoginPage() {
       setError('Unknown email — try one of the demo accounts below.')
       return
     }
-    signIn(user.id)
+    begin(user)
   }
 
   return (
@@ -49,6 +59,20 @@ export default function LoginPage() {
 
       <div className="flex flex-1 items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-xl shadow-navy/10">
+          {pending ? (
+            <div className="flex flex-col items-center gap-4 py-12 text-center">
+              <Spinner />
+              <div>
+                <p className="font-display text-base font-semibold">
+                  Signing you in…
+                </p>
+                <p className="mt-1 text-xs text-muted">
+                  {pending.name} · {pending.home}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <>
           <h2 className="font-display text-xl font-semibold">Sign in</h2>
           <p className="mt-1 text-xs text-muted">
             Demo build — any password works for a known email.
@@ -93,7 +117,7 @@ export default function LoginPage() {
               <button
                 key={u.id}
                 type="button"
-                onClick={() => signIn(u.id)}
+                onClick={() => begin(u)}
                 className="flex w-full items-center gap-3 rounded-2xl border border-line px-4 py-3 text-left transition-colors hover:border-navy/30 hover:bg-mist"
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-xs font-semibold text-white">
@@ -119,6 +143,8 @@ export default function LoginPage() {
               </button>
             ))}
           </div>
+            </>
+          )}
         </div>
       </div>
     </div>

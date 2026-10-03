@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate mock API fixtures for the frontend from the VILPE dataset.
 
-The demo home is a detached house at Yliopistonranta 1, Vaasa: four moisture
+The demo home is a detached house at Mäntytie 8, Tampere: four moisture
 sensors in the roof (two per slope), a roof fan on the ridge, and the crawl
 space package — a humidity sensor plus the fan that dries the crawl space.
 Every device is backed by a real VILPE Sense series from data/.
@@ -260,8 +260,8 @@ def write_report() -> None:
             "id": "VS-2026-SAMPLE-0001",
             "issued": "2026-10-03",
             "period": {"from": "2021-11-01", "to": "2026-09-30"},
-            "property": "Detached house, Vaasa",
-            "address": "Yliopistonranta 1, Vaasa",
+            "property": "Detached house, Tampere",
+            "address": "Mäntytie 8, Tampere",
             "building": "2019 · timber frame, 1½ storeys",
             "sensors": "Roof · crawl space",
             "verified": "2021–2026",
@@ -300,7 +300,7 @@ def write_report() -> None:
             "measurements": 512000,
             "interval": "every 10 min",
             "data_gaps": "1 · power cut, Jan 2023",
-            "weather_context": "FMI · Vaasa",
+            "weather_context": "FMI · Tampere",
             "last_sensor_check": "2026-09",
         },
     )
@@ -349,7 +349,7 @@ def main() -> None:
     write_json(
         OUT / "house.json",
         {
-            "home": {"address": "Yliopistonranta 1", "city": "Vaasa"},
+            "home": {"address": "Mäntytie 8", "city": "Tampere"},
             "score": 86,
             "score_word": "Good",
             "score_trend": "stable",
@@ -373,7 +373,7 @@ def main() -> None:
                 "humidity_pct": 87,
                 "wind_ms": 4.2,
                 "rain_chance_pct": 40,
-                "location": "Vaasa",
+                "location": "Tampere",
             },
             "attention": [],
             "sensors": house_sensors,
