@@ -1,0 +1,158 @@
+{
+  "home": {
+    "address": "DC Helsinki 1",
+    "city": "Espoo"
+  },
+  "score": 82,
+  "score_word": "Good",
+  "score_trend": "stable",
+  "areas": [
+    {
+      "id": "roof",
+      "name": "Roof plant",
+      "status": "watch"
+    }
+  ],
+  "score_factors": [
+    {
+      "code": "RH_TREND",
+      "severity": "watch",
+      "location": "roof sensor NW",
+      "detail": {
+        "rh_pct": 78.2
+      }
+    }
+  ],
+  "headline": "All systems operating normally",
+  "summary": "Ventilation and roof conditions are within normal parameters. Humidity at one roof sensor is trending slightly high \u2014 monitoring continues.",
+  "recommendations": [
+    "No action required \u2014 continuous monitoring is active."
+  ],
+  "narrative_source": "fallback",
+  "weather": {
+    "temp_c": 8.6,
+    "condition": "Overcast",
+    "humidity_pct": 87,
+    "wind_ms": 4.2,
+    "rain_chance_pct": 40,
+    "location": "Espoo"
+  },
+  "attention": [
+    {
+      "sensor_id": "roof-nw",
+      "severity": "watch",
+      "message": "Humidity at roof sensor NW is trending above the rest of the roof. No action needed yet \u2014 we are monitoring it.",
+      "since": "2026-10-03T12:01:34Z",
+      "actions": [
+        "expert"
+      ]
+    }
+  ],
+  "sensors": [
+    {
+      "id": "roof-sw",
+      "name": "Roof sensor SW",
+      "kind": "leak_sensor",
+      "zone": "roof_south",
+      "status": "ok",
+      "works_with": null,
+      "state_label": null,
+      "latest": {
+        "temp_c": 21.54,
+        "rh_pct": 62.09,
+        "fan_rpm": null,
+        "mold_index": null
+      },
+      "last_reading_at": "2026-10-03T12:01:34Z",
+      "primary": true
+    },
+    {
+      "id": "roof-se",
+      "name": "Roof sensor SE",
+      "kind": "leak_sensor",
+      "zone": "roof_south",
+      "status": "ok",
+      "works_with": null,
+      "state_label": null,
+      "latest": {
+        "temp_c": 16.79,
+        "rh_pct": 68.79,
+        "fan_rpm": null,
+        "mold_index": null
+      },
+      "last_reading_at": "2026-10-03T12:01:34Z",
+      "primary": true
+    },
+    {
+      "id": "roof-nw",
+      "name": "Roof sensor NW",
+      "kind": "leak_sensor",
+      "zone": "roof_north",
+      "status": "watch",
+      "works_with": null,
+      "state_label": null,
+      "latest": {
+        "temp_c": 20.9,
+        "rh_pct": 78.2,
+        "fan_rpm": null,
+        "mold_index": null
+      },
+      "last_reading_at": "2026-10-03T12:01:34Z",
+      "primary": true
+    },
+    {
+      "id": "roof-ne",
+      "name": "Roof sensor NE",
+      "kind": "leak_sensor",
+      "zone": "roof_north",
+      "status": "ok",
+      "works_with": null,
+      "state_label": null,
+      "latest": {
+        "temp_c": 20.96,
+        "rh_pct": 66.31,
+        "fan_rpm": null,
+        "mold_index": null
+      },
+      "last_reading_at": "2026-10-03T12:01:34Z",
+      "primary": true
+    },
+    {
+      "id": "roof-fan",
+      "name": "Roof exhaust fan A",
+      "kind": "fan",
+      "zone": "ridge",
+      "status": "ok",
+      "works_with": null,
+      "state_label": "Running",
+      "latest": {
+        "temp_c": 15.9,
+        "rh_pct": 76.1,
+        "fan_rpm": 1830.0,
+        "mold_index": 0.00213
+      },
+      "last_reading_at": "2026-10-03T11:27:54Z",
+      "primary": true
+    },
+    {
+      "id": "roof-fan-b",
+      "name": "Roof exhaust fan B",
+      "kind": "fan",
+      "zone": "ridge",
+      "status": "ok",
+      "works_with": null,
+      "state_label": "Running",
+      "latest": {
+        "temp_c": 15.9,
+        "rh_pct": 76.1,
+        "fan_rpm": 1830.0,
+        "mold_index": 0.00213
+      },
+      "last_reading_at": "2026-10-03T11:27:54Z",
+      "primary": true
+    }
+  ],
+  "open_requests": [],
+  "simulating": false,
+  "updated_at": "2026-10-03T12:01:34Z"
+}

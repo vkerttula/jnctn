@@ -7,28 +7,29 @@ import { calloutValues } from '../labels'
 import { STATUS_COLOR } from '../theme'
 
 type Vec3 = [number, number, number]
+type Slot = { at: Vec3; callout: Vec3 }
+type Slots = Partial<Record<Zone, Slot[]>>
 
 // --- Detached house geometry (+x east, +z south) ---------------------------
 // One-storey house on a crawl-space plinth with a 30° gable roof. The
 // onboarding generator will later derive this from the house profile.
-const W = 7 // length along x
-const D = 5 // depth along z
+const HW = 7 // length along x
+const HD = 5 // depth along z
 const PLINTH = 0.55
 const EAVE_Y = PLINTH + 2.5
 const PITCH = Math.PI / 6
-const RISE = (D / 2) * Math.tan(PITCH)
+const RISE = (HD / 2) * Math.tan(PITCH)
 const RIDGE_Y = EAVE_Y + RISE
-const ROOF_T = 0.14
-const ROOF_LEN = (D / 2 + 0.4) / Math.cos(PITCH)
+const HOUSE_ROOF_T = 0.14
+const HOUSE_ROOF_LEN = (HD / 2 + 0.4) / Math.cos(PITCH)
 
-const COLORS = {
+const HOUSE_COLORS = {
   wall: '#f7f5f0',
   roof: '#3b4248',
   plinth: '#c7cacc',
   glass: '#7d93a6',
   door: '#01273e',
   metal: '#2f353a',
-  ground: '#e9edf0',
 }
 
 // Point on a roof slope, `d` metres down from the ridge, just above the skin.
@@ -36,7 +37,7 @@ function onSlope(side: 'south' | 'north', x: number, d: number, lift = 0.03): Ve
   const s = side === 'south' ? 1 : -1
   const sin = Math.sin(PITCH)
   const cos = Math.cos(PITCH)
-  const n = ROOF_T + lift
+  const n = HOUSE_ROOF_T + lift
   return [x, RIDGE_Y - sin * d + cos * n, s * (cos * d + sin * n)]
 }
 
@@ -45,7 +46,7 @@ const FAN_H = 0.75
 const CRAWL_FAN_X = -1.25 // between the front window and the door
 
 // Anchor slots per zone, filled in sensor order; each with a callout offset.
-const SLOTS: Record<Zone, { at: Vec3; callout: Vec3 }[]> = {
+const HOUSE_SLOTS: Slots = {
   roof_south: [
     { at: onSlope('south', -1.9, 1.7), callout: [-0.4, 0.95, 0.7] },
     { at: onSlope('south', 1.9, 1.7), callout: [0.4, 0.95, 0.7] },
@@ -62,18 +63,258 @@ const SLOTS: Record<Zone, { at: Vec3; callout: Vec3 }[]> = {
   ],
   // the crawl space package: humidity sensor at the vent + the drying fan
   crawl_space: [
-    { at: [-2.4, PLINTH / 2, D / 2 + 0.05], callout: [-0.7, 0.9, 1.2] },
-    { at: [CRAWL_FAN_X, PLINTH / 2 + 0.02, D / 2 + 0.25], callout: [0.6, 0.9, 1.2] },
+    { at: [-2.4, PLINTH / 2, HD / 2 + 0.05], callout: [-0.7, 0.9, 1.2] },
+    { at: [CRAWL_FAN_X, PLINTH / 2 + 0.02, HD / 2 + 0.25], callout: [0.6, 0.9, 1.2] },
   ],
 }
 
+// --- Data centre geometry ---------------------------------------------------
+// Flat-roofed facility for the enterprise demo: a main hall and a second hall
+// behind it plus a glazed office annex. The roofs carry only VILPE
+// huippuimuri exhaust fans and the sensor dots themselves.
+const W = 10 // main hall length along x
+const D = 7 // main hall depth along z
+const HALL_H = 3.4
+const ROOF_T = 0.22
+const ROOF_Y = HALL_H + ROOF_T
+const PARAPET = 0.34
+
+const H2 = { x: -1.5, z: -6.4, w: 8, h: 3.0, d: 4 } // second hall, behind
+const ANNEX = { x: 6.9, z: 2.0, w: 3.4, h: 2.6, d: 3.2 } // office annex, front right
+
+// the two huippuimurit that carry the fan sensor dots
+const DC_FANS: Vec3[] = [
+  [-2.0, ROOF_Y, -0.2],
+  [1.0, ROOF_Y, 0.4],
+]
+const DC_FAN_H = 1.3
+
+const COLORS = {
+  wall: '#dde1e4',
+  wall2: '#ccd1d5',
+  roof: '#3b4248',
+  plinth: '#b6bcc0',
+  glass: '#5f7d94',
+  door: '#01273e',
+  metal: '#2f353a',
+  louver: '#4c555d',
+  ground: '#e9edf0',
+  apron: '#cfd5d9',
+}
+
+const DC_SLOTS: Slots = {
+  roof_south: [
+    { at: [-2.6, ROOF_Y + 0.12, 2.0], callout: [-0.5, 1.0, 1.0] },
+    { at: [2.6, ROOF_Y + 0.12, 2.0], callout: [0.5, 1.0, 1.0] },
+  ],
+  roof_north: [
+    { at: [-2.6, ROOF_Y + 0.12, -2.3], callout: [-0.5, 1.0, -1.0] },
+    { at: [2.6, ROOF_Y + 0.12, -2.3], callout: [0.5, 1.0, -1.0] },
+  ],
+  // on top of the two big exhaust fans
+  ridge: DC_FANS.map(([x, , z]) => ({
+    at: [x, ROOF_Y + DC_FAN_H + 0.32, z] as Vec3,
+    callout: [x < 0 ? -0.55 : 0.55, 0.8, z < 0 ? -0.4 : 0.4] as Vec3,
+  })),
+}
+
 // --- Model ------------------------------------------------------------------
+
+function Parapet({ w, d, y }: { w: number; d: number; y: number }) {
+  const t = 0.14
+  return (
+    <group>
+      <mesh position={[0, y, d / 2 - t / 2]}>
+        <boxGeometry args={[w + 0.3, PARAPET, t]} />
+        <meshStandardMaterial color={COLORS.roof} />
+      </mesh>
+      <mesh position={[0, y, -d / 2 + t / 2]}>
+        <boxGeometry args={[w + 0.3, PARAPET, t]} />
+        <meshStandardMaterial color={COLORS.roof} />
+      </mesh>
+      <mesh position={[w / 2 - t / 2, y, 0]}>
+        <boxGeometry args={[t, PARAPET, d + 0.3]} />
+        <meshStandardMaterial color={COLORS.roof} />
+      </mesh>
+      <mesh position={[-w / 2 + t / 2, y, 0]}>
+        <boxGeometry args={[t, PARAPET, d + 0.3]} />
+        <meshStandardMaterial color={COLORS.roof} />
+      </mesh>
+    </group>
+  )
+}
+
+// A flat-roofed hall: walls, roof slab, parapet and a base strip.
+function Hall({ x, z, w, d, h, color }: { x: number; z: number; w: number; d: number; h: number; color: string }) {
+  const roofY = h + ROOF_T
+  return (
+    <group position={[x, 0, z]}>
+      <mesh position={[0, h / 2, 0]}>
+        <boxGeometry args={[w, h, d]} />
+        <meshStandardMaterial color={color} roughness={0.85} />
+      </mesh>
+      <mesh position={[0, h + ROOF_T / 2, 0]}>
+        <boxGeometry args={[w + 0.3, ROOF_T, d + 0.3]} />
+        <meshStandardMaterial color={COLORS.roof} roughness={0.75} />
+      </mesh>
+      <Parapet w={w} d={d} y={roofY + PARAPET / 2 - 0.04} />
+      <mesh position={[0, 0.25, 0]}>
+        <boxGeometry args={[w + 0.16, 0.5, d + 0.16]} />
+        <meshStandardMaterial color={COLORS.plinth} />
+      </mesh>
+    </group>
+  )
+}
+
+// Exhaust chimney (VILPE-style roof fan).
+function Chimney({ at, h = 0.85 }: { at: Vec3; h?: number }) {
+  return (
+    <group position={at}>
+      <mesh position={[0, h / 2, 0]}>
+        <cylinderGeometry args={[0.16, 0.19, h, 16]} />
+        <meshStandardMaterial color={COLORS.metal} />
+      </mesh>
+      <mesh position={[0, h + 0.05, 0]}>
+        <cylinderGeometry args={[0.27, 0.27, 0.12, 16]} />
+        <meshStandardMaterial color={COLORS.metal} />
+      </mesh>
+    </group>
+  )
+}
+
+// Big huippuimuri exhaust fan — carries a fan sensor dot on top.
+function RoofFan({ at }: { at: Vec3 }) {
+  return (
+    <group position={at}>
+      <mesh position={[0, DC_FAN_H / 2, 0]}>
+        <cylinderGeometry args={[0.3, 0.36, DC_FAN_H, 20]} />
+        <meshStandardMaterial color={COLORS.metal} />
+      </mesh>
+      <mesh position={[0, DC_FAN_H + 0.07, 0]}>
+        <cylinderGeometry args={[0.55, 0.55, 0.14, 20]} />
+        <meshStandardMaterial color={COLORS.metal} />
+      </mesh>
+      <mesh position={[0, DC_FAN_H + 0.2, 0]}>
+        <cylinderGeometry args={[0.14, 0.2, 0.14, 16]} />
+        <meshStandardMaterial color={COLORS.metal} />
+      </mesh>
+    </group>
+  )
+}
+
+function DataCenterModel() {
+  return (
+    <group>
+      {/* concrete apron under the whole site */}
+      <mesh position={[0, 0.03, -1.5]}>
+        <boxGeometry args={[18, 0.06, 15]} />
+        <meshStandardMaterial color={COLORS.apron} roughness={1} />
+      </mesh>
+
+      {/* halls */}
+      <Hall x={0} z={0} w={W} d={D} h={HALL_H} color={COLORS.wall} />
+      <Hall x={H2.x} z={H2.z} w={H2.w} d={H2.d} h={H2.h} color={COLORS.wall2} />
+
+      {/* rear hall exhaust fans */}
+      {[-3, -1, 1, 3].map((dx) => (
+        <Chimney key={dx} at={[H2.x + dx, H2.h + ROOF_T, H2.z - 0.6]} h={0.7} />
+      ))}
+      {[-2, 2].map((dx) => (
+        <Chimney key={dx} at={[H2.x + dx, H2.h + ROOF_T, H2.z + 1.2]} h={0.7} />
+      ))}
+
+      {/* huippuimurit carrying the fan sensors */}
+      {DC_FANS.map((at) => (
+        <RoofFan key={at.join(',')} at={at} />
+      ))}
+
+      {/* smaller exhaust chimneys across the roof */}
+      {[-4, -2, 0, 2, 4].map((x) => (
+        <Chimney key={`s${x}`} at={[x, ROOF_Y, 2.95]} />
+      ))}
+      {[-3.5, -1.5, 0.5, 2.5].map((x) => (
+        <Chimney key={`n${x}`} at={[x, ROOF_Y, -2.95]} h={0.7} />
+      ))}
+      {[
+        [4.1, 0.6],
+        [-4.2, 0.9],
+      ].map(([x, z]) => (
+        <Chimney key={`m${x}`} at={[x, ROOF_Y, z]} h={0.75} />
+      ))}
+
+      {/* intake louvers on the south wall */}
+      {[-3.1, 0, 3.1].map((x) => (
+        <mesh key={x} position={[x, 1.5, D / 2 + 0.04]}>
+          <boxGeometry args={[2.4, 1.9, 0.08]} />
+          <meshStandardMaterial color={COLORS.louver} roughness={0.85} />
+        </mesh>
+      ))}
+
+      {/* glazed office annex */}
+      <group position={[ANNEX.x, 0, ANNEX.z]}>
+        <mesh position={[0, ANNEX.h / 2, 0]}>
+          <boxGeometry args={[ANNEX.w, ANNEX.h, ANNEX.d]} />
+          <meshStandardMaterial color={COLORS.wall} roughness={0.85} />
+        </mesh>
+        <mesh position={[0, ANNEX.h + 0.1, 0]}>
+          <boxGeometry args={[ANNEX.w + 0.2, 0.2, ANNEX.d + 0.2]} />
+          <meshStandardMaterial color={COLORS.roof} roughness={0.75} />
+        </mesh>
+        <mesh position={[0, 1.55, ANNEX.d / 2 + 0.03]}>
+          <boxGeometry args={[ANNEX.w - 0.6, 1.3, 0.06]} />
+          <meshStandardMaterial color={COLORS.glass} roughness={0.25} metalness={0.2} />
+        </mesh>
+        <mesh position={[-ANNEX.w / 2 - 0.03, 1.55, 0]} rotation-y={Math.PI / 2}>
+          <boxGeometry args={[ANNEX.d - 0.6, 1.3, 0.06]} />
+          <meshStandardMaterial color={COLORS.glass} roughness={0.25} metalness={0.2} />
+        </mesh>
+        <mesh position={[0.8, 0.75, ANNEX.d / 2 + 0.04]}>
+          <boxGeometry args={[0.8, 1.5, 0.07]} />
+          <meshStandardMaterial color={COLORS.door} />
+        </mesh>
+        <mesh position={[0.8, 1.62, ANNEX.d / 2 + 0.2]}>
+          <boxGeometry args={[1.2, 0.08, 0.5]} />
+          <meshStandardMaterial color={COLORS.metal} />
+        </mesh>
+      </group>
+
+      {/* site lighting */}
+      {[
+        [-6.2, 4.6],
+        [2.5, 5.2],
+      ].map(([x, z]) => (
+        <group key={x} position={[x, 0, z]}>
+          <mesh position={[0, 1.5, 0]}>
+            <cylinderGeometry args={[0.035, 0.05, 3, 8]} />
+            <meshStandardMaterial color={COLORS.metal} />
+          </mesh>
+          <mesh position={[0.18, 2.95, 0]}>
+            <boxGeometry args={[0.45, 0.08, 0.16]} />
+            <meshStandardMaterial color={COLORS.metal} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* site sign pylon */}
+      <group position={[6.9, 0, 4.9]}>
+        <mesh position={[0, 0.9, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 1.8, 8]} />
+          <meshStandardMaterial color={COLORS.metal} />
+        </mesh>
+        <mesh position={[0, 1.7, 0]}>
+          <boxGeometry args={[1.1, 0.7, 0.08]} />
+          <meshStandardMaterial color={COLORS.door} roughness={0.6} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
 
 function Window({ at, size, rotY = 0 }: { at: Vec3; size: [number, number]; rotY?: number }) {
   return (
     <mesh position={at} rotation-y={rotY}>
       <boxGeometry args={[size[0], size[1], 0.05]} />
-      <meshStandardMaterial color={COLORS.glass} roughness={0.25} metalness={0.2} />
+      <meshStandardMaterial color={HOUSE_COLORS.glass} roughness={0.25} metalness={0.2} />
     </mesh>
   )
 }
@@ -81,60 +322,60 @@ function Window({ at, size, rotY = 0 }: { at: Vec3; size: [number, number]; rotY
 function HouseModel() {
   const gable = useMemo(() => {
     const s = new Shape()
-    s.moveTo(-D / 2, 0)
-    s.lineTo(D / 2, 0)
+    s.moveTo(-HD / 2, 0)
+    s.lineTo(HD / 2, 0)
     s.lineTo(0, RISE)
     s.closePath()
-    return new ExtrudeGeometry(s, { depth: W, bevelEnabled: false })
+    return new ExtrudeGeometry(s, { depth: HW, bevelEnabled: false })
   }, [])
 
   const slopeCenter = (side: 'south' | 'north'): Vec3 => {
     const s = side === 'south' ? 1 : -1
     const sin = Math.sin(PITCH)
     const cos = Math.cos(PITCH)
-    const h = ROOF_LEN / 2
-    return [0, RIDGE_Y - sin * h + (cos * ROOF_T) / 2, s * (cos * h + (sin * ROOF_T) / 2)]
+    const h = HOUSE_ROOF_LEN / 2
+    return [0, RIDGE_Y - sin * h + (cos * HOUSE_ROOF_T) / 2, s * (cos * h + (sin * HOUSE_ROOF_T) / 2)]
   }
 
   const wallMid = PLINTH + 1.25
-  const front = D / 2 + 0.01
-  const back = -D / 2 - 0.01
+  const front = HD / 2 + 0.01
+  const back = -HD / 2 - 0.01
 
   return (
     <group>
       {/* crawl-space plinth with vents */}
       <mesh position={[0, PLINTH / 2, 0]}>
-        <boxGeometry args={[W + 0.1, PLINTH, D + 0.1]} />
-        <meshStandardMaterial color={COLORS.plinth} />
+        <boxGeometry args={[HW + 0.1, PLINTH, HD + 0.1]} />
+        <meshStandardMaterial color={HOUSE_COLORS.plinth} />
       </mesh>
       {[-2.4, 2.4].map((x) => (
-        <mesh key={x} position={[x, PLINTH / 2, D / 2 + 0.06]}>
+        <mesh key={x} position={[x, PLINTH / 2, HD / 2 + 0.06]}>
           <boxGeometry args={[0.45, 0.16, 0.03]} />
-          <meshStandardMaterial color={COLORS.metal} />
+          <meshStandardMaterial color={HOUSE_COLORS.metal} />
         </mesh>
       ))}
 
       {/* walls + gable attic */}
       <mesh position={[0, PLINTH + 1.25, 0]}>
-        <boxGeometry args={[W, 2.5, D]} />
-        <meshStandardMaterial color={COLORS.wall} />
+        <boxGeometry args={[HW, 2.5, HD]} />
+        <meshStandardMaterial color={HOUSE_COLORS.wall} />
       </mesh>
-      <mesh geometry={gable} position={[-W / 2, EAVE_Y, 0]} rotation-y={Math.PI / 2}>
-        <meshStandardMaterial color={COLORS.wall} />
+      <mesh geometry={gable} position={[-HW / 2, EAVE_Y, 0]} rotation-y={Math.PI / 2}>
+        <meshStandardMaterial color={HOUSE_COLORS.wall} />
       </mesh>
 
       {/* roof slopes + ridge cap */}
       <mesh position={slopeCenter('south')} rotation-x={PITCH}>
-        <boxGeometry args={[W + 0.6, ROOF_T, ROOF_LEN]} />
-        <meshStandardMaterial color={COLORS.roof} roughness={0.7} />
+        <boxGeometry args={[HW + 0.6, HOUSE_ROOF_T, HOUSE_ROOF_LEN]} />
+        <meshStandardMaterial color={HOUSE_COLORS.roof} roughness={0.7} />
       </mesh>
       <mesh position={slopeCenter('north')} rotation-x={-PITCH}>
-        <boxGeometry args={[W + 0.6, ROOF_T, ROOF_LEN]} />
-        <meshStandardMaterial color={COLORS.roof} roughness={0.7} />
+        <boxGeometry args={[HW + 0.6, HOUSE_ROOF_T, HOUSE_ROOF_LEN]} />
+        <meshStandardMaterial color={HOUSE_COLORS.roof} roughness={0.7} />
       </mesh>
-      <mesh position={[0, RIDGE_Y + ROOF_T, 0]} rotation-z={Math.PI / 2}>
-        <cylinderGeometry args={[0.07, 0.07, W + 0.6, 12]} />
-        <meshStandardMaterial color={COLORS.roof} />
+      <mesh position={[0, RIDGE_Y + HOUSE_ROOF_T, 0]} rotation-z={Math.PI / 2}>
+        <cylinderGeometry args={[0.07, 0.07, HW + 0.6, 12]} />
+        <meshStandardMaterial color={HOUSE_COLORS.roof} />
       </mesh>
 
       {/* chimney */}
@@ -147,27 +388,27 @@ function HouseModel() {
       <group position={FAN_BASE}>
         <mesh position={[0, FAN_H / 2, 0]}>
           <cylinderGeometry args={[0.15, 0.17, FAN_H, 24]} />
-          <meshStandardMaterial color={COLORS.metal} />
+          <meshStandardMaterial color={HOUSE_COLORS.metal} />
         </mesh>
         <mesh position={[0, FAN_H, 0]}>
           <cylinderGeometry args={[0.24, 0.24, 0.12, 24]} />
-          <meshStandardMaterial color={COLORS.metal} />
+          <meshStandardMaterial color={HOUSE_COLORS.metal} />
         </mesh>
       </group>
 
       {/* crawl space fan: housing on the plinth, exhaust pipe up the wall */}
-      <group position={[CRAWL_FAN_X, 0, D / 2 + 0.13]}>
+      <group position={[CRAWL_FAN_X, 0, HD / 2 + 0.13]}>
         <mesh position={[0, PLINTH / 2 + 0.02, 0]}>
           <boxGeometry args={[0.36, 0.36, 0.2]} />
-          <meshStandardMaterial color={COLORS.metal} />
+          <meshStandardMaterial color={HOUSE_COLORS.metal} />
         </mesh>
         <mesh position={[0, (PLINTH + EAVE_Y) / 2 + 0.05, -0.02]}>
           <cylinderGeometry args={[0.065, 0.065, EAVE_Y - PLINTH - 0.2, 16]} />
-          <meshStandardMaterial color={COLORS.metal} />
+          <meshStandardMaterial color={HOUSE_COLORS.metal} />
         </mesh>
         <mesh position={[0, EAVE_Y - 0.12, -0.02]}>
           <cylinderGeometry args={[0.11, 0.09, 0.12, 16]} />
-          <meshStandardMaterial color={COLORS.metal} />
+          <meshStandardMaterial color={HOUSE_COLORS.metal} />
         </mesh>
       </group>
 
@@ -176,12 +417,12 @@ function HouseModel() {
       <Window at={[1.7, wallMid + 0.15, front]} size={[1.6, 1.1]} />
       <mesh position={[-0.4, PLINTH + 0.95, front]}>
         <boxGeometry args={[0.95, 1.9, 0.06]} />
-        <meshStandardMaterial color={COLORS.door} />
+        <meshStandardMaterial color={HOUSE_COLORS.door} />
       </mesh>
       <Window at={[-1.6, wallMid + 0.15, back]} size={[1.2, 1.1]} />
       <Window at={[1.9, wallMid + 0.15, back]} size={[1.2, 1.1]} />
-      <Window at={[-W / 2 - 0.01, wallMid + 0.15, 0.4]} size={[1.1, 1.1]} rotY={Math.PI / 2} />
-      <Window at={[W / 2 + 0.01, wallMid + 0.15, 0.9]} size={[1.1, 1.1]} rotY={Math.PI / 2} />
+      <Window at={[-HW / 2 - 0.01, wallMid + 0.15, 0.4]} size={[1.1, 1.1]} rotY={Math.PI / 2} />
+      <Window at={[HW / 2 + 0.01, wallMid + 0.15, 0.9]} size={[1.1, 1.1]} rotY={Math.PI / 2} />
     </group>
   )
 }
@@ -397,30 +638,37 @@ function CalloutCard({
   )
 }
 
+export type SceneVariant = 'house' | 'datacenter'
+
 export default function HouseScene({
   sensors,
+  variant = 'house',
   insetTop = 0,
   onSelect,
 }: {
   sensors: HouseSensor[]
+  // which building model + sensor layout to draw
+  variant?: SceneVariant
   // px reserved at the top for overlays; callouts stay below it
   insetTop?: number
   onSelect: (s: HouseSensor) => void
 }) {
   const [hovered, setHovered] = useState<string | null>(null)
   const els = useRef<Els>(new Map())
+  const dc = variant === 'datacenter'
+  const slots = dc ? DC_SLOTS : HOUSE_SLOTS
 
   const placed = useMemo(() => {
     const used: Partial<Record<Zone, number>> = {}
     return sensors.flatMap((s) => {
-      const slots = SLOTS[s.zone]
-      if (!s.primary || !slots?.length) return []
+      const zoneSlots = slots[s.zone]
+      if (!s.primary || !zoneSlots?.length) return []
       const i = used[s.zone] ?? 0
       used[s.zone] = i + 1
-      const slot = slots[i % slots.length]
+      const slot = zoneSlots[i % zoneSlots.length]
       return [{ sensor: s, at: slot.at, out: slot.callout }]
     })
-  }, [sensors])
+  }, [sensors, slots])
 
   const register = (id: string, key: 'card' | 'line') => (el: HTMLButtonElement | SVGGElement | null) => {
     const entry = els.current.get(id) ?? {}
@@ -430,11 +678,11 @@ export default function HouseScene({
 
   return (
     <div className="relative h-full w-full">
-      <Canvas camera={{ position: [13.5, 9.4, 16.2], fov: 34 }}>
+      <Canvas camera={{ position: dc ? [15, 10.5, 17] : [13.5, 9.4, 16.2], fov: 34 }}>
         <hemisphereLight args={['#ffffff', '#dfe5ea', 0.7]} />
         <directionalLight position={[8, 12, 6]} intensity={1.4} />
         <directionalLight position={[-6, 6, -8]} intensity={0.35} />
-        <HouseModel />
+        {dc ? <DataCenterModel /> : <HouseModel />}
         {placed.map(({ sensor, at }) => (
           <SensorDot
             key={sensor.id}
@@ -449,9 +697,9 @@ export default function HouseScene({
           <circleGeometry args={[14, 64]} />
           <meshStandardMaterial color={COLORS.ground} />
         </mesh>
-        <ContactShadows position={[0, 0, 0]} opacity={0.35} scale={20} blur={2.4} far={5} />
+        <ContactShadows position={[0, 0, 0]} opacity={0.35} scale={dc ? 26 : 20} blur={2.4} far={6} />
         <OrbitControls
-          target={[0, 2.6, 0]}
+          target={dc ? [1, 2.2, -0.8] : [0, 2.6, 0]}
           autoRotate={hovered === null}
           autoRotateSpeed={0.35}
           enableDamping

@@ -1,0 +1,18 @@
+{
+  "id": "roof-se",
+  "name": "Roof sensor SE",
+  "kind": "leak_sensor",
+  "zone": "roof_south",
+  "status": "ok",
+  "works_with": null,
+  "state_label": null,
+  "latest": {
+    "temp_c": 16.79,
+    "rh_pct": 68.79,
+    "fan_rpm": null,
+    "mold_index": null
+  },
+  "last_reading_at": "2026-10-03T12:01:34Z",
+  "status_text": "The roof structure here is dry \u2014 moisture is normal for the season.",
+  "updated_at": "2026-10-03T12:01:34Z"
+}

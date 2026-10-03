@@ -3,7 +3,7 @@
 // persisted in localStorage; api/index.ts reads it at module load to pick
 // the data mode, so sign-in/out navigates with a full page reload.
 
-export type DataMode = 'mock' | 'live'
+export type DataMode = 'mock' | 'live' | 'dc'
 
 export interface User {
   id: string
@@ -30,6 +30,14 @@ export const USERS: User[] = [
     home: 'Yliopistonranta 1, Vaasa',
     dataMode: 'live',
     initials: 'MV',
+  },
+  {
+    id: 'facility',
+    name: 'Facility Ops',
+    email: 'facility@vilpe.fi',
+    home: 'DC Helsinki 1, Espoo',
+    dataMode: 'dc',
+    initials: 'FO',
   },
 ]
 

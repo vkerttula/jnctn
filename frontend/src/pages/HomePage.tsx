@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import type { HouseState } from '../api'
+import { getUser } from '../auth'
 import HouseScene from '../components/HouseScene'
 import Spinner from '../components/Spinner'
 import WeatherIcon from '../components/WeatherIcon'
@@ -87,6 +88,7 @@ export default function HomePage() {
         <>
           <HouseScene
             sensors={state.sensors}
+            variant={getUser()?.dataMode === 'dc' ? 'datacenter' : 'house'}
             insetTop={OVERLAY_H}
             onSelect={(s) => navigate(`/sensors/${s.id}`)}
           />

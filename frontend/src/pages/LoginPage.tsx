@@ -177,7 +177,11 @@ export default function LoginPage() {
                       : 'bg-watch/20 text-navy'
                   }`}
                 >
-                  {u.dataMode === 'live' ? 'live data' : 'demo data'}
+                  {u.dataMode === 'live'
+                    ? 'live data'
+                    : u.dataMode === 'dc'
+                      ? 'enterprise'
+                      : 'demo data'}
                 </span>
               </button>
             ))}
