@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, type SensorDetail, type SensorSeries, type SeriesRange } from '../api'
 import SensorChart from '../components/SensorChart'
+import Spinner from '../components/Spinner'
 import { KIND_LABEL, ZONE_LABEL, formatDateTime, timeAgo } from '../labels'
 import { STATUS_COLOR } from '../theme'
 
@@ -149,7 +150,11 @@ export default function SensorDetailPage() {
                 <SensorChart series={current.data} />
               ) : (
                 <div className="flex h-64 items-center justify-center text-sm text-muted">
-                  {current ? 'Trend data is not available right now.' : 'Loading trend…'}
+                  {current ? (
+                    'Trend data is not available right now.'
+                  ) : (
+                    <Spinner label="Loading trend…" />
+                  )}
                 </div>
               )}
             </section>
