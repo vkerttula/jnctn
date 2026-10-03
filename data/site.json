@@ -1,15 +1,30 @@
 {
   "id": "vilpe-vantaa",
-  "name": "VILPE Vantaa",
+  "api_site_id": 53,
+  "name": "VILPE Hallin katto, Vantaa",
   "description_fi": "Katto ja ryömintätilainen alapohja tehty talvella 2025. Katossa 2 osaa. Tavallinen tasakatto ja viherkatto.\nKatolle asennettu Sense vuotoanturit sekä 6 Sense huippuimuria.\nAlapohjassa 1 Sense huippuimuri",
   "public_site_link": "https://sense.vilpe.com/public/site/QGeCB7NEn9",
+  "api_base": "https://tdqn5whm3k.execute-api.eu-west-1.amazonaws.com/prod",
   "timezone": "Europe/Helsinki",
-  "base_stations": [
+  "layout_file": "site-layout.png",
+  "layout_calibration_factor": 94.37,
+  "humidity_map_sensitivity": 50,
+  "gateways": [
     {
       "id": 38,
       "serial_number": "P5276344BK9",
-      "name": "CCU2 VILPE Vantaa"
+      "name": "CCU2 VILPE Vantaa",
+      "type": "VILPE CCU-1",
+      "coordinates": {
+        "x": 3065,
+        "y": 439
+      }
     }
   ],
-  "layout_file": "site-layout.pdf"
+  "value_sets": {
+    "count": 731,
+    "latest": "2026-10-03T05:00:00.000Z",
+    "note": "12 h humidity-map snapshots; fetch with --sensor-history"
+  },
+  "fetched_at": "2026-10-03T12:08:14Z"
 }
