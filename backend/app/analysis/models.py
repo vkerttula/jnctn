@@ -16,3 +16,9 @@ class Narrative(BaseModel):
     summary: str = Field(max_length=500)
     attention_items: list[AttentionItem] = Field(default_factory=list, max_length=5)
     recommendations: list[str] = Field(default_factory=list, max_length=5)
+
+
+class SensorSummary(BaseModel):
+    """One short note for a sensor's trend view, matching the chart."""
+
+    summary: str = Field(max_length=300)

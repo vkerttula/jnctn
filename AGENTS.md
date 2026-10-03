@@ -67,8 +67,14 @@ Dev scaffolding plus a minimal, verified app skeleton:
   headline/summary: `recommendations`, feed `message`s taken from the
   narrative's `attention_items` (matched to findings by location label),
   and `narrative_source` (`llm`/`fallback`/`demo` — "demo" while the
-  staged leak copy is in charge). `/api/analysis` serves the raw
-  analysis, `/api/analysis/digest` the context packet
+  staged leak copy is in charge). `app/analysis/sensor_summary.py` adds
+  the same LLM-or-fallback narration per sensor: `/api/sensors/{id}/series`
+  returns `summary` + `summary_source` computed from the chart's own
+  hourly buckets, Mongo-cached per (sensor, range, period). Mind the
+  Gemini free-tier quota (~20 req/day on gemini-3-flash-preview) — the
+  caches exist so the UI doesn't burn it on every load.
+  `/api/analysis` serves the raw analysis, `/api/analysis/digest` the
+  context packet
 - `frontend/` — Vite + React + TS + Tailwind v4 (vite plugin). The app is the
   "Oura for a house" consumer view (see `docs/specs/`), routed with
   `react-router-dom` in `src/App.tsx`. `components/AppShell.tsx` is the

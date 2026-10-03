@@ -6,7 +6,7 @@ always works: in CI, in dev before keys exist, and as a demo safety net.
 
 from typing import Any
 
-from app.analysis.models import AttentionItem, Narrative
+from app.analysis.models import AttentionItem, Narrative, SensorSummary
 from app.analysis.score import TONE_ALL_GOOD, TONE_ATTENTION
 
 _ITEM_TITLES = {
@@ -88,6 +88,44 @@ def describe_finding(finding: dict[str, Any]) -> AttentionItem:
     if finding.get("occurrences", 1) > 1:
         detail += f" This has come up {finding['occurrences']} times in this period."
     return AttentionItem(title=title, detail=detail, location=loc)
+
+
+def describe_sensor(context: dict[str, Any]) -> SensorSummary:
+    """Template one-liner for the trend view — same shape as the LLM output."""
+    label = context["range"]
+    stats = context["stats"]
+    parts: list[str] = []
+
+    rh = stats.get("rh_pct")
+    if rh:
+        if rh["share_ge_90"] >= 0.5:
+            parts.append(
+                f"Humidity stayed high for much of {label} — "
+                "the structure is holding moisture."
+            )
+        elif rh["delta"] >= 5:
+            parts.append(f"Humidity has been climbing over {label}.")
+        elif rh["delta"] <= -5:
+            parts.append(f"Humidity has been drying down over {label}.")
+        else:
+            parts.append(f"Humidity stayed near its normal range over {label}.")
+
+    mold = stats.get("mold_index")
+    if mold and mold["max"] >= 0.5:
+        parts.append("Mold risk rose above the watch level at some point.")
+
+    rpm = stats.get("fan_rpm")
+    if rpm:
+        if rpm["stopped_share"] >= 0.5:
+            parts.append(f"The fan was stopped for most of {label}.")
+        elif rpm["stopped_share"] > 0:
+            parts.append("The fan stopped for part of the period.")
+        else:
+            parts.append(f"The fan ran steadily over {label}.")
+
+    if not parts:
+        parts.append(f"Only sparse readings came through over {label}.")
+    return SensorSummary(summary=" ".join(parts[:2]))
 
 
 def _loc(finding: dict[str, Any], capitalize: bool = False) -> str:

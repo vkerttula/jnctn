@@ -22,7 +22,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from app.analysis import digest as digest_mod
-from app.analysis import fallback, service, simulate, weather
+from app.analysis import fallback, sensor_summary, service, simulate, weather
 from app.db import db
 
 router = APIRouter(tags=["house"])
@@ -533,7 +533,14 @@ def sensor_series(
 
     end = (coll.find_one(match, {"ts": 1}, sort=[("ts", -1)]) or {}).get("ts")
     if end is None:
-        return {"id": sensor_id, "range": range, "normal": None, "points": []}
+        return {
+            "id": sensor_id,
+            "range": range,
+            "normal": None,
+            "points": [],
+            "summary": None,
+            "summary_source": "no-data",
+        }
     start = end - timedelta(days=days)
 
     # "Normal for <month>": the device's own 20th–80th percentile humidity
@@ -606,7 +613,24 @@ def sensor_series(
                 continue
             p["rh_pct"] = round(p["rh_pct"] + (SIM_RH_TARGET - p["rh_pct"]) * t * k, 1)
 
-    return {"id": sensor_id, "range": range, "normal": normal, "points": points}
+    # Narrated after the sim ramp so the words see the developing leak.
+    summary = sensor_summary.get_summary(
+        _entry(sensor_id),
+        range,
+        points,
+        normal,
+        simulated=bool(
+            sim and sim.get("sensor_id") == sensor_id and range == "24h"
+        ),
+    )
+    return {
+        "id": sensor_id,
+        "range": range,
+        "normal": normal,
+        "points": points,
+        "summary": summary["summary"],
+        "summary_source": summary["source"],
+    }
 
 
 def _round(v, nd):

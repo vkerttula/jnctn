@@ -210,6 +210,8 @@ def test_sensor_detail_and_series():
     body = r.json()
     assert body["id"] == "crawl-space"
     assert "normal" in body
+    assert body["summary"] is None or isinstance(body["summary"], str)
+    assert body["summary_source"] in ("llm", "fallback", "no-data")
     if body["normal"]:
         lo, hi = body["normal"]["rh_pct"]
         assert 0 <= lo < hi <= 100
@@ -220,6 +222,27 @@ def test_sensor_detail_and_series():
     assert r.status_code == 200
 
     assert client.get("/api/sensors/nope").status_code == 404
+
+
+def test_sensor_summary_fallback_and_cache(monkeypatch):
+    from app.analysis import sensor_summary
+
+    monkeypatch.setattr(sensor_summary.llm, "available", lambda: False)
+    sensor = {"id": "test-sensor", "name": "Test", "kind": "fan", "zone": "ridge"}
+    points = [
+        {"t": "2026-10-03T10:00:00Z", "rh_pct": 88.0, "fan_rpm": 1200},
+        {"t": "2026-10-03T11:00:00Z", "rh_pct": 95.0, "fan_rpm": 0},
+    ]
+    try:
+        r = sensor_summary.get_summary(sensor, "24h", points, None)
+        assert r["source"] == "fallback"
+        assert r["summary"]
+        stats = sensor_summary._stats(points)
+        assert stats["rh_pct"]["delta"] == 7.0
+        assert stats["fan_rpm"]["stopped_share"] == 0.5
+        assert sensor_summary.get_summary(sensor, "24h", points, None) == r
+    finally:
+        db.sensor_summaries.delete_many({"sensor_id": "test-sensor"})
 
 
 def test_help_request():
