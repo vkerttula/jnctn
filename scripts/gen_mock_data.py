@@ -150,10 +150,22 @@ def write_json(path: Path, payload: dict) -> None:
 
 def normal_band(points: list[dict]) -> dict | None:
     # "Normal for <month>": the device's own 20th–80th percentile humidity
-    # over the last 30 days, widened a little. The real backend would derive
-    # it from history + season + weather; this keeps the shape honest.
+    # in the same calendar month of earlier years, widened a little — the
+    # current month stays out so an ongoing anomaly can't drift the
+    # baseline. Falls back to the trailing 30 days without prior-year
+    # coverage (mirrors _normal_band in backend/app/routers/house.py).
     end = points[-1]["t"]
-    rh = sorted(p["rh_pct"] for p in points if p["rh_pct"] is not None and p["t"] >= end - timedelta(days=30))
+    rh = sorted(
+        p["rh_pct"]
+        for p in points
+        if p["rh_pct"] is not None and p["t"].month == end.month and p["t"].year < end.year
+    )
+    if len(rh) < 48:
+        rh = sorted(
+            p["rh_pct"]
+            for p in points
+            if p["rh_pct"] is not None and p["t"] >= end - timedelta(days=30)
+        )
     if len(rh) < 10:
         return None
     lo, hi = rh[len(rh) // 5], rh[len(rh) * 4 // 5]
