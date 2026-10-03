@@ -91,8 +91,19 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
     () => LINES.filter((l) => series.points.some((p) => p[l.key] != null)),
     [series],
   )
-  const [hidden, setHidden] = useState<Set<Field>>(new Set())
-  const shown = available.filter((l) => !hidden.has(l.key))
+  // Temperature is opt-in when humidity shares the chart — moisture is the
+  // story, and a second axis just adds noise. `flipped` tracks legend clicks
+  // so a line's visibility is default-XOR-flipped and survives range changes.
+  const [flipped, setFlipped] = useState<Set<Field>>(new Set())
+  const defaultHidden = new Set<Field>(
+    available.length > 1 && available.some((l) => l.key === 'rh_pct')
+      ? ['temp_c']
+      : [],
+  )
+  const hidden = (l: LineDef) =>
+    defaultHidden.has(l.key) !== flipped.has(l.key)
+  const visible = available.filter((l) => !hidden(l))
+  const shown = visible.length ? visible : available // never render empty
   const axis = shown[0]
   const normal = series.normal
   const normalShown = normal != null && shown.some((l) => l.key === 'rh_pct')
@@ -103,10 +114,12 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
   )
 
   const toggle = (key: Field) =>
-    setHidden((h) => {
-      const next = new Set(h)
+    setFlipped((f) => {
+      const next = new Set(f)
+      const l = available.find((a) => a.key === key)
+      if (l && hidden(l) === false && shown.length <= 1) return f // keep one line
       if (next.has(key)) next.delete(key)
-      else if (shown.length > 1) next.add(key) // keep at least one line
+      else next.add(key)
       return next
     })
 
@@ -127,7 +140,7 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
                 key={l.key}
                 label={l.label}
                 color={l.color}
-                active={!hidden.has(l.key)}
+                active={!hidden(l)}
                 onClick={() => toggle(l.key)}
               />
             ))}
