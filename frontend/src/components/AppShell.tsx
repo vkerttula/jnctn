@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { api, apiMode } from '../api'
 import { getUser, signOut } from '../auth'
 import Clock from './Clock'
 import Spinner from './Spinner'
@@ -17,7 +16,6 @@ const NAV = [
 // routed view fills the rest of the viewport.
 export default function AppShell() {
   const { state, error, refresh } = useHouseState()
-  const [busy, setBusy] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const user = getUser()
 
@@ -25,17 +23,6 @@ export default function AppShell() {
   const leave = () => {
     setSigningOut(true)
     window.setTimeout(signOut, 1200)
-  }
-
-  const demo = async (action: 'leak' | 'reset') => {
-    setBusy(true)
-    try {
-      if (action === 'leak') await api.simulateLeak()
-      else await api.resetDemo()
-      refresh()
-    } finally {
-      setBusy(false)
-    }
   }
 
   return (
@@ -99,24 +86,6 @@ export default function AppShell() {
           )}
           <div className="flex items-center gap-2.5">
             <Clock />
-            {apiMode === 'mock' &&
-              (state?.simulating ? (
-                <button
-                  onClick={() => demo('reset')}
-                  disabled={busy}
-                  className="rounded-full border border-watch/40 bg-watch/15 px-2.5 py-1 text-[11px] font-medium text-watch transition-colors hover:bg-watch/25 disabled:opacity-50"
-                >
-                  Reset demo
-                </button>
-              ) : (
-                <button
-                  onClick={() => demo('leak')}
-                  disabled={busy}
-                  className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/70 transition-colors hover:bg-white/20 disabled:opacity-50"
-                >
-                  Simulate leak
-                </button>
-              ))}
             <span className="ml-auto flex gap-3">
               <Link
                 to="/status"
