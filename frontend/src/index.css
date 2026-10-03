@@ -36,6 +36,17 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='24' cy='36' r='1' opacity='.8'/%3E%3Ccircle cx='90' cy='12' r='.7' opacity='.5'/%3E%3Ccircle cx='160' cy='60' r='1.2' opacity='.9'/%3E%3Ccircle cx='210' cy='28' r='.6' opacity='.4'/%3E%3Ccircle cx='60' cy='110' r='.8' opacity='.6'/%3E%3Ccircle cx='130' cy='140' r='.7' opacity='.6'/%3E%3Ccircle cx='200' cy='120' r='.7' opacity='.5'/%3E%3Ccircle cx='40' cy='190' r='1.1' opacity='.8'/%3E%3Ccircle cx='110' cy='210' r='.6' opacity='.45'/%3E%3Ccircle cx='180' cy='200' r='.9' opacity='.65'/%3E%3Ccircle cx='230' cy='170' r='.6' opacity='.5'/%3E%3C/g%3E%3C/svg%3E");
 }
 
+/* Browsers strip background colors/images when printing — keep brand colors
+   (navy chips, status pills, chart fills) in the PDF export. */
+@media print {
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 /* alert notification slides in from the top-right like a phone push */
 @keyframes toast-in {
   from {
