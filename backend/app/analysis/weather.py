@@ -49,16 +49,22 @@ def _fetch() -> dict[str, Any] | None:
         "https://api.open-meteo.com/v1/forecast"
         f"?latitude={VAASA['lat']}&longitude={VAASA['lon']}"
         "&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code"
+        "&daily=precipitation_probability_max&forecast_days=1&timezone=auto"
         "&wind_speed_unit=ms"
     )
     try:
         with urllib.request.urlopen(url, timeout=8) as r:
-            cur = json.load(r)["current"]
+            data = json.load(r)
+        cur = data["current"]
         return {
             "temp_c": cur["temperature_2m"],
             "condition": _CONDITIONS.get(cur["weather_code"], "Overcast"),
             "humidity_pct": cur["relative_humidity_2m"],
             "wind_ms": cur["wind_speed_10m"],
+            # today's max precipitation probability, % (null if unset)
+            "rain_chance_pct": (data.get("daily") or {}).get(
+                "precipitation_probability_max", [None]
+            )[0],
             "location": VAASA["location"],
         }
     except Exception:
@@ -90,5 +96,6 @@ def _from_sensors() -> dict[str, Any]:
         "condition": "Overcast" if rh and rh >= 80 else "Partly cloudy",
         "humidity_pct": round(rh) if rh else None,
         "wind_ms": 0.0,
+        "rain_chance_pct": None,
         "location": VAASA["location"],
     }

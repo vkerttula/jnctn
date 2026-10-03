@@ -22,6 +22,9 @@ export interface Weather {
   condition: string
   humidity_pct: number
   wind_ms: number
+  // today's max precipitation probability, % — null when the source
+  // can't provide a forecast (sensor fallback)
+  rain_chance_pct: number | null
   location: string
 }
 

@@ -2,10 +2,31 @@ import { useNavigate } from 'react-router-dom'
 import type { HouseState } from '../api'
 import HouseScene from '../components/HouseScene'
 import Spinner from '../components/Spinner'
+import WeatherIcon from '../components/WeatherIcon'
 import { useHouse } from '../hooks/useHouse'
 
 // Room kept free at the top of the canvas for the overlay below.
 const OVERLAY_H = 150
+
+const DROPLET = 'M12 2.7s5.5 6 5.5 10a5.5 5.5 0 0 1-11 0c0-4 5.5-10 5.5-10Z'
+const UMBRELLA = 'M22 12a10 10 0 0 0-20 0h20ZM12 12v7a2 2 0 0 0 4 0M12 2v1'
+
+function MiniIcon({ d }: { d: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-3 w-3 text-sense"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d={d} />
+    </svg>
+  )
+}
 
 function Overview({ state }: { state: HouseState }) {
   const { home, weather } = state
@@ -31,17 +52,26 @@ function Overview({ state }: { state: HouseState }) {
         </p>
       </div>
 
-      <div className="flex flex-col items-end gap-1 rounded-2xl border border-white/70 bg-white/80 px-5 py-3 shadow-lg shadow-navy/5 backdrop-blur-md">
-        <span className="text-[10px] font-semibold tracking-[0.18em] text-muted uppercase">
-          Outdoors in {weather.location}
+      <div
+        className="flex items-center gap-2 self-center rounded-full border border-white/70 bg-white/80 px-2.5 py-1 shadow-sm backdrop-blur-md"
+        title={`${weather.condition} · ${weather.location} · wind ${weather.wind_ms.toFixed(0)} m/s`}
+      >
+        <WeatherIcon condition={weather.condition} className="h-4 w-4 shrink-0" />
+        <span className="text-xs font-semibold text-navy">
+          {Math.round(weather.temp_c)} °C
         </span>
-        <span className="font-display text-3xl font-bold text-navy">
-          {weather.temp_c.toFixed(1)} °C
-        </span>
-        <span className="text-xs text-navy/70">
-          {weather.condition} · humidity {Math.round(weather.humidity_pct)} % · wind{' '}
-          {weather.wind_ms.toFixed(0)} m/s
-        </span>
+        {weather.humidity_pct != null && (
+          <span className="flex items-center gap-0.5 text-[11px] text-navy/60">
+            <MiniIcon d={DROPLET} />
+            {Math.round(weather.humidity_pct)} %
+          </span>
+        )}
+        {weather.rain_chance_pct != null && (
+          <span className="flex items-center gap-0.5 text-[11px] text-navy/60">
+            <MiniIcon d={UMBRELLA} />
+            {Math.round(weather.rain_chance_pct)} %
+          </span>
+        )}
       </div>
     </div>
   )
