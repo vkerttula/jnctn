@@ -55,7 +55,9 @@ Dev scaffolding plus a minimal, verified app skeleton:
   Atlas M0 is the prod DB, `MONGODB_URI` is a prompted env var. Every push to
   `main` redeploys.
 - `docs/` — `VISION.md` (the product vision, written for agents — see above),
-  plus `topics/` and `ideas/` for hackathon brainstorming
+  `specs/` (design specs — frontend is built contract-first against
+  `specs/2026-10-03-frontend-design.md`), plus `topics/` and `ideas/` for
+  hackathon brainstorming
 - `data/` — VILPE Sense demo-site dataset (Vantaa): `site.json`,
   `devices.json` (7 MCU-2 ventilation fans), `sensors.json` (51 RHT-2
   sensors), `readings/` CSV time series; see `data/README.md`. Refresh from
