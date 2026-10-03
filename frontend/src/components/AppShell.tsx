@@ -66,7 +66,7 @@ export default function AppShell() {
           </div>
         )}
 
-        {state && <ScoreCard state={state} />}
+        {state && <ScoreCard state={state} onRequested={refresh} />}
         <ServicesList requests={state?.open_requests ?? []} onRequested={refresh} />
 
         <div className="mt-auto flex flex-col gap-3 border-t border-white/10 pt-4">
