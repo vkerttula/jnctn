@@ -30,7 +30,15 @@ export default function AppShell() {
   return (
     <div className="flex min-h-svh flex-col bg-mist lg:h-svh lg:flex-row">
       <aside className="flex w-full shrink-0 flex-col gap-5 bg-navy px-6 py-6 text-white lg:h-svh lg:w-[340px] lg:overflow-y-auto">
-        <img src="/vilpe-logo.png" alt="VILPE" className="h-6 w-auto self-start" />
+        <div className="flex items-center gap-3">
+          <img src="/vilpe-logo.png" alt="VILPE" className="h-6 w-auto" />
+          <span className="h-7 w-px bg-white/25" aria-hidden />
+          <span className="font-display text-[13px] leading-tight font-semibold tracking-wide text-white/80">
+            Peace of mind
+            <br />
+            for your home
+          </span>
+        </div>
 
         <nav className="flex gap-1 rounded-full border border-white/10 bg-white/5 p-1">
           {NAV.map((n) => (
