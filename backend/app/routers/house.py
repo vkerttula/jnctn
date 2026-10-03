@@ -188,7 +188,7 @@ def _latest_for(sensor_id: str, quads: dict[str, list[dict]]) -> dict[str, Any]:
                     tss.append(ts)
         latest["temp_c"] = round(sum(temps) / len(temps), 1) if temps else None
         latest["rh_pct"] = round(sum(rhs) / len(rhs), 1) if rhs else None
-        latest["fan_rpm"] = round(sum(rpms)) if rpms else None
+        latest["fan_rpm"] = round(sum(rpms) / len(rpms)) if rpms else None
         latest["mold_index"] = round(max(molds), 4) if molds else None
         last_ts = max(tss) if tss else None
     elif sensor_id == "crawl-space":
