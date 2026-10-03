@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, type SensorDetail, type SensorSeries, type SeriesRange } from '../api'
 import SensorChart from '../components/SensorChart'
-import { useHouse } from '../hooks/useHouse'
 import { KIND_LABEL, ZONE_LABEL, formatDateTime, timeAgo } from '../labels'
 import { STATUS_COLOR } from '../theme'
 
@@ -13,13 +12,7 @@ const RANGES: { id: SeriesRange; label: string }[] = [
   { id: '1y', label: '1 year' },
 ]
 
-function Latest({
-  detail,
-  pair,
-}: {
-  detail: SensorDetail
-  pair?: { id: string; name: string }
-}) {
+function Latest({ detail }: { detail: SensorDetail }) {
   const { latest } = detail
   const cells: [string, string][] = []
   if (latest.temp_c != null) cells.push(['Temperature', `${latest.temp_c.toFixed(1)} °C`])
@@ -53,21 +46,12 @@ function Latest({
           </div>
         </div>
       ))}
-      {pair && (
-        <Link
-          to={`/sensors/${pair.id}`}
-          className="flex items-center rounded-2xl border border-line bg-white px-4 py-3 text-sm font-medium text-sense hover:underline"
-        >
-          Works with {pair.name} →
-        </Link>
-      )}
     </div>
   )
 }
 
 export default function SensorDetailPage() {
   const { id = '' } = useParams()
-  const { state } = useHouse()
   const [range, setRange] = useState<SeriesRange>('7d')
   // Results are keyed by request so a stale sensor/range never renders.
   const [loaded, setLoaded] = useState<SensorDetail | null>(null)
@@ -76,7 +60,6 @@ export default function SensorDetailPage() {
   const detail = loaded?.id === id ? loaded : null
   const error = failedId === id
   const current = series?.key === `${id}/${range}` ? series : undefined
-  const pair = state?.sensors.find((s) => s.id === detail?.works_with)
 
   useEffect(() => {
     api
@@ -129,7 +112,7 @@ export default function SensorDetailPage() {
               </div>
             </section>
 
-            <Latest detail={detail} pair={pair} />
+            <Latest detail={detail} />
 
             <section className="flex flex-col gap-4 rounded-3xl border border-line bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between">
