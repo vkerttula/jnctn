@@ -56,8 +56,15 @@ Dev scaffolding plus a minimal, verified app skeleton:
   injects a synthetic moisture event the whole pipeline reacts to.
   `app/routers/house.py` implements the frontend contract
   (`frontend/src/api/types.ts`): `/api/house`, `/api/sensors/{id}`,
-  `/api/sensors/{id}/series`, `/api/simulate/*`. `/api/analysis` serves
-  the raw analysis, `/api/analysis/digest` the context packet
+  `/api/sensors/{id}/series`, `/api/help-requests`, `/api/report`,
+  `/api/simulate/*`. It maps the raw site to the 7-sensor logical
+  catalog (4 roof quadrants aggregated from the sensor grid by layout
+  coordinates, `roof-fan` from the katto-*/viherkatto-* fans, and
+  `hallin-alapohja` split into `crawl-space` + `crawl-fan`).
+  `app/analysis/weather.py` fills `weather` from Open-Meteo (Vaasa,
+  Mongo-cached 30 min) with the fans' outdoor transmitters as fallback.
+  `/api/analysis` serves the raw analysis, `/api/analysis/digest` the
+  context packet
 - `frontend/` — Vite + React + TS + Tailwind v4 (vite plugin). The app is the
   "Oura for a house" consumer view (see `docs/specs/`), routed with
   `react-router-dom` in `src/App.tsx`. `components/AppShell.tsx` is the

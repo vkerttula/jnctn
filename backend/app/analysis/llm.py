@@ -30,6 +30,8 @@ at most, only when it truly helps ("for about two weeks").
 - Refer to locations by their label ("the crawl space", "roof section 3").
 - Seasonal awareness: autumn wetting is expected; what matters is whether \
 the structure keeps up with drying when it can.
+- headline: one short verdict line, e.g. "Your home is in good shape", \
+"One area needs watching" or "Possible leak in the roof".
 - summary: 1-2 short sentences. attention_items: at most 3, only real \
 findings. recommendations: at most 2, actionable ("keep an eye on…", \
 "worth booking an inspection if…"). If tone is all_good, both lists may \

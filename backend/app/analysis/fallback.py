@@ -47,10 +47,12 @@ def render(digest: dict[str, Any], scored: dict[str, Any]) -> Narrative:
     tone = scored["tone"]
 
     if tone == TONE_ALL_GOOD:
+        headline = "Your home is in good shape"
         summary = "No worries — everything is looking good."
         recs = ["Nothing needed right now. We'll keep watching."]
     elif tone == TONE_ATTENTION:
         top = findings[0]
+        headline = f"{_loc(top, capitalize=True)} needs attention"
         summary = (
             f"{_loc(top, capitalize=True)} needs attention — "
             "moisture levels there have been elevated for a while."
@@ -58,6 +60,7 @@ def render(digest: dict[str, Any], scored: dict[str, Any]) -> Narrative:
         recs = ["Consider having the area inspected if readings don't improve."]
     else:
         top = findings[0] if findings else None
+        headline = "One area needs watching"
         summary = (
             f"Humidity is a bit up in {_loc(top)} — "
             "this may be normal fluctuation, but we're keeping an eye on it."
@@ -66,7 +69,12 @@ def render(digest: dict[str, Any], scored: dict[str, Any]) -> Narrative:
         )
         recs = ["No action needed — check back in a few days."]
 
-    return Narrative(summary=summary, attention_items=items, recommendations=recs)
+    return Narrative(
+        headline=headline,
+        summary=summary,
+        attention_items=items,
+        recommendations=recs,
+    )
 
 
 def describe_finding(finding: dict[str, Any]) -> AttentionItem:

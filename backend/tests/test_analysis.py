@@ -174,45 +174,76 @@ def test_house_contract():
     assert 0 <= body["score"] <= 100
     assert body["score_word"] in ("Good", "Fair", "Attention")
     assert body["score_trend"] in ("improving", "stable", "declining")
+    assert {"address", "city"} <= set(body["home"])
+    assert isinstance(body["headline"], str) and body["headline"]
     assert isinstance(body["summary"], str) and body["summary"]
     assert body["simulating"] is False
-    assert {"temp_c", "condition", "location"} <= set(body["weather"])
-    assert len(body["sensors"]) == 16
+    assert {"temp_c", "condition", "humidity_pct", "wind_ms", "location"} <= set(
+        body["weather"]
+    )
+    assert len(body["sensors"]) == 7
     for s in body["sensors"]:
-        assert {"id", "name", "kind", "zone", "status", "primary"} <= set(s)
+        assert {"id", "name", "kind", "zone", "status", "latest", "last_reading_at"} <= set(s)
+        assert s["kind"] in ("leak_sensor", "fan", "climate_sensor")
+        assert s["zone"] in ("roof_south", "roof_north", "ridge", "crawl_space")
+        assert s["status"] in ("ok", "watch", "alert")
+    for a in body["attention"]:
+        assert {"sensor_id", "severity", "message", "since", "actions"} <= set(a)
+        assert a["severity"] in ("watch", "alert")
 
 
 def test_sensor_detail_and_series():
-    r = client.get("/api/sensors/katto-1")
+    r = client.get("/api/sensors/crawl-fan")
     assert r.status_code == 200
     body = r.json()
-    assert body["id"] == "katto-1"
+    assert body["id"] == "crawl-fan"
     assert body["kind"] == "fan"
     assert {"temp_c", "rh_pct", "mold_index", "fan_rpm"} <= set(body["latest"])
 
-    r = client.get("/api/sensors/katto-1/series", params={"range": "7d"})
+    r = client.get("/api/sensors/crawl-space/series", params={"range": "7d"})
     assert r.status_code == 200
     body = r.json()
-    assert body["id"] == "katto-1"
+    assert body["id"] == "crawl-space"
     for p in body["points"][:50]:
         assert {"t", "temp_c", "rh_pct", "mold_index"} <= set(p)
 
-    r = client.get("/api/sensors/rht-18927/series", params={"range": "24h"})
+    r = client.get("/api/sensors/roof-nw/series", params={"range": "24h"})
     assert r.status_code == 200
 
     assert client.get("/api/sensors/nope").status_code == 404
 
 
+def test_help_request():
+    r = client.post(
+        "/api/help-requests", json={"kind": "expert", "sensor_id": "crawl-space"}
+    )
+    assert r.status_code == 200
+    assert r.json()["message"]
+    assert client.post("/api/help-requests", json={"kind": "nope"}).status_code == 422
+
+
+def test_report():
+    r = client.get("/api/report")
+    assert r.status_code == 200
+    body = r.json()
+    assert {"id", "issued", "period", "headline", "summary", "months",
+            "structures", "measurements", "mold_threshold"} <= set(body)
+    assert {"from", "to"} <= set(body["period"])
+    for s in body["structures"]:
+        assert {"name", "avg_rh_pct", "peak_mold_index", "coverage_pct",
+                "status"} <= set(s)
+
+
 def test_simulate_leak_flow():
-    r = client.post("/api/simulate/leak", json={"sensor_id": "katto-1"})
+    r = client.post("/api/simulate/leak", json={"sensor_id": "roof-nw"})
     assert r.status_code == 200
     assert r.json()["simulating"] is True
 
     house = client.get("/api/house").json()
     assert house["simulating"] is True
-    sim_sensor = next(s for s in house["sensors"] if s["id"] == "katto-1")
-    assert sim_sensor["status"] == "alert"
-    assert any("katto-1" == a["sensor_id"] for a in house["attention"])
+    sim_sensor = next(s for s in house["sensors"] if s["id"] == "roof-nw")
+    assert sim_sensor["status"] in ("watch", "alert")
+    assert any("roof-nw" == a["sensor_id"] for a in house["attention"])
 
     r = client.post("/api/simulate/reset")
     assert r.status_code == 200
