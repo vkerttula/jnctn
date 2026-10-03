@@ -5,6 +5,8 @@
      docs/specs/2026-10-03-frontend-design.md) */
   --font-display: 'Titillium Web', 'Helvetica Neue', ui-sans-serif, system-ui,
     sans-serif;
+  /* /status keeps its original hackathon landing look */
+  --font-zen: 'Zen Dots', ui-sans-serif, system-ui, sans-serif;
   --font-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, ui-sans-serif,
     system-ui, sans-serif;
 

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import AttentionFeed from '../components/AttentionFeed'
 import HouseScene from '../components/HouseScene'
@@ -114,12 +114,18 @@ export default function HomePage() {
                 Simulate leak
               </button>
             )}
-            <a
-              href="/data"
+            <Link
+              to="/status"
+              className="text-xs text-muted underline-offset-2 hover:underline"
+            >
+              status ↗
+            </Link>
+            <Link
+              to="/data"
               className="text-xs text-muted underline-offset-2 hover:underline"
             >
               raw data ↗
-            </a>
+            </Link>
           </div>
         </footer>
       </div>
