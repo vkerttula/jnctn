@@ -53,6 +53,15 @@ export interface Area {
   status: SensorStatus
 }
 
+// One detected condition pulling the score down — straight from the
+// analysis layer's findings (mould index peaks, sustained humidity, …).
+export interface ScoreFactor {
+  code: string
+  severity: 'info' | 'watch' | 'attention'
+  location: string | null
+  detail: Record<string, number | string | boolean | null>
+}
+
 export interface SensorLatest {
   temp_c: number | null
   rh_pct: number | null
@@ -87,6 +96,9 @@ export interface HouseState {
   score_trend: ScoreTrend
   // structure-level verdicts that make up the score
   areas: Area[]
+  // what the score is actually built from — empty when nothing is
+  // pulling it down
+  score_factors: ScoreFactor[]
   headline: string
   summary: string
   // narrative next-steps for the homeowner (LLM or fallback wording)

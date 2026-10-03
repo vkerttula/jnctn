@@ -7,6 +7,7 @@ import {
   type HelpKind,
   type HelpRequest,
   type HouseState,
+  type ScoreFactor,
   type ScoreWord,
   type SensorStatus,
   type Zone,
@@ -25,11 +26,47 @@ const TREND_LABEL = {
   declining: 'Going down this week',
 } as const
 
-// Plain-language explainer behind the ⓘ. Grounded in how VILPE Sense
-// itself works: the Finnish mould growth model (VTT / Tampere University),
-// a 0–6 mould index with an automatic alert above 2.5, and fan control from
-// structure vs. outdoor absolute humidity.
-function ScoreExplainer({ onClose }: { onClose: () => void }) {
+const FACTOR_SEV_COLOR = {
+  info: 'rgba(255,255,255,0.45)',
+  watch: 'var(--color-watch)',
+  attention: 'var(--color-alert)',
+} as const
+
+// Plain-language line for one score factor, keeping the real number the
+// analysis detected (mould index peak, hours, %).
+function factorText(f: ScoreFactor): string {
+  const loc = f.location ? ` in ${f.location}` : ''
+  const d = f.detail
+  switch (f.code) {
+    case 'MOLD_INDEX_ELEVATED':
+      return `Mould index reached ${typeof d.peak === 'number' ? d.peak.toFixed(1) : 'a high level'}${loc}`
+    case 'RH_SUSTAINED_HIGH':
+      return `Humidity stayed high${loc}${typeof d.duration_hours === 'number' ? ` for about ${Math.round(d.duration_hours)} h` : ''}`
+    case 'AH_INVERSION':
+      return `The structure is holding more moisture than the outdoor air${loc}`
+    case 'LEAK_SIMULATED':
+    case 'SENSOR_LEAK_SIMULATED':
+      return `Sudden moisture rise${loc} — looks like a leak`
+    case 'FAN_STOPPED':
+      return `A ventilation fan stopped${loc}`
+    case 'FAN_NO_DATA':
+      return `A ventilation fan isn't reporting${loc}`
+    case 'SENSOR_OFFLINE':
+      return `A sensor went offline${loc}`
+    case 'GRID_HUMID':
+      return typeof d.pct_sensors_high === 'number'
+        ? `${Math.round(d.pct_sensors_high)}% of structure sensors are very humid`
+        : `Structure sensors are very humid`
+    default:
+      return f.code.replace(/_/g, ' ').toLowerCase() + loc
+  }
+}
+
+// Score breakdown — opens when the ring is tapped. Shows the actual
+// detected factors the number is deducted from, the live mould index
+// readings, and how the score is really computed.
+function ScoreDetail({ state, onClose }: { state: HouseState; onClose: () => void }) {
+  const molds = state.sensors.filter((s) => s.latest.mold_index != null)
   return (
     <div className="relative flex w-full flex-col gap-3 rounded-2xl bg-white/10 p-4 text-left text-xs leading-relaxed text-white/80">
       <button
@@ -39,11 +76,33 @@ function ScoreExplainer({ onClose }: { onClose: () => void }) {
       >
         ×
       </button>
-      <p className="pr-4 font-display text-sm font-semibold text-white">What is the Home score?</p>
-      <p>
-        One number for how your home's hidden structures — the roof and the crawl space — are
-        doing. 100 means dry and healthy.
-      </p>
+      <p className="pr-4 font-display text-sm font-semibold text-white">What goes into the score</p>
+
+      {state.score_factors.length > 0 ? (
+        <ul className="flex flex-col gap-1.5">
+          {state.score_factors.map((f, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span
+                className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                style={{ background: FACTOR_SEV_COLOR[f.severity] }}
+              />
+              {factorText(f)}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>Nothing is pulling the score down — every reading is in its normal range.</p>
+      )}
+
+      {molds.length > 0 && (
+        <p className="text-white/60">
+          Mould index now:{' '}
+          {molds
+            .map((s) => `${s.name.toLowerCase()} ${s.latest.mold_index!.toFixed(1)}`)
+            .join(' · ')}
+        </p>
+      )}
+
       <div className="flex gap-1.5">
         {(
           [
@@ -60,16 +119,13 @@ function ScoreExplainer({ onClose }: { onClose: () => void }) {
           </span>
         ))}
       </div>
+
       <p>
-        <span className="font-semibold text-white">How it's worked out:</span> we combine the
-        humidity and temperature inside your structures with the outdoor weather and the season,
-        using the Finnish mould growth model developed by VTT. It changes slowly — one damp day
-        won't move it.
-      </p>
-      <p>
-        <span className="font-semibold text-white">When we tell you:</span> if conditions start
-        to favour mould, or moisture rises suddenly like after a leak, you'll hear from us right
-        away — with what to do next.
+        <span className="font-semibold text-white">How it's worked out:</span> the score starts
+        at 100 and points come off for what the sensors actually find. The mould index — the
+        Finnish mould growth model developed by VTT — weighs most. Then humidity that stays high
+        after we've accounted for the outdoor air, and fans that stop or go quiet. It changes
+        slowly — one damp day won't move it.
       </p>
       <a
         href="https://www.vilpe.com/en/vilpe-sense-mould-index/"
@@ -87,7 +143,7 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
   const r = 64
   const c = 2 * Math.PI * r
   return (
-    <svg viewBox="0 0 160 160" className="h-40 w-40 -rotate-90">
+    <svg viewBox="0 0 160 160" className="h-52 w-52 -rotate-90">
       <circle
         cx="80"
         cy="80"
@@ -200,7 +256,7 @@ function Areas({
             key={a.id}
             onClick={() => setOpen(open === a.id ? null : a.id)}
             aria-expanded={open === a.id}
-            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] whitespace-nowrap transition-colors ${
+            className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] whitespace-nowrap transition-colors ${
               open === a.id
                 ? 'border-white/40 bg-white/15 text-white'
                 : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
@@ -271,20 +327,25 @@ export default function ScoreCard({
   const [explain, setExplain] = useState(false)
   return (
     <section className="flex flex-col items-center gap-4 text-center">
-      <div className="relative flex items-center justify-center">
+      <button
+        onClick={() => setExplain((v) => !v)}
+        aria-expanded={explain}
+        aria-label="What goes into the score"
+        className="relative flex cursor-pointer items-center justify-center rounded-full transition-transform hover:scale-[1.02]"
+      >
         <ScoreRing score={state.score} color={color} />
         <div className="absolute flex flex-col items-center">
-          <span className="font-display text-5xl font-bold text-white">
+          <span className="font-display text-6xl font-bold text-white">
             {state.score}
           </span>
           <span
-            className="font-display text-sm font-semibold tracking-wide"
+            className="font-display text-base font-semibold tracking-wide"
             style={{ color }}
           >
             {state.score_word}
           </span>
         </div>
-      </div>
+      </button>
       <div className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-white/60">
         Home score · {TREND_LABEL[state.score_trend]}
         <button
@@ -300,7 +361,7 @@ export default function ScoreCard({
           ?
         </button>
       </div>
-      {explain && <ScoreExplainer onClose={() => setExplain(false)} />}
+      {explain && <ScoreDetail state={state} onClose={() => setExplain(false)} />}
       <Areas state={state} onRequested={onRequested} />
     </section>
   )
