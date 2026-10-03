@@ -1,0 +1,18 @@
+{
+  "id": "roof-fan-b",
+  "name": "Roof exhaust fan B",
+  "kind": "fan",
+  "zone": "ridge",
+  "status": "ok",
+  "works_with": null,
+  "state_label": "Running",
+  "latest": {
+    "temp_c": 15.9,
+    "rh_pct": 76.1,
+    "fan_rpm": 1830.0,
+    "mold_index": 0.00213
+  },
+  "last_reading_at": "2026-10-03T11:27:54Z",
+  "status_text": "The roof fan is running normally and keeping the roof structure dry.",
+  "updated_at": "2026-10-03T12:01:34Z"
+}

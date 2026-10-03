@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import { api, type HelpKind, type HelpRequest } from '../api'
+import { getUser } from '../auth'
 
 // Sidebar "Services": what VILPE can do for the homeowner beyond watching —
 // the report, remote expert review and the inspection marketplace.
@@ -139,20 +140,23 @@ export default function ServicesList({
       <h2 className="mb-1 font-display text-xs font-semibold tracking-[0.25em] text-white/50 uppercase">
         Services
       </h2>
-      <NavLink
-        to="/report"
-        className={({ isActive }) => `${ROW} ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}`}
-      >
-        <Icon>
-          <path d="M7 3h7l5 5v13H7z" />
-          <path d="M14 3v5h5M10 13h6M10 17h6" />
-        </Icon>
-        <Text title="Moisture History Report" sub="5-year record of your home" />
-        {/* chevron: this row opens a page, the others make a request */}
-        <span className="ml-auto text-lg text-white/40" aria-hidden>
-          ›
-        </span>
-      </NavLink>
+      {/* the homeowner report is not part of the enterprise demo */}
+      {getUser()?.dataMode !== 'dc' && (
+        <NavLink
+          to="/report"
+          className={({ isActive }) => `${ROW} ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}`}
+        >
+          <Icon>
+            <path d="M7 3h7l5 5v13H7z" />
+            <path d="M14 3v5h5M10 13h6M10 17h6" />
+          </Icon>
+          <Text title="Moisture History Report" sub="5-year record of your home" />
+          {/* chevron: this row opens a page, the others make a request */}
+          <span className="ml-auto text-lg text-white/40" aria-hidden>
+            ›
+          </span>
+        </NavLink>
+      )}
       {(['expert', 'inspection'] as const).map((kind) => (
         <RequestItem
           key={kind}

@@ -3,6 +3,7 @@
 // whole demo flow works without a backend. Fixture timestamps are shifted so
 // the latest reading is always a few minutes old: the demo reads as live
 // whenever it is recorded.
+import { getUser } from '../auth'
 import type {
   Api,
   AttentionItem,
@@ -17,6 +18,9 @@ import type {
   SensorSeries,
   Severity,
 } from './types'
+
+// The enterprise demo user reads the data-centre fixture set instead.
+const FIXTURES = getUser()?.dataMode === 'dc' ? 'mock-dc' : 'mock'
 
 const LEAK_TARGET_DEFAULT = 'roof-nw' // north slope — where moisture collects
 const ALERT_AFTER_S = 45 // watch -> alert transition
@@ -42,7 +46,7 @@ let requests: HelpRequest[] = []
 let offsetMs: Promise<number> | null = null
 
 async function mockFetch<T>(path: string): Promise<T> {
-  const r = await fetch(`/mock/${path}.json`)
+  const r = await fetch(`/${FIXTURES}/${path}.json`)
   // A missing public file comes back as the SPA's index.html with a 200.
   if (!r.ok || !r.headers.get('content-type')?.includes('json'))
     throw new Error(`mock fixture missing: ${path}`)

@@ -26,7 +26,10 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/sensors" element={<SensorsPage />} />
             <Route path="/sensors/:id" element={<SensorDetailPage />} />
-            <Route path="/report" element={<ReportPage />} />
+            <Route
+              path="/report"
+              element={getUser()?.dataMode === 'dc' ? <Navigate to="/" replace /> : <ReportPage />}
+            />
             <Route path="/score" element={<ScorePage />} />
           </Route>
         </Route>

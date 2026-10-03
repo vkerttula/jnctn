@@ -1,0 +1,18 @@
+{
+  "id": "roof-nw",
+  "name": "Roof sensor NW",
+  "kind": "leak_sensor",
+  "zone": "roof_north",
+  "status": "watch",
+  "works_with": null,
+  "state_label": null,
+  "latest": {
+    "temp_c": 20.9,
+    "rh_pct": 78.2,
+    "fan_rpm": null,
+    "mold_index": null
+  },
+  "last_reading_at": "2026-10-03T12:01:34Z",
+  "status_text": "Humidity here is trending slightly above the rest of the roof \u2014 no action needed yet.",
+  "updated_at": "2026-10-03T12:01:34Z"
+}

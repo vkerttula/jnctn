@@ -45,9 +45,19 @@ export default function AppShell() {
           <img src="/vilpe-logo.png" alt="VILPE" className="h-8 w-auto" />
           <span className="h-9 w-px bg-white/25" aria-hidden />
           <span className="font-display text-sm leading-tight font-semibold tracking-wide text-white/80">
-            Peace of mind
-            <br />
-            for your home
+            {user?.dataMode === 'dc' ? (
+              <>
+                Enterprise
+                <br />
+                monitoring
+              </>
+            ) : (
+              <>
+                Peace of mind
+                <br />
+                for your home
+              </>
+            )}
           </span>
         </div>
 

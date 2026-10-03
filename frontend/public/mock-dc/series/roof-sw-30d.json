@@ -1,0 +1,460 @@
+{
+  "id": "roof-sw",
+  "range": "30d",
+  "normal": {
+    "label": "Seasonal normal",
+    "rh_pct": [
+      45,
+      73
+    ],
+    "bands": [
+      {
+        "from": "2026-09-03T12:01:34Z",
+        "to": "2026-10-01T12:01:34Z",
+        "rh_pct": [
+          47,
+          65
+        ]
+      },
+      {
+        "from": "2026-10-01T12:01:34Z",
+        "to": "2026-10-03T12:01:34Z",
+        "rh_pct": [
+          45,
+          73
+        ]
+      }
+    ]
+  },
+  "points": [
+    {
+      "t": "2026-09-03T12:01:34Z",
+      "temp_c": 20.29,
+      "rh_pct": 58.83,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-04T00:01:34Z",
+      "temp_c": 16.9,
+      "rh_pct": 57.09,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-04T12:01:34Z",
+      "temp_c": 23.27,
+      "rh_pct": 43.18,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-05T00:01:34Z",
+      "temp_c": 16.87,
+      "rh_pct": 50.86,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-05T12:01:34Z",
+      "temp_c": 24.33,
+      "rh_pct": 40.8,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-06T00:01:34Z",
+      "temp_c": 17.67,
+      "rh_pct": 49.55,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-06T12:01:34Z",
+      "temp_c": 26.11,
+      "rh_pct": 43.23,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-07T00:01:34Z",
+      "temp_c": 19.19,
+      "rh_pct": 59.88,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-07T12:01:34Z",
+      "temp_c": 27.22,
+      "rh_pct": 52.27,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-08T00:01:34Z",
+      "temp_c": 19.69,
+      "rh_pct": 63.56,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-08T12:01:34Z",
+      "temp_c": 23.0,
+      "rh_pct": 58.14,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-09T00:01:34Z",
+      "temp_c": 19.2,
+      "rh_pct": 66.14,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-09T12:01:34Z",
+      "temp_c": 23.31,
+      "rh_pct": 54.56,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-10T00:01:34Z",
+      "temp_c": 17.28,
+      "rh_pct": 61.03,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-10T12:01:34Z",
+      "temp_c": 23.75,
+      "rh_pct": 49.14,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-11T00:01:34Z",
+      "temp_c": 17.32,
+      "rh_pct": 56.7,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-11T12:01:34Z",
+      "temp_c": 25.45,
+      "rh_pct": 41.7,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-12T00:01:34Z",
+      "temp_c": 15.43,
+      "rh_pct": 51.87,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-12T12:01:34Z",
+      "temp_c": 20.12,
+      "rh_pct": 53.68,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-13T00:01:34Z",
+      "temp_c": 17.98,
+      "rh_pct": 61.76,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-13T12:01:34Z",
+      "temp_c": 22.54,
+      "rh_pct": 53.5,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-14T00:01:34Z",
+      "temp_c": 18.08,
+      "rh_pct": 60.84,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-14T12:01:34Z",
+      "temp_c": 20.94,
+      "rh_pct": 60.15,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-15T00:01:34Z",
+      "temp_c": 18.91,
+      "rh_pct": 68.64,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-15T12:01:34Z",
+      "temp_c": 19.26,
+      "rh_pct": 66.52,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-16T00:01:34Z",
+      "temp_c": 17.74,
+      "rh_pct": 65.55,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-16T12:01:34Z",
+      "temp_c": 21.55,
+      "rh_pct": 57.08,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-17T00:01:34Z",
+      "temp_c": 16.93,
+      "rh_pct": 61.88,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-17T12:01:34Z",
+      "temp_c": 24.27,
+      "rh_pct": 43.05,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-18T00:01:34Z",
+      "temp_c": 16.93,
+      "rh_pct": 54.47,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-18T12:01:34Z",
+      "temp_c": 23.63,
+      "rh_pct": 52.25,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-19T00:01:34Z",
+      "temp_c": 16.22,
+      "rh_pct": 62.18,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-19T12:01:34Z",
+      "temp_c": 25.51,
+      "rh_pct": 44.95,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-20T00:01:34Z",
+      "temp_c": 16.62,
+      "rh_pct": 56.69,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-20T12:01:34Z",
+      "temp_c": 24.33,
+      "rh_pct": 50.62,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-21T00:01:34Z",
+      "temp_c": 18.53,
+      "rh_pct": 60.02,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-21T12:01:34Z",
+      "temp_c": 22.77,
+      "rh_pct": 54.68,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-22T00:01:34Z",
+      "temp_c": 19.38,
+      "rh_pct": 65.32,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-22T12:01:34Z",
+      "temp_c": 23.9,
+      "rh_pct": 61.23,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-23T00:01:34Z",
+      "temp_c": 19.49,
+      "rh_pct": 71.85,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-23T12:01:34Z",
+      "temp_c": 21.55,
+      "rh_pct": 72.3,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-24T00:01:34Z",
+      "temp_c": 18.69,
+      "rh_pct": 73.93,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-24T12:01:34Z",
+      "temp_c": 23.63,
+      "rh_pct": 61.83,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-25T00:01:34Z",
+      "temp_c": 17.65,
+      "rh_pct": 69.15,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-25T12:01:34Z",
+      "temp_c": 24.01,
+      "rh_pct": 52.46,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-26T00:01:34Z",
+      "temp_c": 17.63,
+      "rh_pct": 63.5,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-26T12:01:34Z",
+      "temp_c": 22.03,
+      "rh_pct": 49.85,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-27T00:01:34Z",
+      "temp_c": 14.71,
+      "rh_pct": 56.71,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-27T12:01:34Z",
+      "temp_c": 22.75,
+      "rh_pct": 48.38,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-28T00:01:34Z",
+      "temp_c": 15.1,
+      "rh_pct": 56.54,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-28T12:01:34Z",
+      "temp_c": 21.36,
+      "rh_pct": 49.86,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-29T00:01:34Z",
+      "temp_c": 16.54,
+      "rh_pct": 55.8,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-29T12:01:34Z",
+      "temp_c": 21.16,
+      "rh_pct": 40.39,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-30T00:01:34Z",
+      "temp_c": 14.57,
+      "rh_pct": 44.83,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-09-30T12:01:34Z",
+      "temp_c": 21.49,
+      "rh_pct": 42.61,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-10-01T00:01:34Z",
+      "temp_c": 18.5,
+      "rh_pct": 60.32,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-10-01T12:01:34Z",
+      "temp_c": 19.24,
+      "rh_pct": 67.09,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-10-02T00:01:34Z",
+      "temp_c": 18.75,
+      "rh_pct": 71.7,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-10-02T12:01:34Z",
+      "temp_c": 19.55,
+      "rh_pct": 70.78,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-10-03T00:01:34Z",
+      "temp_c": 18.18,
+      "rh_pct": 72.57,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-10-03T12:01:34Z",
+      "temp_c": 21.54,
+      "rh_pct": 62.09,
+      "fan_rpm": null,
+      "mold_index": null
+    }
+  ],
+  "summary": "Humidity stayed near its normal range over the past month.",
+  "summary_source": "fallback"
+}

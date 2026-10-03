@@ -1,0 +1,36 @@
+{
+  "id": "roof-se",
+  "range": "24h",
+  "normal": {
+    "label": "Normal for October",
+    "rh_pct": [
+      42,
+      72
+    ]
+  },
+  "points": [
+    {
+      "t": "2026-10-02T12:01:34Z",
+      "temp_c": 18.12,
+      "rh_pct": 62.82,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-10-03T00:01:34Z",
+      "temp_c": 20.2,
+      "rh_pct": 62.25,
+      "fan_rpm": null,
+      "mold_index": null
+    },
+    {
+      "t": "2026-10-03T12:01:34Z",
+      "temp_c": 16.79,
+      "rh_pct": 68.79,
+      "fan_rpm": null,
+      "mold_index": null
+    }
+  ],
+  "summary": "Humidity stayed near its normal range over the last 24 hours.",
+  "summary_source": "fallback"
+}
