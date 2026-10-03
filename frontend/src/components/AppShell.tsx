@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
+import { api } from '../api'
 import { getUser, signOut } from '../auth'
 import Clock from './Clock'
 import Spinner from './Spinner'
@@ -17,7 +18,19 @@ const NAV = [
 export default function AppShell() {
   const { state, error, refresh } = useHouseState()
   const [signingOut, setSigningOut] = useState(false)
+  const [busy, setBusy] = useState(false)
   const user = getUser()
+
+  const demo = async () => {
+    setBusy(true)
+    try {
+      if (state?.simulating) await api.resetDemo()
+      else await api.simulateLeak()
+      refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
 
   // Same brief staged beat as the login card before the page swap.
   const leave = () => {
@@ -86,20 +99,15 @@ export default function AppShell() {
           )}
           <div className="flex items-center gap-2.5">
             <Clock />
-            <span className="ml-auto flex gap-3">
-              <Link
-                to="/status"
-                className="text-xs text-white/40 underline-offset-2 hover:underline"
-              >
-                status ↗
-              </Link>
-              <Link
-                to="/data"
-                className="text-xs text-white/40 underline-offset-2 hover:underline"
-              >
-                raw data ↗
-              </Link>
-            </span>
+            <button
+              onClick={demo}
+              disabled={busy}
+              className={`ml-auto text-xs underline-offset-2 transition-colors hover:underline disabled:opacity-50 ${
+                state?.simulating ? 'text-watch' : 'text-white/40'
+              }`}
+            >
+              {state?.simulating ? 'Stop simulation' : 'Simulate leak'}
+            </button>
           </div>
         </div>
       </aside>
