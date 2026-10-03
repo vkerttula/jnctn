@@ -3,8 +3,12 @@
 
 export type SensorStatus = 'ok' | 'watch' | 'alert'
 export type Severity = 'watch' | 'alert'
-export type SensorKind = 'fan' | 'leak_sensor'
-export type Zone = 'flat_roof' | 'green_roof' | 'ridge' | 'crawl_space' | 'wall'
+export type SensorKind =
+  | 'leak_sensor'
+  | 'fan'
+  | 'climate_sensor'
+  | 'ventilation_unit'
+export type Zone = 'roof_south' | 'roof_north' | 'ridge' | 'crawl_space' | 'indoor'
 export type SeriesRange = '24h' | '7d' | '30d'
 export type ScoreWord = 'Good' | 'Fair' | 'Attention'
 export type ScoreTrend = 'improving' | 'stable' | 'declining'
@@ -29,6 +33,7 @@ export interface HouseSensor {
   zone: Zone
   status: SensorStatus
   primary: boolean
+  latest: SensorLatest
 }
 
 export interface HouseState {

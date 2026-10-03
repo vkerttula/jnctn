@@ -85,12 +85,13 @@ Frontend polls `GET /api/house`; everything else is on demand.
   ],
   "sensors": [
     {
-      "id": "katto-2",
-      "name": "Green roof, west",
+      "id": "roof-nw",
+      "name": "North-west roof",
       "kind": "leak_sensor",
-      "zone": "green_roof",
+      "zone": "roof_north",
       "status": "watch",
-      "primary": true
+      "primary": true,
+      "latest": { "temp_c": 17.2, "rh_pct": 58.2, "mold_index": null, "fan_rpm": null }
     }
   ],
   "simulating": false,
@@ -101,12 +102,16 @@ Frontend polls `GET /api/house`; everything else is on demand.
 - `score` 0–100; `score_word` one of `Good | Fair | Attention`; `score_trend`
   one of `improving | stable | declining`.
 - `attention[]` ordered by severity (`alert` before `watch`), max ~5 items.
-- `sensors[]`: every sensor the house scene renders. `kind`:
-  `fan | leak_sensor`. `status`: `ok | watch | alert`. `zone`: a stable string
-  the frontend maps to a 3D anchor **computed from the house profile** (see
-  the onboarding spec) — proposed zones: `flat_roof`, `green_roof`, `ridge`,
-  `crawl_space`, `wall`. `primary: true` marks the ~10–15 hotspots shown as
-  visible dots; the rest can back zone health.
+- `sensors[]`: every device the house scene renders. `kind`:
+  `leak_sensor | fan | climate_sensor | ventilation_unit`. `status`:
+  `ok | watch | alert`. `zone`: a stable string the frontend maps to a 3D
+  anchor **computed from the house profile** (see the onboarding spec) —
+  zones: `roof_south`, `roof_north`, `ridge`, `crawl_space`, `indoor`.
+  `primary: true` marks devices shown on the model. `latest` (same shape as
+  the detail endpoint) feeds the key values in each 3D callout.
+- **Demo home** (mock fixtures): a detached house — four roof moisture
+  sensors (two per slope), a roof fan on the ridge, one crawl-space sensor
+  and a separate ventilation unit. Seven devices.
 - `simulating: true` while a leak simulation is running — the frontend uses
   this to keep the 15 s polling burst and can show a subtle "demo" badge.
 
@@ -159,10 +164,13 @@ frontend.
 
 - **ScoreCard** — Oura-style SVG ring, big score number, `score_word`, trend
   hint, and `summary` as one sentence underneath. No raw sensor values.
-- **HouseScene** — fills most of the viewport; hotspot dots colored by
-  `status`. Slow auto-rotate; OrbitControls clamped (no under-floor camera,
-  sensible zoom limits). Click hotspot → `/sensors/:id`. Hover → tooltip with
-  `name` only.
+- **HouseScene** — fills the content area; each device is a status-colored
+  dot with a leader line to a callout card (status dot, name, 2–3 key
+  values). Very slow auto-rotate that pauses while hovering any dot or
+  callout; OrbitControls clamped (no under-floor camera, sensible zoom
+  limits). Click dot or callout → `/sensors/:id`. Callouts on the far side
+  of the house fade so the front stays readable. No on-screen usage hints
+  ("drag to rotate" etc.) — the homeowner shouldn't need instructions.
 - **AttentionFeed** — list of `attention[]` as calm sentence cards with a
   small severity dot (amber/red). Empty state: "Everything looks normal."
 - **Demo controls** — small, secondary: "Simulate leak" button and, while
@@ -235,8 +243,9 @@ keep an eye on the north slope" — never "RH 78.4% +2.1pp".
 
 ## Frontend rules (from the vision)
 
-- **No raw numbers on home.** Score, word, sentences, colored dots — that's
-  it. Raw values only on sensor detail, always muted.
+- **Few numbers on home.** Score, word, sentences, colored dots, plus only
+  the 2–3 key readings per device in the 3D callouts. Charts and full
+  readings live on sensor detail.
 - **Interpretation comes from the API.** Frontend renders `summary`,
   `status_text`, `attention[].message` verbatim; it never invents text.
 - **Slow and smoothed.** 60 s polling, smoothed charts, gentle animations.

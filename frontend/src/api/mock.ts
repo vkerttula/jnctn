@@ -7,12 +7,16 @@ import type {
   HouseState,
   ScoreWord,
   SensorDetail,
+  SensorLatest,
   SensorSeries,
+  Severity,
 } from './types'
 
-const LEAK_TARGET_DEFAULT = 'rht-18796' // green roof leak sensor
+const LEAK_TARGET_DEFAULT = 'roof-nw' // north slope — where moisture collects
 const ALERT_AFTER_S = 45 // watch -> alert transition
-const SCORE_DROP_S = 150 // score falls 84 -> 52 over this span
+const SCORE_DROP_S = 150 // score falls to 52 over this span
+const RH_RAMP_S = 240 // leak humidity climbs to LEAK_RH over this span
+const LEAK_RH = 92
 
 let sim: { startedAt: number; targetId: string } | null = null
 
@@ -30,24 +34,33 @@ function scoreWord(score: number): ScoreWord {
   return score >= 75 ? 'Good' : score >= 60 ? 'Fair' : 'Attention'
 }
 
+function simSeverity(): Severity {
+  return elapsedS() >= ALERT_AFTER_S ? 'alert' : 'watch'
+}
+
+function simLatest(l: SensorLatest): SensorLatest {
+  if (l.rh_pct == null) return l
+  const k = Math.min(1, elapsedS() / RH_RAMP_S)
+  return { ...l, rh_pct: l.rh_pct + (LEAK_RH - l.rh_pct) * k }
+}
+
 function applySim(h: HouseState): HouseState {
   if (!sim) return { ...h, simulating: false }
-  const t = elapsedS()
-  const severity = t >= ALERT_AFTER_S ? 'alert' : 'watch'
+  const severity = simSeverity()
   const score = Math.max(
     52,
-    Math.round(h.score - (h.score - 52) * Math.min(1, t / SCORE_DROP_S)),
+    Math.round(h.score - (h.score - 52) * Math.min(1, elapsedS() / SCORE_DROP_S)),
   )
   const target = h.sensors.find((s) => s.id === sim!.targetId)
-  const where = target?.name.split('·')[0].trim() ?? 'a sensor'
+  const where = (target?.name ?? 'roof').toLowerCase()
   const attention: AttentionItem[] = [
     {
       sensor_id: sim.targetId,
       severity,
       message:
         severity === 'alert'
-          ? `Humidity at ${where.toLowerCase()} has risen sharply — this pattern usually means a leak. We've flagged it for review.`
-          : `Humidity at ${where.toLowerCase()} is rising slowly. We're watching it — no action needed yet.`,
+          ? `Moisture in the ${where} has risen sharply — this pattern usually means a leak. We've flagged it for review.`
+          : `Moisture in the ${where} is rising slowly. We're watching it — no action needed yet.`,
       since: new Date(sim.startedAt).toISOString(),
     },
   ]
@@ -58,11 +71,13 @@ function applySim(h: HouseState): HouseState {
     score_trend: 'declining',
     summary:
       severity === 'alert'
-        ? 'We found a likely leak on the green roof. Everything else looks normal.'
-        : 'One area needs watching — the rest of the house looks normal.',
+        ? 'We found a likely leak in the roof. Everything else looks normal.'
+        : 'One area of the roof needs watching — the rest of the house looks normal.',
     attention,
     sensors: h.sensors.map((s) =>
-      s.id === sim!.targetId ? { ...s, status: severity } : s,
+      s.id === sim!.targetId
+        ? { ...s, status: severity, latest: simLatest(s.latest) }
+        : s,
     ),
     simulating: true,
   }
@@ -76,10 +91,11 @@ export const mock: Api = {
   async getSensor(id) {
     const d = await mockFetch<SensorDetail>(`sensors/${id}`)
     if (!sim || id !== sim.targetId) return d
-    const severity = elapsedS() >= ALERT_AFTER_S ? 'alert' : 'watch'
+    const severity = simSeverity()
     return {
       ...d,
       status: severity,
+      latest: simLatest(d.latest),
       status_text:
         severity === 'alert'
           ? 'Humidity has risen sharply here in the last hour — this pattern usually means a new leak.'
@@ -91,12 +107,12 @@ export const mock: Api = {
     const s = await mockFetch<SensorSeries>(`series/${id}-${range}`)
     if (!sim || id !== sim.targetId || range !== '24h') return s
     // Ramp the tail of the 24 h series so the fresh leak is visible.
-    const t = Math.min(1, elapsedS() / 240)
+    const t = Math.min(1, elapsedS() / RH_RAMP_S)
     const n = Math.min(24, s.points.length)
     const points = s.points.map((p, i) => {
       const k = (i - (s.points.length - n)) / n
       if (k < 0 || p.rh_pct == null) return p
-      return { ...p, rh_pct: p.rh_pct + (92 - p.rh_pct) * t * k }
+      return { ...p, rh_pct: p.rh_pct + (LEAK_RH - p.rh_pct) * t * k }
     })
     return { ...s, points }
   },

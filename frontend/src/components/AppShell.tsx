@@ -133,7 +133,7 @@ export default function AppShell() {
         </div>
       </aside>
 
-      <div className="relative min-h-[55svh] flex-1 lg:h-full lg:min-h-0">
+      <div className="relative min-h-[55svh] flex-1 overflow-hidden lg:h-full lg:min-h-0">
         <Outlet context={{ state }} />
       </div>
     </div>
