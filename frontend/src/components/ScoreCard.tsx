@@ -8,9 +8,9 @@ import {
   type HelpRequest,
   type HouseState,
   type ScoreWord,
-  type SensorStatus,
   type Zone,
 } from '../api'
+import { AREA_WORD } from '../labels'
 import { STATUS_COLOR } from '../theme'
 
 const WORD_COLOR: Record<ScoreWord, string> = {
@@ -85,12 +85,6 @@ export function ScoreRing({
       />
     </svg>
   )
-}
-
-export const AREA_WORD: Record<SensorStatus, string> = {
-  ok: 'Good',
-  watch: 'Watch',
-  alert: 'Check',
 }
 
 const AREA_OF_ZONE: Record<Zone, Area['id']> = {

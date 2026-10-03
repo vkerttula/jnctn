@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { HouseState } from '../api'
+import { api, type HouseState } from '../api'
 import HouseScene from '../components/HouseScene'
 import Spinner from '../components/Spinner'
 import WeatherIcon from '../components/WeatherIcon'
@@ -77,6 +78,45 @@ function Overview({ state }: { state: HouseState }) {
   )
 }
 
+// Tiny dev/demo control pinned to the corner of the 3D view — play starts
+// the leak simulation, the square stops it. Quiet by design: an icon with
+// a tooltip, not a labelled button in the homeowner UI.
+function SimButton({ simulating }: { simulating: boolean }) {
+  const { refresh } = useHouse()
+  const [busy, setBusy] = useState(false)
+  const toggle = async () => {
+    setBusy(true)
+    try {
+      if (simulating) await api.resetDemo()
+      else await api.simulateLeak()
+      refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <button
+      onClick={toggle}
+      disabled={busy}
+      title={simulating ? 'Stop the leak simulation' : 'Simulate a leak (demo)'}
+      aria-label={simulating ? 'Stop the leak simulation' : 'Simulate a leak (demo)'}
+      className={`pointer-events-auto absolute right-5 bottom-5 z-10 flex h-9 w-9 items-center justify-center rounded-full border shadow-sm backdrop-blur-md transition-colors disabled:opacity-50 ${
+        simulating
+          ? 'border-watch/50 bg-watch/20 text-watch hover:bg-watch/30'
+          : 'border-white/70 bg-white/70 text-navy/60 hover:bg-white hover:text-navy'
+      }`}
+    >
+      <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden>
+        {simulating ? (
+          <rect x="6" y="6" width="12" height="12" rx="2" />
+        ) : (
+          <path d="M8 5.5v13a1 1 0 0 0 1.52.85l10-6.5a1 1 0 0 0 0-1.7l-10-6.5A1 1 0 0 0 8 5.5Z" />
+        )}
+      </svg>
+    </button>
+  )
+}
+
 export default function HomePage() {
   const { state } = useHouse()
   const navigate = useNavigate()
@@ -91,6 +131,7 @@ export default function HomePage() {
             onSelect={(s) => navigate(`/sensors/${s.id}`)}
           />
           <Overview state={state} />
+          <SimButton simulating={state.simulating} />
         </>
       ) : (
         <div className="flex h-full items-center justify-center">
