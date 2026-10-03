@@ -44,11 +44,13 @@ DEVICES = [
     {"id": "roof-ne", "name": "North-east roof", "kind": "leak_sensor", "zone": "roof_north",
      "source": "rht:18920", "fields": ("temp_c", "rh_pct")},
     {"id": "roof-fan", "name": "Roof fan", "kind": "fan", "zone": "ridge",
-     "source": "fan:katto-1", "fields": ("temp_c", "rh_pct", "fan_rpm", "mold_index")},
+     "source": "fan:katto-1", "fields": ("temp_c", "rh_pct", "fan_rpm", "mold_index"),
+     "state_label": "Running"},
     {"id": "crawl-space", "name": "Crawl space", "kind": "climate_sensor", "zone": "crawl_space",
      "source": "fan:katto-2", "fields": ("temp_c", "rh_pct", "mold_index"), "works_with": "crawl-fan"},
     {"id": "crawl-fan", "name": "Crawl space fan", "kind": "fan", "zone": "crawl_space",
-     "source": "fan:hallin-alapohja", "fields": ("fan_rpm",), "works_with": "crawl-space"},
+     "source": "fan:hallin-alapohja", "fields": ("fan_rpm",), "works_with": "crawl-space",
+     "state_label": "Drying"},
 ]
 
 STATUS_TEXT = {
@@ -254,6 +256,7 @@ def main() -> None:
             "zone": dev["zone"],
             "status": "ok",
             "works_with": dev.get("works_with"),
+            "state_label": dev.get("state_label"),
             "latest": latest_of(series),
             "last_reading_at": iso(series[-1]["t"]),
         }
@@ -289,6 +292,7 @@ def main() -> None:
             },
             "attention": [],
             "sensors": house_sensors,
+            "open_requests": [],
             "simulating": False,
             "updated_at": iso(updated),
         },

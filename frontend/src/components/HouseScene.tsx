@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { ContactShadows, OrbitControls } from '@react-three/drei'
 import { ExtrudeGeometry, Shape, Vector3, type Mesh } from 'three'
 import type { HouseSensor, Zone } from '../api'
-import { keyValues } from '../labels'
+import { calloutValues } from '../labels'
 import { STATUS_COLOR } from '../theme'
 
 type Vec3 = [number, number, number]
@@ -249,7 +249,7 @@ const MARGIN = 12
 const RELAX_STEPS = 16
 
 type Placed = { sensor: HouseSensor; at: Vec3; out: Vec3 }
-type Els = Map<string, { card?: HTMLButtonElement | null; line?: SVGLineElement | null }>
+type Els = Map<string, { card?: HTMLButtonElement | null; line?: SVGGElement | null }>
 type Box = { id: string; ax: number; ay: number; x: number; y: number; w: number; h: number; front: boolean }
 
 function CalloutLayout({
@@ -346,11 +346,13 @@ function CalloutLayout({
         el.card.style.zIndex = b.front ? '2' : '1'
       }
       if (el?.line) {
-        el.line.setAttribute('x1', String(b.ax))
-        el.line.setAttribute('y1', String(b.ay))
-        el.line.setAttribute('x2', String(s.x + b.w / 2))
-        el.line.setAttribute('y2', String(s.y + b.h))
-        el.line.style.opacity = b.front ? '0.45' : visible.has(b.id) ? '0.15' : '0'
+        for (const ln of el.line.children) {
+          ln.setAttribute('x1', String(b.ax))
+          ln.setAttribute('y1', String(b.ay))
+          ln.setAttribute('x2', String(s.x + b.w / 2))
+          ln.setAttribute('y2', String(s.y + b.h))
+        }
+        el.line.style.opacity = b.front ? '1' : visible.has(b.id) ? '0.35' : '0'
       }
     }
   })
@@ -389,7 +391,7 @@ function CalloutCard({
         </span>
       </span>
       <span className="pl-[18px] text-[11px] text-muted tabular-nums">
-        {keyValues(sensor.latest).join(' · ')}
+        {calloutValues(sensor).join(' · ')}
       </span>
     </button>
   )
@@ -420,7 +422,7 @@ export default function HouseScene({
     })
   }, [sensors])
 
-  const register = (id: string, key: 'card' | 'line') => (el: HTMLButtonElement | SVGLineElement | null) => {
+  const register = (id: string, key: 'card' | 'line') => (el: HTMLButtonElement | SVGGElement | null) => {
     const entry = els.current.get(id) ?? {}
     Object.assign(entry, { [key]: el })
     els.current.set(id, entry)
@@ -464,13 +466,11 @@ export default function HouseScene({
       <div className="pointer-events-none absolute inset-0">
         <svg className="absolute inset-0 h-full w-full">
           {placed.map(({ sensor }) => (
-            <line
-              key={sensor.id}
-              ref={register(sensor.id, 'line')}
-              stroke="#01273e"
-              strokeWidth={1}
-              style={{ opacity: 0 }}
-            />
+            // white halo under a navy line so it reads on the dark roof too
+            <g key={sensor.id} ref={register(sensor.id, 'line')} style={{ opacity: 0 }}>
+              <line stroke="#ffffff" strokeOpacity={0.85} strokeWidth={3.5} strokeLinecap="round" />
+              <line stroke="#01273e" strokeWidth={1.25} strokeLinecap="round" />
+            </g>
           ))}
         </svg>
         {placed.map(({ sensor }) => (

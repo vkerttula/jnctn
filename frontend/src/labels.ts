@@ -1,4 +1,4 @@
-import type { SensorKind, SensorLatest, Zone } from './api/types'
+import type { HouseSensor, SensorKind, SensorLatest, Zone } from './api/types'
 
 export const KIND_LABEL: Record<SensorKind, string> = {
   leak_sensor: 'Roof moisture sensor',
@@ -20,6 +20,16 @@ export function keyValues(l: SensorLatest): string[] {
   if (l.temp_c != null) out.push(`${l.temp_c.toFixed(1)} °C`)
   if (l.fan_rpm != null) out.push(`${Math.round(l.fan_rpm)} rpm`)
   return out
+}
+
+// What a 3D callout shows: fans read as their state + speed (details live on
+// the sensor page), sensors as humidity + temperature.
+export function calloutValues(s: HouseSensor): string[] {
+  if (s.kind === 'fan') {
+    const rpm = s.latest.fan_rpm != null ? `${Math.round(s.latest.fan_rpm)} rpm` : null
+    return [s.state_label, rpm].filter((v): v is string => !!v)
+  }
+  return keyValues(s.latest)
 }
 
 export function timeAgo(isoDate: string): string {
