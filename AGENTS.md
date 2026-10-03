@@ -72,6 +72,10 @@ Keep this section and the commands below up to date as the structure grows.
 - **Everything runs inside the devcontainer — including you.** Run commands
   directly; don't reach for `docker`/`make` (host-side) or install tools —
   Node.js 24, Python 3.12, `uv`, pytest, ruff and npm are already here.
+- **Never run `uv`/`npm` on the host against this repo.** The bind mount
+  shares `backend/.venv` and `frontend/node_modules`; a host-side `uv run`
+  rewrites `.venv` with a host interpreter path, which kills the container's
+  backend (uvicorn can't respawn a worker from a dangling symlink).
 - Host-reachable URLs: UI `localhost:5173`, API `localhost:8000` (root →
   `/docs`), mongo-express `localhost:8081`, MongoDB `localhost:27017` on the
   host / `db:27017` inside.

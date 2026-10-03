@@ -47,7 +47,10 @@ start_backend() {
       sleep 1
     done
   fi
-  setsid bash -c 'cd backend && exec uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000' &
+  # --reload-exclude: .venv lives inside the watched dir; uv recreating it
+  # (e.g. a host-side `uv run` leaving a foreign interpreter symlink) would
+  # otherwise trigger a reload storm and kill the worker mid-swap.
+  setsid bash -c 'cd backend && exec uv run uvicorn app.main:app --reload --reload-exclude "$PWD/.venv" --host 0.0.0.0 --port 8000' &
   pids+=($!)
 }
 
@@ -57,7 +60,11 @@ start_frontend() {
     return
   fi
   # Fresh clones have no node_modules (the bind mount persists it afterwards).
-  if [ ! -d frontend/node_modules ]; then
+  # Also reinstall after a pull changed the manifest — [ a -nt b ] is false
+  # when a is missing, so a repo without a lockfile still works.
+  if [ ! -d frontend/node_modules ] ||
+    [ frontend/package.json -nt frontend/node_modules ] ||
+    [ frontend/package-lock.json -nt frontend/node_modules ]; then
     echo "installing frontend dependencies..."
     npm --prefix frontend install
   fi
