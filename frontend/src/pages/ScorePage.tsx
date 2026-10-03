@@ -40,7 +40,7 @@ function MoldChart({ id, name }: { id: string; name: string }) {
   const [series, setSeries] = useState<SensorSeries | null>(null)
   useEffect(() => {
     api
-      .getSeries(id, '30d')
+      .getSeries(id, '1y')
       .then(setSeries)
       .catch(() => setSeries(null))
   }, [id])
@@ -54,7 +54,7 @@ function MoldChart({ id, name }: { id: string; name: string }) {
     <section className="flex flex-col gap-3 rounded-3xl border border-line bg-white p-5 shadow-sm">
       <div className="flex items-baseline justify-between">
         <h3 className="font-display text-sm font-semibold text-navy">{name}</h3>
-        <span className="text-xs text-muted">mould index · 30 days</span>
+        <span className="text-xs text-muted">mould index · 12 months</span>
       </div>
       {series === null ? (
         <div className="flex h-40 items-center justify-center text-sm text-muted">
@@ -75,8 +75,8 @@ function MoldChart({ id, name }: { id: string; name: string }) {
                 domain={['dataMin', 'dataMax']}
                 tickFormatter={(t) =>
                   new Date(Number(t)).toLocaleDateString('en-GB', {
-                    day: 'numeric',
                     month: 'short',
+                    year: '2-digit',
                   })
                 }
                 stroke="var(--color-muted)"
