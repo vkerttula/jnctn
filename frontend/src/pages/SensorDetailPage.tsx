@@ -153,16 +153,14 @@ export default function SensorDetailPage() {
                 </div>
               </div>
               {current?.data?.summary && (
-                <div className="flex flex-col gap-1">
-                  <p className="text-sm leading-relaxed text-navy/75">
-                    {current.data.summary}
-                  </p>
+                <p className="text-sm leading-relaxed text-navy/75">
+                  {current.data.summary}{' '}
                   {current.data.summary_source === 'llm' && (
-                    <span className="w-fit text-[10px] font-medium tracking-[0.14em] text-navy/30 uppercase">
+                    <span className="text-[10px] font-medium tracking-[0.14em] text-navy/30 uppercase">
                       AI insight
                     </span>
                   )}
-                </div>
+                </p>
               )}
               {current?.data ? (
                 <SensorChart series={current.data} />

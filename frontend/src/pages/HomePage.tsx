@@ -20,12 +20,14 @@ function Overview({ state }: { state: HouseState }) {
         <h1 className="font-display text-3xl leading-tight font-bold text-navy">
           {state.headline}
         </h1>
-        <p className="text-base leading-relaxed text-navy/75">{state.summary}</p>
-        {state.narrative_source === 'llm' && (
-          <span className="mt-1 w-fit text-[10px] font-medium tracking-[0.14em] text-navy/30 uppercase">
-            AI insight
-          </span>
-        )}
+        <p className="text-base leading-relaxed text-navy/75">
+          {state.summary}{' '}
+          {state.narrative_source === 'llm' && (
+            <span className="text-[10px] font-medium tracking-[0.14em] text-navy/30 uppercase">
+              AI insight
+            </span>
+          )}
+        </p>
       </div>
 
       <div className="flex flex-col items-end gap-1 rounded-2xl border border-white/70 bg-white/80 px-5 py-3 shadow-lg shadow-navy/5 backdrop-blur-md">
