@@ -16,10 +16,10 @@ function WeatherChip({
   location: string
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-full border border-line bg-white/80 px-4 py-1.5 text-xs text-muted shadow-sm backdrop-blur-xl">
-      <span className="font-semibold text-navy">{temp.toFixed(0)}°C</span>
+    <div className="flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs text-white/70">
+      <span className="font-semibold text-white">{temp.toFixed(0)}°C</span>
       <span>{condition}</span>
-      <span className="text-navy/60">· {location}</span>
+      <span className="text-white/50">· {location}</span>
     </div>
   )
 }
@@ -41,9 +41,75 @@ export default function HomePage() {
   }
 
   return (
-    <main className="relative min-h-svh bg-mist">
-      {/* 3D house fills the viewport; dashboard panels float on top */}
-      <div className="h-[55svh] lg:absolute lg:inset-0 lg:h-full">
+    <main className="flex min-h-svh flex-col bg-mist lg:h-svh lg:flex-row">
+      {/* unified navy sidebar — VILPE logo on top, house status below */}
+      <aside className="flex w-full flex-col gap-5 bg-navy px-6 py-6 text-white lg:h-svh lg:w-[340px] lg:shrink-0 lg:overflow-y-auto">
+        <img src="/vilpe-logo.png" alt="VILPE" className="h-6 w-auto self-start" />
+
+        {error && (
+          <div className="rounded-2xl border border-alert/40 bg-alert/10 p-4 text-sm text-white/90">
+            Could not load house state.
+          </div>
+        )}
+
+        {state && <ScoreCard state={state} />}
+        {state && (
+          <WeatherChip
+            temp={state.weather.temp_c}
+            condition={state.weather.condition}
+            location={state.weather.location}
+          />
+        )}
+        {state && <AttentionFeed items={state.attention} />}
+
+        <div className="mt-auto flex flex-col gap-3 pt-4">
+          {state?.simulating && (
+            <span className="self-start rounded-full bg-watch/20 px-3 py-1.5 text-xs font-semibold text-watch">
+              demo running
+            </span>
+          )}
+          <div className="flex items-center gap-2">
+            {state?.simulating ? (
+              <button
+                onClick={() => demo('reset')}
+                disabled={busy}
+                className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-50"
+              >
+                Reset demo
+              </button>
+            ) : (
+              <button
+                onClick={() => demo('leak')}
+                disabled={busy}
+                className="rounded-full border border-vilpe-orange/60 bg-vilpe-orange/15 px-4 py-1.5 text-xs font-medium text-vilpe-orange transition-colors hover:bg-vilpe-orange/25 disabled:opacity-50"
+              >
+                Simulate leak
+              </button>
+            )}
+            <span className="text-xs text-white/40">
+              updated{' '}
+              {state ? new Date(state.updated_at).toLocaleString('en-GB') : '—'}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/status"
+              className="text-xs text-white/40 underline-offset-2 hover:underline"
+            >
+              status ↗
+            </Link>
+            <Link
+              to="/data"
+              className="text-xs text-white/40 underline-offset-2 hover:underline"
+            >
+              raw data ↗
+            </Link>
+          </div>
+        </div>
+      </aside>
+
+      {/* 3D house fills the rest of the viewport */}
+      <div className="relative h-[55svh] lg:h-full lg:flex-1">
         {state ? (
           <HouseScene
             sensors={state.sensors}
@@ -54,85 +120,9 @@ export default function HomePage() {
             Loading your house…
           </div>
         )}
-      </div>
-
-      <div className="relative z-10 flex flex-col gap-4 p-4 sm:p-6 lg:pointer-events-none lg:h-svh">
-        <header className="flex items-center justify-between gap-3">
-          <div className="pointer-events-auto rounded-2xl bg-navy px-4 py-3 shadow-lg shadow-navy/20">
-            <img src="/vilpe-logo.png" alt="VILPE" className="h-5 w-auto" />
-          </div>
-          <div className="pointer-events-auto flex items-center gap-2">
-            {state?.simulating && (
-              <span className="rounded-full bg-watch/15 px-3 py-1.5 text-xs font-semibold text-navy">
-                demo running
-              </span>
-            )}
-            {state && (
-              <WeatherChip
-                temp={state.weather.temp_c}
-                condition={state.weather.condition}
-                location={state.weather.location}
-              />
-            )}
-          </div>
-        </header>
-
-        {error && (
-          <div className="pointer-events-auto rounded-2xl border border-alert/30 bg-alert/5 p-4 text-sm text-alert">
-            Could not load house state.
-          </div>
-        )}
-
-        {/* floating panels */}
-        <div className="flex flex-1 flex-col justify-between gap-4 lg:flex-row lg:items-stretch">
-          <div className="pointer-events-auto lg:self-center">
-            {state && <ScoreCard state={state} />}
-          </div>
-          <div className="pointer-events-auto w-full lg:w-80 lg:self-end">
-            {state && <AttentionFeed items={state.attention} />}
-          </div>
+        <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-muted/80">
+          drag to rotate · click a dot for details
         </div>
-
-        <footer className="flex items-center justify-between gap-3">
-          <span className="pointer-events-auto hidden text-xs text-muted/80 lg:block">
-            drag to rotate · click a dot for details
-          </span>
-          <div className="pointer-events-auto flex items-center gap-2">
-            <span className="hidden text-xs text-muted/70 sm:block">
-              updated{' '}
-              {state ? new Date(state.updated_at).toLocaleString('en-GB') : '—'}
-            </span>
-            {state?.simulating ? (
-              <button
-                onClick={() => demo('reset')}
-                disabled={busy}
-                className="rounded-full border border-line bg-white/80 px-4 py-1.5 text-xs font-medium text-navy shadow-sm backdrop-blur-xl transition-colors hover:border-navy/30 disabled:opacity-50"
-              >
-                Reset demo
-              </button>
-            ) : (
-              <button
-                onClick={() => demo('leak')}
-                disabled={busy}
-                className="rounded-full border border-vilpe-orange/40 bg-white/80 px-4 py-1.5 text-xs font-medium text-vilpe-orange shadow-sm backdrop-blur-xl transition-colors hover:bg-vilpe-orange/10 disabled:opacity-50"
-              >
-                Simulate leak
-              </button>
-            )}
-            <Link
-              to="/status"
-              className="text-xs text-muted underline-offset-2 hover:underline"
-            >
-              status ↗
-            </Link>
-            <Link
-              to="/data"
-              className="text-xs text-muted underline-offset-2 hover:underline"
-            >
-              raw data ↗
-            </Link>
-          </div>
-        </footer>
       </div>
     </main>
   )

@@ -22,7 +22,7 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
         cy="80"
         r={r}
         fill="none"
-        stroke="var(--color-line)"
+        stroke="rgba(255,255,255,0.15)"
         strokeWidth="10"
       />
       <circle
@@ -44,11 +44,11 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
 export default function ScoreCard({ state }: { state: HouseState }) {
   const color = WORD_COLOR[state.score_word]
   return (
-    <section className="flex w-72 flex-col items-center gap-4 rounded-3xl border border-white/60 bg-white/75 p-6 text-center shadow-xl shadow-navy/5 backdrop-blur-xl">
+    <section className="flex flex-col items-center gap-4 text-center">
       <div className="relative flex items-center justify-center">
         <ScoreRing score={state.score} color={color} />
         <div className="absolute flex flex-col items-center">
-          <span className="font-display text-5xl font-bold text-navy">
+          <span className="font-display text-5xl font-bold text-white">
             {state.score}
           </span>
           <span
@@ -59,12 +59,10 @@ export default function ScoreCard({ state }: { state: HouseState }) {
           </span>
         </div>
       </div>
-      <div className="text-xs font-medium tracking-wide text-muted">
+      <div className="text-xs font-medium tracking-wide text-white/50">
         {TREND_LABEL[state.score_trend]}
       </div>
-      <p className="max-w-xs text-sm leading-relaxed text-navy/80">
-        {state.summary}
-      </p>
+      <p className="text-sm leading-relaxed text-white/75">{state.summary}</p>
     </section>
   )
 }
