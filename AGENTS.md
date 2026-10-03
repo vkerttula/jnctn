@@ -39,11 +39,15 @@ Dev scaffolding plus a minimal, verified app skeleton:
   `/api/notes` (GET/POST — the reference CRUD slice: pydantic validation,
   ObjectId handling, Mongo writes), and `/api/stats` (GET aggregates counts;
   POST `/api/stats/track` records a page view in the `page_views`
-  collection), pymongo client in `app/db.py`, pytest + ruff configured
+  collection), and `/api/dataset` (GET summary + downsampled fan/sensor
+  readings served straight from `data/` — dev tooling only, 404s when the
+  dir is absent), pymongo client in `app/db.py`, pytest + ruff configured
 - `frontend/` — Vite + React + TS + Tailwind v4 (vite plugin); `src/App.tsx`
   is a Junction X Vaasa–themed stats landing page (Zen Dots display font,
   starfield + fuchsia glow) showing live `/api/stats` and writing to Mongo;
-  the dev server proxies `/api` → `localhost:8000`
+  the dev server proxies `/api` → `localhost:8000`. `main.tsx` switches on
+  `location.pathname` (no router): `/data` renders `src/DataExplorer.tsx`,
+  a Recharts-based dev page for inspecting the `data/` dataset
 - `Dockerfile` (root) + `render.yaml` — single-image deploy: multi-stage
   build produces the frontend `dist/` and a Python image where uvicorn serves
   it alongside `/api/*` (backend mounts `STATIC_DIR` when it exists, so dev

@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.routers import health, notes, stats
+from app.routers import dataset, health, notes, stats
 
 load_dotenv()
 
@@ -27,6 +27,7 @@ app.add_middleware(
 app.include_router(health.router, prefix="/api")
 app.include_router(notes.router, prefix="/api")
 app.include_router(stats.router, prefix="/api")
+app.include_router(dataset.router, prefix="/api")
 
 
 # In the deploy image the built frontend is served from the same origin, so
