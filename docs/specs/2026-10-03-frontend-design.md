@@ -74,6 +74,11 @@ Frontend polls `GET /api/house`; everything else is on demand.
   "score": 82,
   "score_word": "Good",
   "score_trend": "stable",
+  "score_history": [{ "date": "2026-09-04", "score": 85 }, { "date": "2026-10-03", "score": 86 }],
+  "areas": [
+    { "id": "roof", "name": "Roof", "status": "ok" },
+    { "id": "crawl_space", "name": "Crawl space", "status": "ok" }
+  ],
   "headline": "Your home is in good shape",
   "summary": "The roof is drying normally for early October.",
   "weather": {
@@ -120,6 +125,10 @@ Frontend polls `GET /api/house`; everything else is on demand.
 - `open_requests[]` keeps a requested service visibly active (sidebar
   Services row and the attention item both show "Requested" + `status_text`)
   until it is resolved; one open request per `kind`.
+- `score_history` is one point per day for the last 30 days (oldest first,
+  last = today), drawn as a small line under the score ring. `areas` are
+  structure-level verdicts (`ok | watch | alert` → "Good / Watch / Check")
+  shown as pills under the ring — what the score is made of, no numbers.
 - `home` is the address shown over the 3D view; `headline` is a short
   plain-language verdict (one line), `summary` one supporting sentence.
 - `weather` is the outdoor context for the home's location (FMI later).
@@ -171,13 +180,18 @@ device.
 {
   "id": "crawl-fan",
   "range": "7d",
+  "normal": null,
   "points": [
     { "t": "2026-10-01T00:00:00Z", "temp_c": null, "rh_pct": null, "fan_rpm": 1680, "mold_index": null }
   ]
 }
 ```
 
-Backend downsamples to ≤ ~300 points. Fields are nullable per device; the
+`normal` is the expected humidity range for this device and season, e.g.
+`{ "label": "Normal for October", "rh_pct": [47, 68] }` — drawn as a soft
+green band behind the humidity line so "normal" reads at a glance; `null`
+for devices without humidity (the crawl-space fan). Backend downsamples to
+≤ ~300 points. Fields are nullable per device; the
 chart offers only the readings present in the series. `mold_index` present
 only where the source data has it (fans, from 2026-03).
 
@@ -226,6 +240,10 @@ frontend.
   empty — the overview headline already says all is well.
 - **Demo controls** — small, secondary: "Simulate leak" button and, while
   `simulating`, "Reset demo".
+- **Alert notification** — when a new `alert` attention item appears, a
+  phone-push-style card (`headline` + item `message`) slides in top-right
+  for a few seconds; tapping it opens the sensor. Previews the push the
+  homeowner would get — "hear first when you're not fine".
 
 ### Sidebar (AppShell)
 

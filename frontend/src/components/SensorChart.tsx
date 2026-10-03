@@ -3,6 +3,7 @@ import {
   CartesianGrid,
   Line,
   LineChart,
+  ReferenceArea,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -161,6 +162,22 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
               }}
               labelFormatter={(t) => new Date(Number(t)).toLocaleString('en-GB')}
             />
+            {series.normal && shown.some((l) => l.key === 'rh_pct') && (
+              <ReferenceArea
+                yAxisId="rh_pct"
+                y1={series.normal.rh_pct[0]}
+                y2={series.normal.rh_pct[1]}
+                fill="#50c92f"
+                fillOpacity={0.1}
+                stroke="none"
+                label={{
+                  value: series.normal.label,
+                  position: 'insideTopLeft',
+                  fontSize: 11,
+                  fill: '#3a8f22',
+                }}
+              />
+            )}
             {shown.map((l) => (
               <Line
                 key={l.key}

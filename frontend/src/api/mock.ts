@@ -100,10 +100,15 @@ function applySim(h: HouseState): HouseState {
       actions: severity === 'alert' ? ['inspection', 'expert'] : ['expert'],
     },
   ]
+  const area = target?.zone === 'crawl_space' ? 'crawl_space' : 'roof'
   return {
     ...h,
     score,
     score_word: scoreWord(score),
+    score_history: h.score_history.map((d, i, all) =>
+      i === all.length - 1 ? { ...d, score } : d,
+    ),
+    areas: h.areas.map((a) => (a.id === area ? { ...a, status: severity } : a)),
     score_trend: 'declining',
     headline:
       severity === 'alert' ? 'Possible leak in the roof' : 'One area needs watching',
