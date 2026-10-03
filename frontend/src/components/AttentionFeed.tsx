@@ -17,14 +17,14 @@ export default function AttentionFeed({ items }: { items: AttentionItem[] }) {
         Needs attention
       </h2>
       {items.length === 0 && (
-        <div className="rounded-3xl border border-line bg-white p-5 text-sm text-muted shadow-sm">
+        <div className="rounded-3xl border border-white/60 bg-white/75 p-5 text-sm text-muted shadow-lg shadow-navy/5 backdrop-blur-xl">
           Everything looks normal — nothing needs your attention right now.
         </div>
       )}
       {items.map((a) => (
         <article
           key={a.sensor_id + a.since}
-          className="flex items-start gap-3 rounded-3xl border border-line bg-white p-5 shadow-sm"
+          className="flex items-start gap-3 rounded-3xl border border-white/60 bg-white/75 p-5 shadow-lg shadow-navy/5 backdrop-blur-xl"
         >
           <span
             className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"

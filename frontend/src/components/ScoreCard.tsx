@@ -44,7 +44,7 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
 export default function ScoreCard({ state }: { state: HouseState }) {
   const color = WORD_COLOR[state.score_word]
   return (
-    <section className="flex flex-col items-center gap-4 rounded-3xl border border-line bg-white p-6 text-center shadow-sm">
+    <section className="flex w-72 flex-col items-center gap-4 rounded-3xl border border-white/60 bg-white/75 p-6 text-center shadow-xl shadow-navy/5 backdrop-blur-xl">
       <div className="relative flex items-center justify-center">
         <ScoreRing score={state.score} color={color} />
         <div className="absolute flex flex-col items-center">

@@ -188,7 +188,7 @@ function StatusPage() {
         <DbPing onSent={loadStats} />
 
         <footer className="font-mono text-xs text-white/30">
-          jnctn · live from MongoDB · inspect at mongo-express :8081 ·{' '}
+          live from MongoDB · inspect at mongo-express :8081 ·{' '}
           <a href="/data" className="underline hover:text-white/60">
             /data explorer
           </a>
