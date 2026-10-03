@@ -94,6 +94,8 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
   const [hidden, setHidden] = useState<Set<Field>>(new Set())
   const shown = available.filter((l) => !hidden.has(l.key))
   const axis = shown[0]
+  const normal = series.normal
+  const normalShown = normal != null && shown.some((l) => l.key === 'rh_pct')
 
   const rows = useMemo(
     () => series.points.map((p) => ({ ...p, t: Date.parse(p.t) })),
@@ -117,17 +119,24 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
 
   return (
     <div className="flex flex-col gap-3">
-      {available.length > 1 && (
+      {(available.length > 1 || normalShown) && (
         <div className="flex flex-wrap items-center gap-2">
-          {available.map((l) => (
-            <Toggle
-              key={l.key}
-              label={l.label}
-              color={l.color}
-              active={!hidden.has(l.key)}
-              onClick={() => toggle(l.key)}
-            />
-          ))}
+          {available.length > 1 &&
+            available.map((l) => (
+              <Toggle
+                key={l.key}
+                label={l.label}
+                color={l.color}
+                active={!hidden.has(l.key)}
+                onClick={() => toggle(l.key)}
+              />
+            ))}
+          {normalShown && (
+            <span className="flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1 text-xs font-medium text-[#3a8f22]">
+              <span className="h-2.5 w-2.5 rounded-sm bg-[#50c92f]/20 ring-1 ring-[#50c92f]/60" />
+              {normal.label}
+            </span>
+          )}
         </div>
       )}
       <div className="h-64 w-full">
@@ -164,10 +173,9 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
               }}
               labelFormatter={(t) => new Date(Number(t)).toLocaleString('en-GB')}
             />
-            {series.normal &&
-              shown.some((l) => l.key === 'rh_pct') &&
-              (series.normal.bands?.length ? (
-                series.normal.bands.map((b, i) => (
+            {normalShown &&
+              (normal.bands?.length ? (
+                normal.bands.map((b) => (
                   <ReferenceArea
                     key={b.from}
                     yAxisId="rh_pct"
@@ -178,32 +186,16 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
                     fill="#50c92f"
                     fillOpacity={0.1}
                     stroke="none"
-                    label={
-                      i === 0
-                        ? {
-                            value: series.normal!.label,
-                            position: 'insideTopLeft',
-                            fontSize: 11,
-                            fill: '#3a8f22',
-                          }
-                        : undefined
-                    }
                   />
                 ))
               ) : (
                 <ReferenceArea
                   yAxisId="rh_pct"
-                  y1={series.normal.rh_pct[0]}
-                  y2={series.normal.rh_pct[1]}
+                  y1={normal.rh_pct[0]}
+                  y2={normal.rh_pct[1]}
                   fill="#50c92f"
                   fillOpacity={0.1}
                   stroke="none"
-                  label={{
-                    value: series.normal.label,
-                    position: 'insideTopLeft',
-                    fontSize: 11,
-                    fill: '#3a8f22',
-                  }}
                 />
               ))}
             {shown.map((l) => (
