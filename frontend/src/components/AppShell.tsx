@@ -79,37 +79,43 @@ export default function AppShell() {
         {state && <ScoreCard state={state} onRequested={refresh} />}
         <ServicesList requests={state?.open_requests ?? []} onRequested={refresh} />
 
-        <div className="mt-auto flex flex-col gap-3 border-t border-white/10 pt-4">
-          {user && (
-            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sense text-xs font-semibold">
-                {user.initials}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{user.name}</p>
-                <p className="truncate text-xs text-white/50">{user.home}</p>
+        <div className="mt-auto border-t border-white/10 pt-4">
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5">
+            {user && (
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sense text-xs font-semibold">
+                  {user.initials}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{user.name}</p>
+                  <p className="truncate text-xs text-white/50">{user.home}</p>
+                </div>
+                <button
+                  onClick={leave}
+                  className="shrink-0 text-xs text-white/50 underline-offset-2 transition-colors hover:text-white hover:underline"
+                >
+                  Log out
+                </button>
               </div>
-              <button
-                onClick={leave}
-                className="shrink-0 text-xs text-white/50 underline-offset-2 transition-colors hover:text-white hover:underline"
-              >
-                Log out
-              </button>
-            </div>
-          )}
-          <div className="flex items-center gap-2.5">
-            <Clock />
-            {apiMode === 'mock' && (
-              <button
-                onClick={demo}
-                disabled={busy}
-                className={`ml-auto text-xs underline-offset-2 transition-colors hover:underline disabled:opacity-50 ${
-                  state?.simulating ? 'text-watch' : 'text-white/40'
-                }`}
-              >
-                {state?.simulating ? 'Stop simulation' : 'Simulate leak'}
-              </button>
             )}
+            <div
+              className={`flex items-center gap-2.5 ${
+                user ? 'mt-2.5 border-t border-white/10 pt-2' : ''
+              }`}
+            >
+              <Clock />
+              {apiMode === 'mock' && (
+                <button
+                  onClick={demo}
+                  disabled={busy}
+                  className={`ml-auto text-xs underline-offset-2 transition-colors hover:underline disabled:opacity-50 ${
+                    state?.simulating ? 'text-watch' : 'text-white/40'
+                  }`}
+                >
+                  {state?.simulating ? 'Stop simulation' : 'Simulate leak'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </aside>
