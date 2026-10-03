@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 import { api, apiMode } from '../api'
 import { getUser, signOut } from '../auth'
 import Clock from './Clock'
+import Spinner from './Spinner'
 import ScoreCard from './ScoreCard'
 import ServicesList from './ServicesList'
 import { useHouseState } from '../hooks/useHouseState'
@@ -17,7 +18,14 @@ const NAV = [
 export default function AppShell() {
   const { state, error, refresh } = useHouseState()
   const [busy, setBusy] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
   const user = getUser()
+
+  // Same brief staged beat as the login card before the page swap.
+  const leave = () => {
+    setSigningOut(true)
+    window.setTimeout(signOut, 1200)
+  }
 
   const demo = async (action: 'leak' | 'reset') => {
     setBusy(true)
@@ -82,7 +90,7 @@ export default function AppShell() {
                 <p className="truncate text-xs text-white/50">{user.home}</p>
               </div>
               <button
-                onClick={signOut}
+                onClick={leave}
                 className="shrink-0 text-xs text-white/50 underline-offset-2 transition-colors hover:text-white hover:underline"
               >
                 Log out
@@ -130,6 +138,17 @@ export default function AppShell() {
       <div className="relative min-h-[55svh] flex-1 overflow-hidden lg:h-full lg:min-h-0 print:h-auto print:overflow-visible">
         <Outlet context={{ state }} />
       </div>
+
+      {signingOut && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy">
+          <div className="flex flex-col items-center gap-4 text-white">
+            <Spinner dark />
+            <p className="font-display text-base font-semibold">
+              Signing you out…
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
