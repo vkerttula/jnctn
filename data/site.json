@@ -1,0 +1,15 @@
+{
+  "id": "vilpe-vantaa",
+  "name": "VILPE Vantaa",
+  "description_fi": "Katto ja ryömintätilainen alapohja tehty talvella 2025. Katossa 2 osaa. Tavallinen tasakatto ja viherkatto.\nKatolle asennettu Sense vuotoanturit sekä 6 Sense huippuimuria.\nAlapohjassa 1 Sense huippuimuri",
+  "public_site_link": "https://sense.vilpe.com/public/site/QGeCB7NEn9",
+  "timezone": "Europe/Helsinki",
+  "base_stations": [
+    {
+      "id": 38,
+      "serial_number": "P5276344BK9",
+      "name": "CCU2 VILPE Vantaa"
+    }
+  ],
+  "layout_file": "site-layout.pdf"
+}

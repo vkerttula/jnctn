@@ -1,0 +1,461 @@
+[
+  {
+    "sensor_id": 18996,
+    "serial_number": "P6550688W7X",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 19221,
+    "serial_number": "P655071NTPZ",
+    "reading_count": 730,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18849,
+    "serial_number": "P655152HWDC",
+    "reading_count": 732,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18880,
+    "serial_number": "P655153MGHD",
+    "reading_count": 734,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18878,
+    "serial_number": "P655154WE2Z",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18790,
+    "serial_number": "P655155KDRK",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 19244,
+    "serial_number": "P655276LLKN",
+    "reading_count": 730,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 19362,
+    "serial_number": "P6552776AE2",
+    "reading_count": 732,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18927,
+    "serial_number": "P669339MB88",
+    "reading_count": 734,
+    "first_seen": "2025-09-11T06:42:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18918,
+    "serial_number": "P6693409CPX",
+    "reading_count": 734,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18795,
+    "serial_number": "P672783ATED",
+    "reading_count": 733,
+    "first_seen": "2025-09-11T03:46:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18877,
+    "serial_number": "P672786W5BZ",
+    "reading_count": 727,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18896,
+    "serial_number": "P6727873T83",
+    "reading_count": 732,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18959,
+    "serial_number": "P672789ZARR",
+    "reading_count": 730,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18787,
+    "serial_number": "P672790YXMT",
+    "reading_count": 733,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18892,
+    "serial_number": "P672791KD2X",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18842,
+    "serial_number": "P672792BZ4E",
+    "reading_count": 732,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18965,
+    "serial_number": "P672830B96G",
+    "reading_count": 729,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18973,
+    "serial_number": "P6728318Z3H",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18789,
+    "serial_number": "P672832PZ9X",
+    "reading_count": 736,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18825,
+    "serial_number": "P672882WAPK",
+    "reading_count": 733,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18954,
+    "serial_number": "P672888DRBD",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18960,
+    "serial_number": "P672898KGAM",
+    "reading_count": 730,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18936,
+    "serial_number": "P6728999PBX",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18847,
+    "serial_number": "P6729374HE2",
+    "reading_count": 732,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18796,
+    "serial_number": "P672938EN6X",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18906,
+    "serial_number": "P6729395ZX5",
+    "reading_count": 734,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18921,
+    "serial_number": "P672941H396",
+    "reading_count": 729,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18937,
+    "serial_number": "P672942X8Z3",
+    "reading_count": 730,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18866,
+    "serial_number": "P673042W78K",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18905,
+    "serial_number": "P673043DKNL",
+    "reading_count": 734,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18913,
+    "serial_number": "P673047XDJT",
+    "reading_count": 734,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18920,
+    "serial_number": "P673698LJ3N",
+    "reading_count": 734,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18799,
+    "serial_number": "P673723BGYW",
+    "reading_count": 730,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18904,
+    "serial_number": "P673724HW6A",
+    "reading_count": 729,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18844,
+    "serial_number": "P67372539CA",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18809,
+    "serial_number": "P673726X9YC",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18879,
+    "serial_number": "P673727RAR2",
+    "reading_count": 732,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18928,
+    "serial_number": "P673728F2DF",
+    "reading_count": 730,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18835,
+    "serial_number": "P673729HH48",
+    "reading_count": 734,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 19126,
+    "serial_number": "P677709JE6R",
+    "reading_count": 729,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 19208,
+    "serial_number": "P677710XZRA",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 19305,
+    "serial_number": "P677737LHBY",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 19048,
+    "serial_number": "P6777398GX9",
+    "reading_count": 732,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 19191,
+    "serial_number": "P677742WBEC",
+    "reading_count": 730,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 19012,
+    "serial_number": "P677743TN4E",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18972,
+    "serial_number": "P686953N6DL",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18890,
+    "serial_number": "P686954ALCE",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18821,
+    "serial_number": "P686955YNLH",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18945,
+    "serial_number": "P686956XTAM",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-10T20:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  },
+  {
+    "sensor_id": 18859,
+    "serial_number": "P6869577A8E",
+    "reading_count": 731,
+    "first_seen": "2025-09-11T08:00:00",
+    "last_seen": "2026-09-11T08:00:00",
+    "paired_to": null,
+    "role": "environment_sensor"
+  }
+]
