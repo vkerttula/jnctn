@@ -93,13 +93,24 @@ Quick demo without deploying anything:
 `cloudflared tunnel --url http://localhost:5173` — the Vite proxy serves the
 whole stack behind that one public URL (works only while the container runs).
 
-Real deploy (~30 min, free tiers):
+Real deploy (~30 min, free tiers): a single Docker image serves everything —
+the root `Dockerfile` builds the frontend, then FastAPI serves `dist/` and
+`/api/*` from the same origin (one service, one URL, no CORS). The database
+is MongoDB Atlas.
 
-- **Backend**: `backend/Dockerfile` → Render / Fly.io / Koyeb; set
-  `MONGODB_URI`, `MONGODB_DB` and `CORS_ORIGINS` env vars
-- **Frontend**: `npm run build` → static `dist/` → Cloudflare Pages / Vercel /
-  GitHub Pages, with `VITE_API_URL` set to the backend URL
-- **Database**: MongoDB Atlas M0 (free)
+1. **MongoDB Atlas**: create an M0 (free) cluster and a database user, allow
+   connections from `0.0.0.0/0` (Render's outbound IPs are dynamic), copy the
+   `mongodb+srv://…` connection string.
+2. **Render**: New → Blueprint → this repo. `render.yaml` provisions a free
+   Docker web service (Frankfurt) and prompts for `MONGODB_URI` — paste the
+   Atlas string.
+3. Done — the app is live at `https://<name>.onrender.com` and every push to
+   `main` rebuilds and redeploys it.
+
+Notes: the free plan sleeps after ~15 min idle (first hit takes ~30 s) —
+ping it before demoing, or upgrade to keep it warm. To gate deploys on green
+CI, turn off Render's auto-deploy and call the service's deploy hook from a
+CI step instead.
 
 ## License
 

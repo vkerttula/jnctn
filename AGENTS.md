@@ -44,6 +44,12 @@ Dev scaffolding plus a minimal, verified app skeleton:
   is a Junction X Vaasa–themed stats landing page (Zen Dots display font,
   starfield + fuchsia glow) showing live `/api/stats` and writing to Mongo;
   the dev server proxies `/api` → `localhost:8000`
+- `Dockerfile` (root) + `render.yaml` — single-image deploy: multi-stage
+  build produces the frontend `dist/` and a Python image where uvicorn serves
+  it alongside `/api/*` (backend mounts `STATIC_DIR` when it exists, so dev
+  is unaffected). Render blueprint provisions a free web service; MongoDB
+  Atlas M0 is the prod DB, `MONGODB_URI` is a prompted env var. Every push to
+  `main` redeploys.
 - `docs/` — `VISION.md` (the product vision, written for agents — see above),
   plus `topics/` and `ideas/` for hackathon brainstorming
 - `Makefile` — devcontainer lifecycle helpers
