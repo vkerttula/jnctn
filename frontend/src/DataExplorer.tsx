@@ -383,7 +383,8 @@ function DataExplorer() {
         {error && (
           <div className="rounded-2xl border border-red-400/30 bg-red-400/10 p-5 text-sm text-red-300">
             Could not load <code>/api/dataset</code> — is the backend running
-            and the <code>data/</code> directory present?
+            and has the dataset been ingested (
+            <code>uv run python -m app.ingest</code>)?
           </div>
         )}
 

@@ -21,6 +21,24 @@ API base: `https://tdqn5whm3k.execute-api.eu-west-1.amazonaws.com/prod`
 Timestamps: API-sourced files are **UTC** (`...Z`); the zip-derived
 `readings/sensors.csv` is naive **Europe/Helsinki** local time.
 
+## Loading into MongoDB
+
+From `backend/` — fetches the API directly and upserts into the `jnctn`
+database (idempotent, safe to re-run; `sensors.csv` is read from `data/`):
+
+```bash
+uv run python -m app.ingest            # API + sensors.csv
+uv run python -m app.ingest --no-csv   # API only
+```
+
+Collections: `sense_site` (1 doc), `sense_devices` (7), `sense_sensors`
+(51), `sense_fan_readings` (~74k, unique on `device_id`+`ts`),
+`sense_sensor_readings` (~37k, unique on `sensor_id`+`ts`). All Mongo
+timestamps are proper UTC datetimes; the CSV's naive Helsinki times are
+converted on ingest. The `/api/dataset` endpoints serve these collections
+— the `data/` files are only the ingest source for `sensors.csv` (and
+`site.json`'s `description_fi`, which the API doesn't expose).
+
 ## Layout
 
 | File | Contents |

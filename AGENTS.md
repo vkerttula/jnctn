@@ -40,8 +40,10 @@ Dev scaffolding plus a minimal, verified app skeleton:
   ObjectId handling, Mongo writes), and `/api/stats` (GET aggregates counts;
   POST `/api/stats/track` records a page view in the `page_views`
   collection), and `/api/dataset` (GET summary + downsampled fan/sensor
-  readings served straight from `data/` — dev tooling only, 404s when the
-  dir is absent), pymongo client in `app/db.py`, pytest + ruff configured
+  readings served from the `sense_*` Mongo collections — 404s until
+  `uv run python -m app.ingest` has run; `app/ingest.py` pulls the live
+  VILPE Sense API plus `data/readings/sensors.csv` and upserts
+  idempotently), pymongo client in `app/db.py`, pytest + ruff configured
 - `frontend/` — Vite + React + TS + Tailwind v4 (vite plugin). The app is the
   "Oura for a house" consumer view (see `docs/specs/`): `/` home with
   react-three-fiber 3D house + score ring + attention feed, `/sensors/:id`
@@ -53,7 +55,7 @@ Dev scaffolding plus a minimal, verified app skeleton:
   in `src/index.css` `@theme` tokens; the dev server proxies `/api` →
   `localhost:8000`. `main.tsx` switches on
   `location.pathname` (no router): `/data` renders `src/DataExplorer.tsx`,
-  a Recharts-based dev page for inspecting the `data/` dataset
+  a Recharts-based dev page for inspecting the ingested Sense dataset
 - `Dockerfile` (root) + `render.yaml` — single-image deploy: multi-stage
   build produces the frontend `dist/` and a Python image where uvicorn serves
   it alongside `/api/*` (backend mounts `STATIC_DIR` when it exists, so dev

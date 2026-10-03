@@ -1,11 +1,19 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.db import db
 from app.main import app
-from app.routers.dataset import DATA_DIR
+
+
+def _ingested() -> bool:
+    try:
+        return db.sense_devices.estimated_document_count() > 0
+    except Exception:
+        return False
+
 
 pytestmark = pytest.mark.skipif(
-    not DATA_DIR.is_dir(), reason="sample dataset not checked out"
+    not _ingested(), reason="sense dataset not ingested (run app.ingest)"
 )
 
 client = TestClient(app)
