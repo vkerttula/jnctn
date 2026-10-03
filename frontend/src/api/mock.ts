@@ -7,6 +7,7 @@ import type {
   Api,
   AttentionItem,
   HelpKind,
+  HelpRequest,
   HouseSensor,
   HouseState,
   Report,
@@ -31,7 +32,13 @@ const HELP_CONFIRMATION: Record<HelpKind, string> = {
     "Sent to a VILPE expert. You'll get their assessment of the readings within 24 hours.",
 }
 
+const HELP_STATUS: Record<HelpKind, string> = {
+  inspection: 'Inspector will call within 1 working day',
+  expert: 'Expert assessment within 24 hours',
+}
+
 let sim: { startedAt: number; targetId: string } | null = null
+let requests: HelpRequest[] = []
 let offsetMs: Promise<number> | null = null
 
 async function mockFetch<T>(path: string): Promise<T> {
@@ -124,6 +131,7 @@ export const mock: Api = {
     return applySim({
       ...h,
       sensors,
+      open_requests: requests,
       updated_at: shift(h.updated_at, ms),
     })
   },
@@ -172,9 +180,20 @@ export const mock: Api = {
 
   async resetDemo() {
     sim = null
+    requests = []
   },
 
-  async requestHelp(kind) {
+  async requestHelp(kind, sensorId) {
+    if (!requests.some((r) => r.kind === kind))
+      requests = [
+        ...requests,
+        {
+          kind,
+          sensor_id: sensorId ?? null,
+          requested_at: new Date().toISOString(),
+          status_text: HELP_STATUS[kind],
+        },
+      ]
     return { message: HELP_CONFIRMATION[kind] }
   },
 

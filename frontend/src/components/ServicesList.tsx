@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
-import { api, type HelpKind } from '../api'
+import { api, type HelpKind, type HelpRequest } from '../api'
+import { timeAgo } from '../labels'
 
 // Sidebar "Services": what VILPE can do for the homeowner beyond watching —
 // the report, remote expert review and the inspection marketplace.
@@ -51,7 +52,15 @@ const REQUESTS: Record<HelpKind, { title: string; sub: string; confirm: string; 
   },
 }
 
-function RequestItem({ kind }: { kind: HelpKind }) {
+function RequestItem({
+  kind,
+  open,
+  onRequested,
+}: {
+  kind: HelpKind
+  open?: HelpRequest
+  onRequested: () => void
+}) {
   const r = REQUESTS[kind]
   const [step, setStep] = useState<'idle' | 'confirm' | 'sending'>('idle')
   const [sent, setSent] = useState<string | null>(null)
@@ -60,16 +69,44 @@ function RequestItem({ kind }: { kind: HelpKind }) {
     setStep('sending')
     try {
       setSent((await api.requestHelp(kind)).message)
+      onRequested()
     } finally {
       setStep('idle')
     }
   }
 
+  // An open request keeps the row active until it is resolved.
+  if (open)
+    return (
+      <div className="rounded-2xl bg-white/10">
+        <div className={ROW}>
+          <Icon>{r.icon}</Icon>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="flex items-center gap-2 text-sm font-semibold text-white">
+              {r.title}
+              <span className="rounded-full bg-ok/20 px-2 py-0.5 text-[10px] font-bold tracking-wide text-ok uppercase">
+                Requested
+              </span>
+            </span>
+            <span className="truncate text-xs text-white/60">
+              {open.status_text} · {timeAgo(open.requested_at)}
+            </span>
+          </span>
+        </div>
+        {sent && (
+          <p className="flex items-start gap-2 px-3 pb-3 text-xs leading-relaxed text-white/80">
+            <span className="text-ok">✓</span>
+            {sent}
+          </p>
+        )}
+      </div>
+    )
+
   return (
-    <div className={`rounded-2xl ${step !== 'idle' || sent ? 'bg-white/5' : ''}`}>
+    <div className={`rounded-2xl ${step !== 'idle' ? 'bg-white/5' : ''}`}>
       <button
-        onClick={() => !sent && setStep(step === 'idle' ? 'confirm' : 'idle')}
-        className={`${ROW} ${sent ? 'cursor-default' : 'hover:bg-white/5'}`}
+        onClick={() => setStep(step === 'idle' ? 'confirm' : 'idle')}
+        className={`${ROW} hover:bg-white/5`}
       >
         <Icon>{r.icon}</Icon>
         <Text title={r.title} sub={r.sub} />
@@ -94,17 +131,17 @@ function RequestItem({ kind }: { kind: HelpKind }) {
           </div>
         </div>
       )}
-      {sent && (
-        <p className="flex items-start gap-2 px-3 pb-3 text-xs leading-relaxed text-white/80">
-          <span className="text-ok">✓</span>
-          {sent}
-        </p>
-      )}
     </div>
   )
 }
 
-export default function ServicesList() {
+export default function ServicesList({
+  requests,
+  onRequested,
+}: {
+  requests: HelpRequest[]
+  onRequested: () => void
+}) {
   return (
     <section className="flex flex-col gap-1 border-t border-white/10 pt-4">
       <h2 className="mb-1 font-display text-xs font-semibold tracking-[0.25em] text-white/50 uppercase">
@@ -119,9 +156,19 @@ export default function ServicesList() {
           <path d="M14 3v5h5M10 13h6M10 17h6" />
         </Icon>
         <Text title="Moisture History Report" sub="5-year record of your home" />
+        {/* chevron: this row opens a page, the others make a request */}
+        <span className="ml-auto text-lg text-white/40" aria-hidden>
+          ›
+        </span>
       </NavLink>
-      <RequestItem kind="expert" />
-      <RequestItem kind="inspection" />
+      {(['expert', 'inspection'] as const).map((kind) => (
+        <RequestItem
+          key={kind}
+          kind={kind}
+          open={requests.find((r) => r.kind === kind)}
+          onRequested={onRequested}
+        />
+      ))}
     </section>
   )
 }

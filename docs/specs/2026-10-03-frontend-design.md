@@ -102,6 +102,11 @@ Frontend polls `GET /api/house`; everything else is on demand.
       "last_reading_at": "2026-10-03T12:01:34Z"
     }
   ],
+  "open_requests": [
+    { "kind": "inspection", "sensor_id": "roof-nw",
+      "requested_at": "2026-10-03T18:40:00Z",
+      "status_text": "Inspector will call within 1 working day" }
+  ],
   "simulating": false,
   "updated_at": "2026-10-03T12:00:00Z"
 }
@@ -112,6 +117,9 @@ Frontend polls `GET /api/house`; everything else is on demand.
 - `attention[]` ordered by severity (`alert` before `watch`), max ~5 items.
   `actions` lists one-tap next steps (`inspection` = book a local inspector,
   `expert` = remote VILPE expert review) — the vision's alert → fixed path.
+- `open_requests[]` keeps a requested service visibly active (sidebar
+  Services row and the attention item both show "Requested" + `status_text`)
+  until it is resolved; one open request per `kind`.
 - `home` is the address shown over the 3D view; `headline` is a short
   plain-language verdict (one line), `summary` one supporting sentence.
 - `weather` is the outdoor context for the home's location (FMI later).
@@ -122,7 +130,9 @@ Frontend polls `GET /api/house`; everything else is on demand.
   `roof_north`, `ridge`, `crawl_space`. `primary: true` marks devices shown
   on the model. `latest` (same shape as the detail endpoint) feeds the key
   values in each 3D callout. `last_reading_at` is when that device last
-  reported. `works_with` links devices installed as one package — the
+  reported. `state_label` is a one-word operating state for devices that
+  act (fans: "Running", "Drying"; null for sensors) — fan callouts show it
+  with the fan speed only. `works_with` links devices installed as one package — the
   crawl-space humidity sensor and the fan that dries the crawl space point
   at each other.
 - **Demo home** (mock fixtures): a detached house at Yliopistonranta 1,

@@ -35,6 +35,15 @@ export interface AttentionItem {
 }
 
 
+export interface HelpRequest {
+  kind: HelpKind
+  sensor_id: string | null
+  requested_at: string
+  // short line shown while the request is open, e.g. "Inspector will call
+  // within 1 working day"
+  status_text: string
+}
+
 export interface SensorLatest {
   temp_c: number | null
   rh_pct: number | null
@@ -53,6 +62,9 @@ interface SensorBase {
   // sensor + the fan that dries it)
   works_with: string | null
   last_reading_at: string
+  // one-word operating state for devices that act (fans): "Running",
+  // "Drying"; null for passive sensors
+  state_label: string | null
 }
 
 export interface HouseSensor extends SensorBase {
@@ -69,6 +81,7 @@ export interface HouseState {
   weather: Weather
   attention: AttentionItem[]
   sensors: HouseSensor[]
+  open_requests: HelpRequest[]
   simulating: boolean
   updated_at: string
 }
