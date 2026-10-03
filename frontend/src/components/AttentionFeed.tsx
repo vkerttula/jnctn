@@ -1,113 +1,35 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { api, type AttentionItem, type HelpKind, type HelpRequest } from '../api'
-import { timeAgo } from '../labels'
+import type { AttentionItem } from '../api'
 import { SEVERITY_COLOR } from '../theme'
 
-const ACTION_LABEL: Record<HelpKind, string> = {
-  inspection: 'Book an inspection',
-  expert: 'Ask a VILPE expert',
-}
-
-function Actions({
-  item,
-  requests,
-  onRequested,
-}: {
-  item: AttentionItem
-  requests: HelpRequest[]
-  onRequested: () => void
-}) {
-  const [busy, setBusy] = useState(false)
-  const done = requests.filter((r) => item.actions.includes(r.kind))
-  const todo = item.actions.filter((k) => !requests.some((r) => r.kind === k))
-
-  const request = async (kind: HelpKind) => {
-    setBusy(true)
-    try {
-      await api.requestHelp(kind, item.sensor_id)
-      onRequested()
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs">
-      {done.map((r) => (
-        <span key={r.kind} className="text-ok/90">
-          ✓ {ACTION_LABEL[r.kind]} requested
-        </span>
-      ))}
-      {todo.map((kind) => (
-        <button
-          key={kind}
-          disabled={busy}
-          onClick={(e) => {
-            e.stopPropagation()
-            request(kind)
-          }}
-          className="font-semibold text-white/80 underline decoration-white/30 underline-offset-2 transition-colors hover:text-white disabled:opacity-50"
-        >
-          {ACTION_LABEL[kind]}
-        </button>
-      ))}
-    </span>
-  )
-}
-
-// Lives inside the navy sidebar. Calm one-liners — the score ring and the
-// overview headline carry the alarm, this list just says where and offers
-// the next step. Only rendered when something needs the homeowner.
-export default function AttentionFeed({
-  items,
-  requests,
-  onRequested,
-}: {
-  items: AttentionItem[]
-  requests: HelpRequest[]
-  onRequested: () => void
-}) {
+// Lives inside the navy sidebar. Just quiet severity icons — the score
+// ring and headline carry the message; hovering an icon names the issue
+// and clicking it opens the sensor page. Actions live in Services.
+export default function AttentionFeed({ items }: { items: AttentionItem[] }) {
   const navigate = useNavigate()
   if (items.length === 0) return null
   return (
-    <section className="flex flex-col gap-3 border-t border-white/10 pt-4">
-      <h2 className="font-display text-xs font-semibold tracking-[0.25em] text-white/50 uppercase">
-        Needs attention
-      </h2>
-      <ul className="flex flex-col gap-2.5">
-        {items.map((a) => {
-          const title = a.message.split(' — ')[0]
-          return (
-            <li key={a.sensor_id + a.since}>
-              <button
-                onClick={() => navigate(`/sensors/${a.sensor_id}`)}
-                className="flex w-full items-start gap-2.5 text-left"
-              >
-                <span
-                  className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
-                  style={{ background: SEVERITY_COLOR[a.severity] }}
-                />
-                <span className="flex flex-col gap-0.5">
-                  <span className="text-sm leading-snug text-white/85">
-                    {title}
-                  </span>
-                  <span className="flex flex-wrap items-center gap-x-2.5 text-xs text-white/40">
-                    {timeAgo(a.since)}
-                    {a.actions.length > 0 && (
-                      <Actions
-                        item={a}
-                        requests={requests}
-                        onRequested={onRequested}
-                      />
-                    )}
-                  </span>
-                </span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-    </section>
+    <div className="flex gap-2 border-t border-white/10 pt-4">
+      {items.map((a) => {
+        const title = a.message.split(' — ')[0]
+        return (
+          <button
+            key={a.sensor_id + a.since}
+            title={title}
+            aria-label={title}
+            onClick={() => navigate(`/sensors/${a.sensor_id}`)}
+            className="flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110"
+            style={{
+              background: `${SEVERITY_COLOR[a.severity]}26`,
+              color: SEVERITY_COLOR[a.severity],
+            }}
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden>
+              <path d="M12 3 1.7 20.2a1 1 0 0 0 .86 1.5h18.88a1 1 0 0 0 .86-1.5L12 3Zm-1 7h2v5h-2v-5Zm0 6.5h2V19h-2v-2.5Z" />
+            </svg>
+          </button>
+        )
+      })}
+    </div>
   )
 }
