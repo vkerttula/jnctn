@@ -168,16 +168,16 @@ export default function ReportPage() {
                 <ResponsiveContainer>
                   <LineChart data={report.months} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
                     <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" />
-                    <ReferenceArea y1={report.mold_threshold} y2={2} fill="#df0a15" fillOpacity={0.06} />
+                    <ReferenceArea y1={report.mold_threshold} y2={2} fill="var(--color-alert)" fillOpacity={0.06} />
                     <ReferenceLine
                       y={report.mold_threshold}
-                      stroke="#df0a15"
+                      stroke="var(--color-alert)"
                       strokeDasharray="4 4"
                       label={{
                         value: 'Mold growth possible',
                         position: 'insideTopRight',
                         fontSize: 11,
-                        fill: '#df0a15',
+                        fill: 'var(--color-alert)',
                       }}
                     />
                     <XAxis

@@ -30,7 +30,7 @@ const LINES: LineDef[] = [
   { key: 'rh_pct', label: 'Humidity', color: '#004f9f', unit: '%', domain: [0, 100] },
   { key: 'temp_c', label: 'Temperature', color: '#e3530f', unit: '°C', minSpan: 30 },
   { key: 'fan_rpm', label: 'Fan speed', color: '#01273e', unit: ' rpm', minSpan: 3000, floor: 0 },
-  { key: 'mold_index', label: 'Mold index', color: '#df0a15', unit: '', minSpan: 2, floor: 0 },
+  { key: 'mold_index', label: 'Mold index', color: 'var(--color-alert)', unit: '', minSpan: 2, floor: 0 },
 ]
 
 function domainOf(l: LineDef, points: SeriesPoint[]): [number, number] {
@@ -132,8 +132,8 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
               />
             ))}
           {normalShown && (
-            <span className="flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1 text-xs font-medium text-[#3a8f22]">
-              <span className="h-2.5 w-2.5 rounded-sm bg-[#50c92f]/20 ring-1 ring-[#50c92f]/60" />
+            <span className="flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1 text-xs font-medium text-ok">
+              <span className="h-2.5 w-2.5 rounded-sm bg-ok/20 ring-1 ring-ok/60" />
               {normal.label}
             </span>
           )}
@@ -183,7 +183,7 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
                     x2={Date.parse(b.to)}
                     y1={b.rh_pct[0]}
                     y2={b.rh_pct[1]}
-                    fill="#50c92f"
+                    fill="var(--color-ok)"
                     fillOpacity={0.1}
                     stroke="none"
                   />
@@ -193,7 +193,7 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
                   yAxisId="rh_pct"
                   y1={normal.rh_pct[0]}
                   y2={normal.rh_pct[1]}
-                  fill="#50c92f"
+                  fill="var(--color-ok)"
                   fillOpacity={0.1}
                   stroke="none"
                 />

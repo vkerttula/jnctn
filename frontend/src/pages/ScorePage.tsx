@@ -114,7 +114,7 @@ function MoldChart({ id, name }: { id: string; name: string }) {
               />
               <Line
                 dataKey="v"
-                stroke="#df0a15"
+                stroke="var(--color-alert)"
                 strokeWidth={2}
                 type="monotone"
                 dot={false}

@@ -1,10 +1,11 @@
 import type { SensorStatus, Severity } from './api/types'
 
-// VILPE Sense status colors — same hexes the real Sense app uses.
+// Status hues, muted from the Sense app's own hexes — keep in sync with
+// --color-ok/watch/alert in index.css.
 export const STATUS_COLOR: Record<SensorStatus, string> = {
-  ok: '#50c92f',
-  watch: '#f5be23',
-  alert: '#df0a15',
+  ok: '#43a047',
+  watch: '#d9a320',
+  alert: '#c0392b',
 }
 
 export const SEVERITY_COLOR: Record<Severity, string> = {
