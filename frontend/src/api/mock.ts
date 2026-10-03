@@ -174,7 +174,7 @@ export const mock: Api = {
     sim = null
   },
 
-  async requestHelp(_sensorId, kind) {
+  async requestHelp(kind) {
     return { message: HELP_CONFIRMATION[kind] }
   },
 

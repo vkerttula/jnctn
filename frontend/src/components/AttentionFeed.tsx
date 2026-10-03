@@ -23,7 +23,7 @@ function Actions({ item }: { item: AttentionItem }) {
   const request = async (kind: HelpKind) => {
     setBusy(true)
     try {
-      setSent((await api.requestHelp(item.sensor_id, kind)).message)
+      setSent((await api.requestHelp(kind, item.sensor_id)).message)
     } finally {
       setBusy(false)
     }

@@ -129,7 +129,8 @@ export interface Api {
   getSeries(id: string, range: SeriesRange): Promise<SensorSeries>
   simulateLeak(sensorId?: string): Promise<void>
   resetDemo(): Promise<void>
-  // returns a calm confirmation sentence to show the homeowner
-  requestHelp(sensorId: string, kind: HelpKind): Promise<{ message: string }>
+  // returns a calm confirmation sentence to show the homeowner; sensorId is
+  // set when the request comes from an attention item
+  requestHelp(kind: HelpKind, sensorId?: string): Promise<{ message: string }>
   getReport(): Promise<Report>
 }

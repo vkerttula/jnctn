@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { api } from '../api'
 import AttentionFeed from './AttentionFeed'
+import Clock from './Clock'
 import ScoreCard from './ScoreCard'
+import ServicesList from './ServicesList'
 import { useHouseState } from '../hooks/useHouseState'
 
 const NAV = [
   { to: '/', label: 'Overview', end: true },
   { to: '/sensors', label: 'Sensors', end: false },
-  { to: '/report', label: 'Report', end: false },
 ]
 
 // Persistent app frame: navy rail with brand, nav and house status; the
@@ -68,8 +69,10 @@ export default function AppShell() {
 
         {state && <ScoreCard state={state} />}
         {state && <AttentionFeed items={state.attention} />}
+        <ServicesList />
 
-        <div className="mt-auto flex flex-col gap-3 pt-4">
+        <div className="mt-auto flex flex-col gap-3 border-t border-white/10 pt-4">
+          <Clock />
           <div className="flex items-center gap-2">
             {state?.simulating ? (
               <button
@@ -93,9 +96,7 @@ export default function AppShell() {
                 demo running
               </span>
             )}
-          </div>
-          <div className="flex items-center justify-end">
-            <span className="flex gap-3">
+            <span className="ml-auto flex gap-3">
               <Link
                 to="/status"
                 className="text-xs text-white/40 underline-offset-2 hover:underline"
