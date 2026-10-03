@@ -199,7 +199,11 @@ device.
 `normal` is the expected humidity range for this device and season, e.g.
 `{ "label": "Normal for October", "rh_pct": [47, 68] }` — drawn as a soft
 green band behind the humidity line so "normal" reads at a glance; `null`
-for devices without humidity (the crawl-space fan). Backend downsamples to
+for devices without humidity (the crawl-space fan). When the window spans
+several calendar months (typically `1y`), `normal.bands` carries one
+`{ "from", "to", "rh_pct" }` segment per month — a stepped seasonal
+ribbon computed from the same month in other years, labeled
+"Seasonal normal". Backend downsamples to
 ≤ ~300 points. Fields are nullable per device; the
 chart offers only the readings present in the series. `mold_index` present
 only where the source data has it (fans, from 2026-03).

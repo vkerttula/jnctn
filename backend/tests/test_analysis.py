@@ -215,8 +215,17 @@ def test_sensor_detail_and_series():
     if body["normal"]:
         lo, hi = body["normal"]["rh_pct"]
         assert 0 <= lo < hi <= 100
+        for b in body["normal"].get("bands", []):
+            assert b["from"] < b["to"]
+            assert 0 <= b["rh_pct"][0] < b["rh_pct"][1] <= 100
     for p in body["points"][:50]:
         assert {"t", "temp_c", "rh_pct", "mold_index"} <= set(p)
+
+    r = client.get("/api/sensors/crawl-space/series", params={"range": "1y"})
+    assert r.status_code == 200
+    bands = (r.json()["normal"] or {}).get("bands")
+    if bands:
+        assert len(bands) > 1  # stepped seasonal ribbon across months
 
     r = client.get("/api/sensors/roof-nw/series", params={"range": "24h"})
     assert r.status_code == 200
