@@ -4,10 +4,12 @@ import { api } from '../api'
 import AttentionFeed from './AttentionFeed'
 import ScoreCard from './ScoreCard'
 import { useHouseState } from '../hooks/useHouseState'
+import { timeAgo } from '../labels'
 
 const NAV = [
   { to: '/', label: 'Overview', end: true },
   { to: '/sensors', label: 'Sensors', end: false },
+  { to: '/report', label: 'Report', end: false },
 ]
 
 // Persistent app frame: navy rail with brand, nav and house status; the
@@ -28,8 +30,8 @@ export default function AppShell() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-mist lg:h-svh lg:flex-row">
-      <aside className="flex w-full shrink-0 flex-col gap-5 bg-navy px-6 py-6 text-white lg:h-svh lg:w-[340px] lg:overflow-y-auto">
+    <div className="flex min-h-svh flex-col bg-mist lg:h-svh lg:flex-row print:block print:h-auto print:bg-white">
+      <aside className="flex w-full shrink-0 flex-col gap-5 bg-navy px-6 py-6 text-white lg:h-svh lg:w-[340px] lg:overflow-y-auto print:hidden">
         <div className="flex items-center gap-3">
           <img src="/vilpe-logo.png" alt="VILPE" className="h-6 w-auto" />
           <span className="h-7 w-px bg-white/25" aria-hidden />
@@ -69,6 +71,23 @@ export default function AppShell() {
         {state && <AttentionFeed items={state.attention} />}
 
         <div className="mt-auto flex flex-col gap-3 pt-4">
+          {state && (
+            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ok opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-ok" />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-sm font-semibold text-white">
+                  Watching your home 24/7
+                </span>
+                <span className="text-xs text-white/55">
+                  {state.monitoring.online} of {state.monitoring.total} sensors online · last
+                  check {timeAgo(state.monitoring.last_check_at)}
+                </span>
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-2">
             {state?.simulating ? (
               <button
@@ -93,11 +112,7 @@ export default function AppShell() {
               </span>
             )}
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-white/40">
-              updated{' '}
-              {state ? new Date(state.updated_at).toLocaleString('en-GB') : '—'}
-            </span>
+          <div className="flex items-center justify-end">
             <span className="flex gap-3">
               <Link
                 to="/status"
@@ -116,7 +131,7 @@ export default function AppShell() {
         </div>
       </aside>
 
-      <div className="relative min-h-[55svh] flex-1 overflow-hidden lg:h-full lg:min-h-0">
+      <div className="relative min-h-[55svh] flex-1 overflow-hidden lg:h-full lg:min-h-0 print:h-auto print:overflow-visible">
         <Outlet context={{ state }} />
       </div>
     </div>

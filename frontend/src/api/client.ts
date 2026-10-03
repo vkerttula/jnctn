@@ -22,4 +22,11 @@ export const live: Api = {
   getSeries: (id, range) => apiFetch(`/sensors/${id}/series?range=${range}`),
   simulateLeak: (sensorId) => post('/simulate/leak', { sensor_id: sensorId }),
   resetDemo: () => post('/simulate/reset'),
+  requestHelp: (sensorId, kind) =>
+    apiFetch('/help-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sensor_id: sensorId, kind }),
+    }),
+  getReport: () => apiFetch('/report'),
 }

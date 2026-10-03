@@ -12,12 +12,14 @@ docs/specs/2026-10-03-frontend-design.md):
     frontend/public/mock/house.json
     frontend/public/mock/sensors/<id>.json
     frontend/public/mock/series/<id>-<range>.json
+    frontend/public/mock/report.json
 
 Run from the repo root:  python scripts/gen_mock_data.py
 """
 
 import csv
 import json
+import math
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -158,6 +160,75 @@ def write_series(sensor_id: str, points: list[dict]) -> None:
         )
 
 
+def write_report() -> None:
+    # Moisture History Report (concept, fictional history — mirrors the
+    # "Moisture History Report mockup" PDF in docs/). Monthly peak mold index:
+    # the roof peaks in winter, the crawl space in late summer, both far
+    # below the growth threshold of 1.
+    def seasonal(month: int, peak_month: int) -> float:
+        return max(0.0, math.cos(2 * math.pi * (month - peak_month) / 12)) ** 2
+
+    roof_year = {2021: 0.8, 2022: 0.85, 2023: 1.0, 2024: 0.75, 2025: 0.7, 2026: 0.65}
+    crawl_year = {2021: 0.6, 2022: 0.75, 2023: 0.8, 2024: 1.0, 2025: 0.7, 2026: 0.65}
+    months = []
+    y, m = 2021, 11
+    while (y, m) <= (2026, 9):
+        roof = 0.04 + 0.36 * seasonal(m, 12) * roof_year[y]
+        crawl = 0.03 + 0.27 * seasonal(m, 8) * crawl_year[y]
+        months.append({"month": f"{y}-{m:02d}", "roof": round(roof, 2), "crawl_space": round(crawl, 2)})
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+
+    def peak(key: str) -> dict:
+        return max(months, key=lambda r: r[key])
+
+    write_json(
+        OUT / "report.json",
+        {
+            "id": "VS-2026-SAMPLE-0001",
+            "issued": "2026-10-03",
+            "period": {"from": "2021-11-01", "to": "2026-09-30"},
+            "property": "Detached house, Vaasa",
+            "address": "Yliopistonranta 1, Vaasa",
+            "building": "2019 · timber frame, 1½ storeys",
+            "sensors": "Roof · crawl space",
+            "verified": "2021–2026",
+            "headline": "Moisture within safe range for 5 years",
+            "summary": (
+                "Neither monitored structure reached conditions where mold can "
+                "grow. Seasonal peaks — the roof in winter and the crawl space "
+                "in late summer — stayed well below the risk threshold."
+            ),
+            "mold_threshold": 1,
+            "months": months,
+            "structures": [
+                {
+                    "name": "Roof · north slope",
+                    "avg_rh_pct": 67,
+                    "peak_mold_index": peak("roof")["roof"],
+                    "peak_month": peak("roof")["month"],
+                    "risk_periods": 0,
+                    "coverage_pct": 99.1,
+                    "status": "Dry",
+                },
+                {
+                    "name": "Crawl space · base floor",
+                    "avg_rh_pct": 71,
+                    "peak_mold_index": peak("crawl_space")["crawl_space"],
+                    "peak_month": peak("crawl_space")["month"],
+                    "risk_periods": 0,
+                    "coverage_pct": 98.9,
+                    "status": "Dry",
+                },
+            ],
+            "measurements": 512000,
+            "interval": "every 10 min",
+            "data_gaps": "1 · power cut, Jan 2023",
+            "weather_context": "FMI · Vaasa",
+            "last_sensor_check": "2026-09",
+        },
+    )
+
+
 def main() -> None:
     # Overwrite in place and prune stale files afterwards — deleting the dirs
     # under a running Vite dev server makes it stop serving them.
@@ -218,10 +289,17 @@ def main() -> None:
             },
             "attention": [],
             "sensors": house_sensors,
+            "monitoring": {
+                "online": len(house_sensors),
+                "total": len(house_sensors),
+                "last_check_at": iso(updated),
+            },
             "simulating": False,
             "updated_at": iso(updated),
         },
     )
+
+    write_report()
 
     for sub in ("sensors", "series"):
         for stale in set((OUT / sub).glob("*.json")) - WRITTEN:

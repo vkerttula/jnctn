@@ -50,7 +50,8 @@ Dev scaffolding plus a minimal, verified app skeleton:
   layout route: a navy VILPE sidebar (logo, Overview/Sensors nav, score
   ring, weather, attention feed, demo controls) around `/` (react-three-fiber
   3D detached house with status dots and pinned callout cards showing key
-  readings), `/sensors` (device list) and `/sensors/:id` (recharts trends).
+  readings), `/sensors` (device list), `/sensors/:id` (recharts trends) and
+  `/report` (Moisture History Report, printable to PDF).
   Outside the shell: `/status` (original stats landing) and `/data`
   (`src/DataExplorer.tsx`, a dev page for the ingested Sense dataset). Data
   comes from `src/api/` — **mock-first** (`VITE_API_MODE`, default `mock`)

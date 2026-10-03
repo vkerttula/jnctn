@@ -85,7 +85,8 @@ Frontend polls `GET /api/house`; everything else is on demand.
       "sensor_id": "roof-nw",
       "severity": "watch",
       "message": "Moisture in the north-west roof is rising slowly. We're watching it — no action needed yet.",
-      "since": "2026-10-01T14:00:00Z"
+      "since": "2026-10-01T14:00:00Z",
+      "actions": ["expert"]
     }
   ],
   "sensors": [
@@ -101,6 +102,7 @@ Frontend polls `GET /api/house`; everything else is on demand.
       "last_reading_at": "2026-10-03T12:01:34Z"
     }
   ],
+  "monitoring": { "online": 7, "total": 7, "last_check_at": "2026-10-03T12:01:34Z" },
   "simulating": false,
   "updated_at": "2026-10-03T12:00:00Z"
 }
@@ -109,6 +111,9 @@ Frontend polls `GET /api/house`; everything else is on demand.
 - `score` 0–100; `score_word` one of `Good | Fair | Attention`; `score_trend`
   one of `improving | stable | declining`.
 - `attention[]` ordered by severity (`alert` before `watch`), max ~5 items.
+  `actions` lists one-tap next steps (`inspection` = book a local inspector,
+  `expert` = remote VILPE expert review) — the vision's alert → fixed path.
+- `monitoring` backs the sidebar's "Watching your home 24/7" line.
 - `home` is the address shown over the 3D view; `headline` is a short
   plain-language verdict (one line), `summary` one supporting sentence.
 - `weather` is the outdoor context for the home's location (FMI later).
@@ -168,6 +173,20 @@ Backend downsamples to ≤ ~300 points. Fields are nullable per device; the
 chart offers only the readings present in the series. `mold_index` present
 only where the source data has it (fans, from 2026-03).
 
+### `POST /api/help-requests`
+
+Body `{ "sensor_id": "roof-nw", "kind": "inspection" | "expert" }` →
+`{ "message": "Inspection requested. A local VILPE-certified inspector will call you within one working day." }`.
+The frontend shows the message in place of the action buttons.
+
+### `GET /api/report`
+
+The Moisture History Report (see the mockup PDF in `docs/`): property
+meta, `headline` + `summary`, `months[]` of `{ month, roof, crawl_space }`
+peak mold index, `mold_threshold`, `structures[]` (avg RH, peak mold index
++ month, risk periods, coverage, status) and measurement facts. Mock
+fixture: `public/mock/report.json`.
+
 ### `POST /api/simulate/leak` · `POST /api/simulate/reset`
 
 `leak` body: `{ "sensor_id": "roof-nw" }` (optional; backend picks a plausible
@@ -197,6 +216,18 @@ frontend.
   small severity dot (amber/red). Empty state: "Everything looks normal."
 - **Demo controls** — small, secondary: "Simulate leak" button and, while
   `simulating`, "Reset demo".
+
+### Sidebar (AppShell)
+
+VILPE logo + tagline ("Peace of mind for your home"), nav (Overview,
+Sensors, Report), score ring, attention feed with action buttons, a
+"Watching your home 24/7 · N of N sensors online · last check …" line,
+demo controls and small dev links.
+
+### ReportPage (`/report`)
+
+On-screen version of the Moisture History Report; "Download PDF" prints it
+(sidebar and controls hidden in print).
 
 ### SensorDetailPage (`/sensors/:id`)
 
@@ -283,6 +314,8 @@ Fonts via `<link>` in `index.html` (no font dep).
 ## Mock layer
 
 The initial data source — everything runs on this until the backend exists.
+Fixture timestamps are shifted at read time so the newest reading is ~12
+minutes old, keeping a recorded demo "live" whenever it runs.
 
 - `VITE_API_MODE=mock` (default) → `client.ts` reads `public/mock/*.json`
   with the same paths (`/mock/house.json`, `/mock/sensors/roof-nw.json`, …).
