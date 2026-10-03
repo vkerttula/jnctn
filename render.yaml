@@ -13,5 +13,9 @@ services:
       # value so it never lands in the repo.
       - key: MONGODB_URI
         sync: false
+      # Public-demo gate: /api/* requires this as the X-Demo-Key header.
+      # Must match ACCESS_CODE in frontend/src/auth.ts — set the same value.
+      - key: DEMO_KEY
+        sync: false
       - key: MONGODB_DB
         value: jnctn

@@ -2,9 +2,9 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.routers import analysis, dataset, health, house, notes, stats
@@ -23,6 +23,26 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Public-demo gate: when DEMO_KEY is set, every /api/* route requires the
+# X-Demo-Key header (the frontend sends it after the login-page access code).
+# Bots hitting the API directly get 401 before touching Mongo or the LLM.
+# /api/health stays open — Render's healthCheckPath needs it. Unset = open,
+# which keeps local dev unchanged.
+DEMO_KEY = os.getenv("DEMO_KEY")
+
+
+@app.middleware("http")
+async def demo_key_gate(request: Request, call_next):
+    if (
+        DEMO_KEY
+        and request.url.path.startswith("/api/")
+        and request.url.path != "/api/health"
+    ):
+        if request.headers.get("x-demo-key") != DEMO_KEY:
+            return JSONResponse({"detail": "demo key required"}, status_code=401)
+    return await call_next(request)
+
 
 app.include_router(health.router, prefix="/api")
 app.include_router(notes.router, prefix="/api")
