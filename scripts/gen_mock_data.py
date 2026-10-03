@@ -179,16 +179,6 @@ def write_series(sensor_id: str, points: list[dict], end: datetime) -> None:
         )
 
 
-def score_history(end: datetime, today: int) -> list[dict]:
-    # 30 calm days that land on today's score.
-    days = []
-    for i in range(29, -1, -1):
-        wobble = 2.2 * math.sin(i / 4.3) + 1.1 * math.sin(i / 1.7)
-        score = today if i == 0 else round(today - 1 + wobble)
-        days.append({"date": (end - timedelta(days=i)).date().isoformat(), "score": score})
-    return days
-
-
 def write_report() -> None:
     # Moisture History Report (concept, fictional history — mirrors the
     # "Moisture History Report mockup" PDF in docs/). Monthly peak mold index:
@@ -305,7 +295,6 @@ def main() -> None:
             "score": 86,
             "score_word": "Good",
             "score_trend": "stable",
-            "score_history": score_history(updated, 86),
             "areas": [
                 {"id": "roof", "name": "Roof", "status": "ok"},
                 {"id": "crawl_space", "name": "Crawl space", "status": "ok"},

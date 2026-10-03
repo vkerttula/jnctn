@@ -82,8 +82,6 @@ export interface HouseState {
   score: number
   score_word: ScoreWord
   score_trend: ScoreTrend
-  // one point per day, oldest first, last = today
-  score_history: { date: string; score: number }[]
   // structure-level verdicts that make up the score
   areas: Area[]
   headline: string

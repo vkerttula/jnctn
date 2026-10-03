@@ -33,8 +33,8 @@ const HELP_CONFIRMATION: Record<HelpKind, string> = {
 }
 
 const HELP_STATUS: Record<HelpKind, string> = {
-  inspection: 'Inspector will call within 1 working day',
-  expert: 'Expert assessment within 24 hours',
+  inspection: 'Inspector calls within 1 working day',
+  expert: 'Reply within 24 hours',
 }
 
 let sim: { startedAt: number; targetId: string } | null = null
@@ -105,9 +105,6 @@ function applySim(h: HouseState): HouseState {
     ...h,
     score,
     score_word: scoreWord(score),
-    score_history: h.score_history.map((d, i, all) =>
-      i === all.length - 1 ? { ...d, score } : d,
-    ),
     areas: h.areas.map((a) => (a.id === area ? { ...a, status: severity } : a)),
     score_trend: 'declining',
     headline:

@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
 import { api, type HelpKind, type HelpRequest } from '../api'
-import { timeAgo } from '../labels'
 
 // Sidebar "Services": what VILPE can do for the homeowner beyond watching —
 // the report, remote expert review and the inspection marketplace.
@@ -63,12 +62,11 @@ function RequestItem({
 }) {
   const r = REQUESTS[kind]
   const [step, setStep] = useState<'idle' | 'confirm' | 'sending'>('idle')
-  const [sent, setSent] = useState<string | null>(null)
 
   const send = async () => {
     setStep('sending')
     try {
-      setSent((await api.requestHelp(kind)).message)
+      await api.requestHelp(kind)
       onRequested()
     } finally {
       setStep('idle')
@@ -89,16 +87,10 @@ function RequestItem({
               </span>
             </span>
             <span className="truncate text-xs text-white/60">
-              {open.status_text} · {timeAgo(open.requested_at)}
+              {open.status_text}
             </span>
           </span>
         </div>
-        {sent && (
-          <p className="flex items-start gap-2 px-3 pb-3 text-xs leading-relaxed text-white/80">
-            <span className="text-ok">✓</span>
-            {sent}
-          </p>
-        )}
       </div>
     )
 
