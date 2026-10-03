@@ -34,9 +34,22 @@ function Meta({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[10px] font-semibold tracking-[0.18em] text-muted uppercase">{label}</span>
-      <span className="text-sm font-medium text-navy">{value}</span>
+      <span className="text-xs font-medium text-navy">{value}</span>
     </div>
   )
+}
+
+// Neutral period verdict, derived from the structures table — never the
+// live dashboard narrative.
+function verdict(report: Report) {
+  const months = report.months.length
+  const risks = report.structures.reduce((a, s) => a + s.risk_periods, 0)
+  const peak = report.structures.reduce((a, s) =>
+    s.peak_mold_index > a.peak_mold_index ? s : a,
+  )
+  const base = `Monitoring covered ${months} months across ${report.structures.length} structures.`
+  if (risks === 0) return `${base} No mold-risk periods detected.`
+  return `${base} ${risks} mold-risk period${risks === 1 ? '' : 's'} detected — highest index ${peak.peak_mold_index.toFixed(1)} in ${peak.name} (${fmtMonth(peak.peak_month)}).`
 }
 
 export default function ReportPage() {
@@ -75,13 +88,15 @@ export default function ReportPage() {
         {!report && !failed && <Spinner label="Loading report…" />}
 
         {report && (
-          <article className="flex flex-col gap-7 rounded-3xl border border-line bg-white p-8 shadow-sm print:rounded-none print:border-0 print:p-0 print:shadow-none">
-            <header className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5">
+          <article className="flex flex-col gap-7 rounded-3xl border border-line bg-white p-8 shadow-sm print:gap-4 print:rounded-none print:border-0 print:p-0 print:shadow-none">
+            <header className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5 print:pb-3">
               <div className="flex flex-col gap-1">
                 <span className="text-[11px] font-semibold tracking-[0.2em] text-sense uppercase">
                   VILPE Sense · Data service
                 </span>
-                <h2 className="font-display text-3xl font-bold text-navy">Moisture History Report</h2>
+                <h2 className="font-display text-3xl font-bold text-navy print:text-2xl">
+                  Moisture History Report
+                </h2>
                 <span className="text-sm text-muted">{report.address}</span>
               </div>
               <div className="rounded-xl bg-navy px-4 py-2.5">
@@ -89,7 +104,7 @@ export default function ReportPage() {
               </div>
             </header>
 
-            <section className="grid grid-cols-2 gap-5 sm:grid-cols-3">
+            <section className="grid grid-cols-3 gap-4 sm:grid-cols-6">
               <Meta label="Property" value={report.property} />
               <Meta label="Building" value={report.building} />
               <Meta label="Sensors" value={report.sensors} />
@@ -101,46 +116,37 @@ export default function ReportPage() {
               <Meta label="Issued" value={fmtDate(report.issued)} />
             </section>
 
-            <section className="flex flex-wrap items-center justify-between gap-5 rounded-2xl bg-ok/10 p-6">
-              <div className="flex max-w-xl flex-col gap-2">
+            <section className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl border border-line p-4 print:p-3">
+              <div className="flex min-w-60 flex-1 flex-col gap-1.5">
                 <span className="text-[10px] font-semibold tracking-[0.18em] text-muted uppercase">
-                  Summary
+                  Verdict
                 </span>
-                <h3 className="font-display text-2xl leading-tight font-bold text-navy">
-                  {report.headline}
-                </h3>
-                <p className="text-sm leading-relaxed text-navy/80">{report.summary}</p>
-                {report.recommendations.length > 0 && (
-                  <ul className="mt-1 flex flex-col gap-1">
-                    {report.recommendations.map((r) => (
-                      <li
-                        key={r}
-                        className="flex items-start gap-2 text-sm leading-relaxed text-navy/75"
-                      >
-                        <span
-                          className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-vilpe-orange"
-                          aria-hidden
-                        />
-                        {r}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <p className="text-sm leading-relaxed text-navy">{verdict(report)}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {report.structures.map((s) => (
+                    <span
+                      key={s.name}
+                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                        s.status === 'Dry'
+                          ? 'bg-ok/15 text-ok'
+                          : 'bg-alert/15 text-alert'
+                      }`}
+                    >
+                      {s.name} · {s.status}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-full border-2 border-ok text-center">
-                <span className="text-lg text-ok">✓</span>
-                <span className="text-[10px] font-bold tracking-wider text-navy uppercase">
-                  Sensor verified
-                </span>
-                <span className="text-[10px] text-muted">{report.verified}</span>
-              </div>
+              <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
+                <span className="text-ok">✓</span> Sensor verified {report.verified}
+              </span>
             </section>
 
-            <section className="flex flex-col gap-3">
+            <section className="flex flex-col gap-3 print:gap-2">
               <h3 className="font-display text-sm font-semibold tracking-[0.15em] text-navy uppercase">
                 Mold index by month
               </h3>
-              <div className="h-64 w-full">
+              <div className="h-64 w-full print:h-52">
                 <ResponsiveContainer>
                   <LineChart data={report.months} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
                     <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" />
@@ -174,13 +180,13 @@ export default function ReportPage() {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <p className="text-xs leading-relaxed text-muted">
+              <p className="text-xs leading-relaxed text-muted print:hidden">
                 Mold index (VTT model): 0 = no growth, 1 = first microscopic growth, 6 = heavy
                 growth. Highest value of each month shown.
               </p>
             </section>
 
-            <section className="flex flex-col gap-3">
+            <section className="flex flex-col gap-3 print:gap-2">
               <h3 className="font-display text-sm font-semibold tracking-[0.15em] text-navy uppercase">
                 Structure summary
               </h3>
@@ -199,15 +205,15 @@ export default function ReportPage() {
                   <tbody className="text-navy">
                     {report.structures.map((s) => (
                       <tr key={s.name} className="border-b border-line/70">
-                        <td className="py-3 pr-4 font-medium">{s.name}</td>
-                        <td className="py-3 pr-4 tabular-nums">{s.avg_rh_pct} % RH</td>
-                        <td className="py-3 pr-4 tabular-nums">
+                        <td className="py-2 pr-4 font-medium">{s.name}</td>
+                        <td className="py-2 pr-4 tabular-nums">{s.avg_rh_pct} % RH</td>
+                        <td className="py-2 pr-4 tabular-nums">
                           {s.peak_mold_index.toFixed(1)}{' '}
                           <span className="text-xs text-muted">{fmtMonth(s.peak_month)}</span>
                         </td>
-                        <td className="py-3 pr-4 tabular-nums">{s.risk_periods}</td>
-                        <td className="py-3 pr-4 tabular-nums">{s.coverage_pct.toFixed(1)} %</td>
-                        <td className="py-3">
+                        <td className="py-2 pr-4 tabular-nums">{s.risk_periods}</td>
+                        <td className="py-2 pr-4 tabular-nums">{s.coverage_pct.toFixed(1)} %</td>
+                        <td className="py-2">
                           <span className="rounded-full bg-ok/15 px-2.5 py-1 text-xs font-semibold text-navy">
                             {s.status}
                           </span>
@@ -219,7 +225,7 @@ export default function ReportPage() {
               </div>
             </section>
 
-            <section className="grid grid-cols-2 gap-5 border-t border-line pt-5 sm:grid-cols-4">
+            <section className="grid grid-cols-2 gap-4 border-t border-line pt-5 sm:grid-cols-4 print:pt-3">
               <Meta
                 label="Measurements"
                 value={`${report.measurements.toLocaleString('en-GB')} · ${report.interval}`}
@@ -229,7 +235,7 @@ export default function ReportPage() {
               <Meta label="Last sensor check" value={fmtMonth(report.last_sensor_check)} />
             </section>
 
-            <footer className="flex flex-col gap-1 text-xs leading-relaxed text-muted">
+            <footer className="flex flex-col gap-0.5 text-xs leading-relaxed text-muted">
               <p>Measurements are stored by VILPE and cannot be edited by the owner.</p>
               <p>
                 Covers the monitored structures only. Not a condition inspection or a guarantee of
