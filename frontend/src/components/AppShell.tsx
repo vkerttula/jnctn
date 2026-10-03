@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { api } from '../api'
+import { api, apiMode } from '../api'
 import { getUser, signOut } from '../auth'
 import Clock from './Clock'
 import Spinner from './Spinner'
@@ -99,15 +99,17 @@ export default function AppShell() {
           )}
           <div className="flex items-center gap-2.5">
             <Clock />
-            <button
-              onClick={demo}
-              disabled={busy}
-              className={`ml-auto text-xs underline-offset-2 transition-colors hover:underline disabled:opacity-50 ${
-                state?.simulating ? 'text-watch' : 'text-white/40'
-              }`}
-            >
-              {state?.simulating ? 'Stop simulation' : 'Simulate leak'}
-            </button>
+            {apiMode === 'mock' && (
+              <button
+                onClick={demo}
+                disabled={busy}
+                className={`ml-auto text-xs underline-offset-2 transition-colors hover:underline disabled:opacity-50 ${
+                  state?.simulating ? 'text-watch' : 'text-white/40'
+                }`}
+              >
+                {state?.simulating ? 'Stop simulation' : 'Simulate leak'}
+              </button>
+            )}
           </div>
         </div>
       </aside>
