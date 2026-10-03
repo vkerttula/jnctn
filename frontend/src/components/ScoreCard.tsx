@@ -1,6 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { Area, HouseState, ScoreWord, SensorStatus, Zone } from '../api'
+import {
+  api,
+  type Area,
+  type AttentionItem,
+  type HelpKind,
+  type HelpRequest,
+  type HouseState,
+  type ScoreWord,
+  type SensorStatus,
+  type Zone,
+} from '../api'
 import { STATUS_COLOR } from '../theme'
 
 const WORD_COLOR: Record<ScoreWord, string> = {
@@ -111,10 +121,69 @@ const AREA_OF_ZONE: Record<Zone, Area['id']> = {
   crawl_space: 'crawl_space',
 }
 
+const ACTION_LABEL: Record<HelpKind, string> = {
+  inspection: 'Book an inspection',
+  expert: 'Ask a VILPE expert',
+}
+
+function AreaActions({
+  item,
+  requests,
+  onRequested,
+}: {
+  item: AttentionItem
+  requests: HelpRequest[]
+  onRequested: () => void
+}) {
+  const [busy, setBusy] = useState(false)
+  const done = requests.filter((r) => item.actions.includes(r.kind))
+  const todo = item.actions.filter((k) => !requests.some((r) => r.kind === k))
+
+  const request = async (kind: HelpKind) => {
+    setBusy(true)
+    try {
+      await api.requestHelp(kind, item.sensor_id)
+      onRequested()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <span className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+      {done.map((r) => (
+        <span key={r.kind} className="text-xs text-ok/90">
+          ✓ {ACTION_LABEL[r.kind]} requested
+        </span>
+      ))}
+      {todo.map((kind, i) => (
+        <button
+          key={kind}
+          disabled={busy}
+          onClick={() => request(kind)}
+          className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-50 ${
+            i === 0
+              ? 'bg-vilpe-orange text-white hover:bg-vilpe-orange/90'
+              : 'border border-white/25 text-white/85 hover:bg-white/10'
+          }`}
+        >
+          {ACTION_LABEL[kind]}
+        </button>
+      ))}
+    </span>
+  )
+}
+
 // The area chips double as the attention feed. Clicking one never leaves
 // the page — it opens a small card saying whether all is well or what's
 // going on, like the score explainer above.
-function Areas({ state }: { state: HouseState }) {
+function Areas({
+  state,
+  onRequested,
+}: {
+  state: HouseState
+  onRequested: () => void
+}) {
   const navigate = useNavigate()
   const [open, setOpen] = useState<Area['id'] | null>(null)
   const zoneOf = new Map(state.sensors.map((s) => [s.id, s.zone]))
@@ -174,6 +243,13 @@ function Areas({ state }: { state: HouseState }) {
                   See {openSensor.name} →
                 </button>
               )}
+              {openHit.actions.length > 0 && (
+                <AreaActions
+                  item={openHit}
+                  requests={state.open_requests}
+                  onRequested={onRequested}
+                />
+              )}
             </>
           ) : (
             <p className="mt-1.5">Dry and healthy — nothing to do here.</p>
@@ -184,7 +260,13 @@ function Areas({ state }: { state: HouseState }) {
   )
 }
 
-export default function ScoreCard({ state }: { state: HouseState }) {
+export default function ScoreCard({
+  state,
+  onRequested,
+}: {
+  state: HouseState
+  onRequested: () => void
+}) {
   const color = WORD_COLOR[state.score_word]
   const [explain, setExplain] = useState(false)
   return (
@@ -219,7 +301,7 @@ export default function ScoreCard({ state }: { state: HouseState }) {
         </button>
       </div>
       {explain && <ScoreExplainer onClose={() => setExplain(false)} />}
-      <Areas state={state} />
+      <Areas state={state} onRequested={onRequested} />
     </section>
   )
 }
