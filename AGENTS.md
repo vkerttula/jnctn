@@ -52,11 +52,11 @@ Dev scaffolding plus a minimal, verified app skeleton:
   `main` redeploys.
 - `docs/` — `VISION.md` (the product vision, written for agents — see above),
   plus `topics/` and `ideas/` for hackathon brainstorming
-- `data/` — cleaned VILPE Sense demo-site dataset (Vantaa): `site.json`,
-  `devices.json` (7 MCU-2 ventilation fans), `sensors.json` (51 environmental
-  sensors), `readings/` CSV time series, `site-layout.pdf`; see `data/README.md`.
-  Regenerate from a source export zip with
-  `scripts/convert_sense_data.py`
+- `data/` — VILPE Sense demo-site dataset (Vantaa): `site.json`,
+  `devices.json` (7 MCU-2 ventilation fans), `sensors.json` (51 RHT-2
+  sensors), `readings/` CSV time series; see `data/README.md`. Refresh from
+  the live public API with `scripts/fetch_sense_data.py` (preferred), or
+  convert a Drive export zip with `scripts/convert_sense_data.py`
 - `Makefile` — devcontainer lifecycle helpers
 - `.github/workflows/ci.yml` — backend (ruff + pytest against a real MongoDB
   service) and frontend (oxlint + build) on push/PR. No devcontainer build in

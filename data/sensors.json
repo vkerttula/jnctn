@@ -2,460 +2,1225 @@
   {
     "sensor_id": 18996,
     "serial_number": "P6550688W7X",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2589,
+      "y": 951
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.76,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 56.25,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 19221,
     "serial_number": "P655071NTPZ",
-    "reading_count": 730,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2567,
+      "y": 766
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.52,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 55.89,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18849,
     "serial_number": "P655152HWDC",
-    "reading_count": 732,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2788,
+      "y": 795
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.49,
+        "timestamp_ms": 1791003602000
+      },
+      "relative_humidity": {
+        "value": 60.48,
+        "timestamp_ms": 1791003602000
+      }
+    }
   },
   {
     "sensor_id": 18880,
     "serial_number": "P655153MGHD",
-    "reading_count": 734,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2804,
+      "y": 386
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.72,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 60.08,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18878,
     "serial_number": "P655154WE2Z",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 3161,
+      "y": 587
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.63,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 58.61,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18790,
     "serial_number": "P655155KDRK",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2788,
+      "y": 587
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.68,
+        "timestamp_ms": 1791003600000
+      },
+      "relative_humidity": {
+        "value": 61.26,
+        "timestamp_ms": 1791003600000
+      }
+    }
   },
   {
     "sensor_id": 19244,
     "serial_number": "P655276LLKN",
-    "reading_count": 730,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2589,
+      "y": 606
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.2,
+        "timestamp_ms": 1791003600000
+      },
+      "relative_humidity": {
+        "value": 56.25,
+        "timestamp_ms": 1791003600000
+      }
+    }
   },
   {
     "sensor_id": 19362,
     "serial_number": "P6552776AE2",
-    "reading_count": 732,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2375,
+      "y": 451
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.38,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 59.8,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18927,
     "serial_number": "P669339MB88",
-    "reading_count": 734,
-    "first_seen": "2025-09-11T06:42:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1475,
+      "y": 1345
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.39,
+        "timestamp_ms": 1791003600000
+      },
+      "relative_humidity": {
+        "value": 61.43,
+        "timestamp_ms": 1791003600000
+      }
+    }
   },
   {
     "sensor_id": 18918,
     "serial_number": "P6693409CPX",
-    "reading_count": 734,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1693,
+      "y": 1143
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.38,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 55.85,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18795,
     "serial_number": "P672783ATED",
-    "reading_count": 733,
-    "first_seen": "2025-09-11T03:46:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1498,
+      "y": 454
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.67,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 60.92,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18877,
     "serial_number": "P672786W5BZ",
-    "reading_count": 727,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1910,
+      "y": 954
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.19,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 59.97,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18896,
     "serial_number": "P6727873T83",
-    "reading_count": 732,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2144,
+      "y": 1143
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.32,
+        "timestamp_ms": 1791003602000
+      },
+      "relative_humidity": {
+        "value": 56.5,
+        "timestamp_ms": 1791003602000
+      }
+    }
   },
   {
     "sensor_id": 18959,
     "serial_number": "P672789ZARR",
-    "reading_count": 730,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2148,
+      "y": 769
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.56,
+        "timestamp_ms": 1791003600000
+      },
+      "relative_humidity": {
+        "value": 59.45,
+        "timestamp_ms": 1791003600000
+      }
+    }
   },
   {
     "sensor_id": 18787,
     "serial_number": "P672790YXMT",
-    "reading_count": 733,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1495,
+      "y": 597
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.36,
+        "timestamp_ms": 1791003602000
+      },
+      "relative_humidity": {
+        "value": 60.86,
+        "timestamp_ms": 1791003602000
+      }
+    }
   },
   {
     "sensor_id": 18892,
     "serial_number": "P672791KD2X",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2791,
+      "y": 1289
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.09,
+        "timestamp_ms": 1791003602000
+      },
+      "relative_humidity": {
+        "value": 61.1,
+        "timestamp_ms": 1791003602000
+      }
+    }
   },
   {
     "sensor_id": 18842,
     "serial_number": "P672792BZ4E",
-    "reading_count": 732,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 3580,
+      "y": 827
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.29,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 56.94,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18965,
     "serial_number": "P672830B96G",
-    "reading_count": 729,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1910,
+      "y": 600
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 16.4,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 67.67,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18973,
     "serial_number": "P6728318Z3H",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1478,
+      "y": 1139
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 16.93,
+        "timestamp_ms": 1791003600000
+      },
+      "relative_humidity": {
+        "value": 63.08,
+        "timestamp_ms": 1791003600000
+      }
+    }
   },
   {
     "sensor_id": 18789,
     "serial_number": "P672832PZ9X",
-    "reading_count": 736,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1696,
+      "y": 766
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.83,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 57.12,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18825,
     "serial_number": "P672882WAPK",
-    "reading_count": 733,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1702,
+      "y": 457
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.24,
+        "timestamp_ms": 1791003600000
+      },
+      "relative_humidity": {
+        "value": 61.68,
+        "timestamp_ms": 1791003600000
+      }
+    }
   },
   {
     "sensor_id": 18954,
     "serial_number": "P672888DRBD",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1696,
+      "y": 603
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 18.28,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 57.89,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18960,
     "serial_number": "P672898KGAM",
-    "reading_count": 730,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2586,
+      "y": 1338
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.15,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 60.03,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18936,
     "serial_number": "P6728999PBX",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2583,
+      "y": 1143
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.32,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 60.19,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18847,
     "serial_number": "P6729374HE2",
-    "reading_count": 732,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 3197,
+      "y": 1055
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.52,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 59.99,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18796,
     "serial_number": "P672938EN6X",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2996,
+      "y": 1178
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.21,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 58.19,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18906,
     "serial_number": "P6729395ZX5",
-    "reading_count": 734,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1495,
+      "y": 772
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.53,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 62.96,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18921,
     "serial_number": "P672941H396",
-    "reading_count": 729,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1488,
+      "y": 948
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 18.41,
+        "timestamp_ms": 1791003602000
+      },
+      "relative_humidity": {
+        "value": 60.42,
+        "timestamp_ms": 1791003602000
+      }
+    }
   },
   {
     "sensor_id": 18937,
     "serial_number": "P672942X8Z3",
-    "reading_count": 730,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 3395,
+      "y": 941
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.18,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 58.85,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18866,
     "serial_number": "P673042W78K",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1696,
+      "y": 954
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.52,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 59.82,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18905,
     "serial_number": "P673043DKNL",
-    "reading_count": 734,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1914,
+      "y": 457
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.79,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 60.41,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18913,
     "serial_number": "P673047XDJT",
-    "reading_count": 734,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1693,
+      "y": 1331
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.43,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 61.64,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18920,
     "serial_number": "P673698LJ3N",
-    "reading_count": 734,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 3379,
+      "y": 733
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.46,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 59.06,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18799,
     "serial_number": "P673723BGYW",
-    "reading_count": 730,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1907,
+      "y": 1143
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 18.65,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 48.61,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18904,
     "serial_number": "P673724HW6A",
-    "reading_count": 729,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1904,
+      "y": 1334
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.25,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 57.34,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18844,
     "serial_number": "P67372539CA",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2141,
+      "y": 1334
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.41,
+        "timestamp_ms": 1791003602000
+      },
+      "relative_humidity": {
+        "value": 54.9,
+        "timestamp_ms": 1791003602000
+      }
+    }
   },
   {
     "sensor_id": 18809,
     "serial_number": "P673726X9YC",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 1910,
+      "y": 769
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.58,
+        "timestamp_ms": 1791003602000
+      },
+      "relative_humidity": {
+        "value": 56.81,
+        "timestamp_ms": 1791003602000
+      }
+    }
   },
   {
     "sensor_id": 18879,
     "serial_number": "P673727RAR2",
-    "reading_count": 732,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2151,
+      "y": 454
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.3,
+        "timestamp_ms": 1791003602000
+      },
+      "relative_humidity": {
+        "value": 59.9,
+        "timestamp_ms": 1791003602000
+      }
+    }
   },
   {
     "sensor_id": 18928,
     "serial_number": "P673728F2DF",
-    "reading_count": 730,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2136.91853,
+      "y": 615.09084
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.42,
+        "timestamp_ms": 1791003618000
+      },
+      "relative_humidity": {
+        "value": 61.02,
+        "timestamp_ms": 1791003618000
+      }
+    }
   },
   {
     "sensor_id": 18835,
     "serial_number": "P673729HH48",
-    "reading_count": 734,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2138,
+      "y": 957
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.3,
+        "timestamp_ms": 1791003602000
+      },
+      "relative_humidity": {
+        "value": 55.67,
+        "timestamp_ms": 1791003602000
+      }
+    }
   },
   {
     "sensor_id": 19126,
     "serial_number": "P677709JE6R",
-    "reading_count": 729,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2372,
+      "y": 603
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.67,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 59.71,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 19208,
     "serial_number": "P677710XZRA",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2369,
+      "y": 1334
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.34,
+        "timestamp_ms": 1791003602000
+      },
+      "relative_humidity": {
+        "value": 57.13,
+        "timestamp_ms": 1791003602000
+      }
+    }
   },
   {
     "sensor_id": 19305,
     "serial_number": "P677737LHBY",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2353.33734,
+      "y": 954.98148
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.38,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 53.45,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 19048,
     "serial_number": "P6777398GX9",
-    "reading_count": 732,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2369,
+      "y": 1139
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.14,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 56.51,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 19191,
     "serial_number": "P677742WBEC",
-    "reading_count": 730,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2372,
+      "y": 766
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.73,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 52.85,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 19012,
     "serial_number": "P677743TN4E",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2589,
+      "y": 454
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.38,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 61.85,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18972,
     "serial_number": "P686953N6DL",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2996,
+      "y": 710
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.75,
+        "timestamp_ms": 1791003600000
+      },
+      "relative_humidity": {
+        "value": 59.07,
+        "timestamp_ms": 1791003600000
+      }
+    }
   },
   {
     "sensor_id": 18890,
     "serial_number": "P686954ALCE",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2996,
+      "y": 961
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.23,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 61.07,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18821,
     "serial_number": "P686955YNLH",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2973,
+      "y": 483
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.64,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 56.65,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18945,
     "serial_number": "P686956XTAM",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-10T20:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 2810,
+      "y": 1065
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 17.56,
+        "timestamp_ms": 1791003601000
+      },
+      "relative_humidity": {
+        "value": 60.19,
+        "timestamp_ms": 1791003601000
+      }
+    }
   },
   {
     "sensor_id": 18859,
     "serial_number": "P6869577A8E",
-    "reading_count": 731,
-    "first_seen": "2025-09-11T08:00:00",
-    "last_seen": "2026-09-11T08:00:00",
-    "paired_to": null,
-    "role": "environment_sensor"
+    "type": "VILPE RHT-2",
+    "name": null,
+    "is_online": true,
+    "is_alert": false,
+    "humidity_deviation_alert": false,
+    "coordinates": {
+      "x": 3174,
+      "y": 853
+    },
+    "gateway_id": 38,
+    "latest": {
+      "temperature": {
+        "value": 18.1,
+        "timestamp_ms": 1791003600000
+      },
+      "relative_humidity": {
+        "value": 58.32,
+        "timestamp_ms": 1791003600000
+      }
+    }
   }
 ]

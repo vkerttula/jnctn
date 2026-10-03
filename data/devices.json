@@ -4,6 +4,7 @@
     "name": "VILPE Vantaa, Hallin alapohja",
     "serial_number": "N112711X79B",
     "type": "VILPE MCU-2",
+    "device_id": 801,
     "category": "ventilation_fan",
     "location": "crawl_space",
     "purpose": {
@@ -12,34 +13,60 @@
     },
     "building_material": "Betoni",
     "owner": "kimmo.kujala@vilpe.com",
-    "status": "-",
-    "paired_sensors": {
-      "indoor": {
+    "status": "online",
+    "is_alert": false,
+    "coordinates": {
+      "x": 2486,
+      "y": 1393
+    },
+    "public_link": "https://sense.vilpe.com/public/inIthx1Tk4",
+    "transmitters": [
+      {
         "serial_number": "P581915RH4G",
-        "last_seen": "2026-09-11T04:43:28",
-        "temperature_c": 12.3,
-        "rh_pct": 100
+        "type": "VILPE RHT-1",
+        "role": "indoor"
       },
-      "outdoor": {
+      {
         "serial_number": "P582060NKD3",
-        "last_seen": "2026-09-11T04:43:28",
-        "temperature_c": 8.3,
-        "rh_pct": 100
+        "type": "VILPE RHT-1",
+        "role": "outdoor"
+      }
+    ],
+    "latest": {
+      "fan_rpm": {
+        "value": 1680,
+        "timestamp": "2026-10-03T10:51:47.000Z"
+      },
+      "mold_index": {
+        "value": 0.83015,
+        "timestamp": "2026-10-03T11:27:53.000Z"
+      },
+      "temperature_indoor": {
+        "value": 12.3,
+        "timestamp": "2026-10-03T10:51:47.000Z"
+      },
+      "temperature_outdoor": {
+        "value": 11.6,
+        "timestamp": "2026-10-03T10:51:47.000Z"
+      },
+      "relative_humidity_indoor": {
+        "value": 99.2,
+        "timestamp": "2026-10-03T10:51:47.000Z"
+      },
+      "relative_humidity_outdoor": {
+        "value": 100,
+        "timestamp": "2026-10-03T10:51:47.000Z"
       }
     },
-    "latest": {
-      "mold_index": 0.69496,
-      "rpm": 2550
-    },
     "readings_file": "readings/fans/hallin-alapohja.csv",
-    "readings_count": 5774,
-    "public_link": "https://sense.vilpe.com/public/inIthx1Tk4"
+    "readings_count": 10596
   },
   {
     "id": "katto-1",
     "name": "VILPE Vantaa, Katto 1",
     "serial_number": "N112741ZDLY",
     "type": "VILPE MCU-2",
+    "device_id": 1004,
     "category": "ventilation_fan",
     "location": "roof",
     "purpose": {
@@ -48,34 +75,60 @@
     },
     "building_material": "Betoni",
     "owner": "kimmo.kujala@vilpe.com",
-    "status": "-",
-    "paired_sensors": {
-      "indoor": {
+    "status": "online",
+    "is_alert": false,
+    "coordinates": {
+      "x": 1647,
+      "y": 1308
+    },
+    "public_link": "https://sense.vilpe.com/public/fxyTiqZfob",
+    "transmitters": [
+      {
         "serial_number": "P485544RFGX",
-        "last_seen": "2026-09-11T04:53:42",
-        "temperature_c": 9.4,
-        "rh_pct": 90.7
+        "type": "VILPE RHT-1",
+        "role": "indoor"
       },
-      "outdoor": {
+      {
         "serial_number": "P582028P3F8",
-        "last_seen": "2026-09-11T04:53:42",
-        "temperature_c": 7.8,
-        "rh_pct": 97.5
+        "type": "VILPE RHT-1",
+        "role": "outdoor"
+      }
+    ],
+    "latest": {
+      "fan_rpm": {
+        "value": 1830,
+        "timestamp": "2026-10-03T10:51:26.000Z"
+      },
+      "mold_index": {
+        "value": 0.00213,
+        "timestamp": "2026-10-03T11:27:54.000Z"
+      },
+      "temperature_indoor": {
+        "value": 15.9,
+        "timestamp": "2026-10-03T10:51:26.000Z"
+      },
+      "temperature_outdoor": {
+        "value": 11.4,
+        "timestamp": "2026-10-03T10:51:26.000Z"
+      },
+      "relative_humidity_indoor": {
+        "value": 76.1,
+        "timestamp": "2026-10-03T10:51:26.000Z"
+      },
+      "relative_humidity_outdoor": {
+        "value": 96,
+        "timestamp": "2026-10-03T10:51:26.000Z"
       }
     },
-    "latest": {
-      "mold_index": 0.00125,
-      "rpm": 1725
-    },
     "readings_file": "readings/fans/katto-1.csv",
-    "readings_count": 5783,
-    "public_link": "https://sense.vilpe.com/public/fxyTiqZfob"
+    "readings_count": 10604
   },
   {
     "id": "katto-2",
     "name": "VILPE Vantaa, Katto 2",
     "serial_number": "N112562K4C8",
     "type": "VILPE MCU-2",
+    "device_id": 923,
     "category": "ventilation_fan",
     "location": "roof",
     "purpose": {
@@ -84,34 +137,60 @@
     },
     "building_material": "Betoni",
     "owner": "kimmo.kujala@vilpe.com",
-    "status": "-",
-    "paired_sensors": {
-      "indoor": {
+    "status": "online",
+    "is_alert": false,
+    "coordinates": {
+      "x": 2489,
+      "y": 1264
+    },
+    "public_link": "https://sense.vilpe.com/public/xtxxftb2fY",
+    "transmitters": [
+      {
         "serial_number": "P581891D3KX",
-        "last_seen": "2026-09-11T03:41:57",
-        "temperature_c": 8.5,
-        "rh_pct": 86.4
+        "type": "VILPE RHT-1",
+        "role": "indoor"
       },
-      "outdoor": {
+      {
         "serial_number": "P5818257GJK",
-        "last_seen": "2026-09-11T03:41:57",
-        "temperature_c": 8,
-        "rh_pct": 100
+        "type": "VILPE RHT-1",
+        "role": "outdoor"
+      }
+    ],
+    "latest": {
+      "fan_rpm": {
+        "value": 1140,
+        "timestamp": "2026-10-03T11:45:46.000Z"
+      },
+      "mold_index": {
+        "value": 0,
+        "timestamp": "2026-10-03T11:27:54.000Z"
+      },
+      "temperature_indoor": {
+        "value": 15.5,
+        "timestamp": "2026-10-03T11:45:46.000Z"
+      },
+      "temperature_outdoor": {
+        "value": 11.8,
+        "timestamp": "2026-10-03T11:45:46.000Z"
+      },
+      "relative_humidity_indoor": {
+        "value": 73,
+        "timestamp": "2026-10-03T11:45:46.000Z"
+      },
+      "relative_humidity_outdoor": {
+        "value": 100,
+        "timestamp": "2026-10-03T11:45:46.000Z"
       }
     },
-    "latest": {
-      "mold_index": 5e-05,
-      "rpm": 975
-    },
     "readings_file": "readings/fans/katto-2.csv",
-    "readings_count": 5792,
-    "public_link": "https://sense.vilpe.com/public/xtxxftb2fY"
+    "readings_count": 10619
   },
   {
     "id": "katto-3",
     "name": "VILPE Vantaa, Katto 3",
     "serial_number": "N11251233JN",
     "type": "VILPE MCU-2",
+    "device_id": 858,
     "category": "ventilation_fan",
     "location": "roof",
     "purpose": {
@@ -120,34 +199,60 @@
     },
     "building_material": "Betoni",
     "owner": "kimmo.kujala@vilpe.com",
-    "status": "-",
-    "paired_sensors": {
-      "indoor": {
+    "status": "online",
+    "is_alert": false,
+    "coordinates": {
+      "x": 1567,
+      "y": 663
+    },
+    "public_link": "https://sense.vilpe.com/public/no2IoVSy8L",
+    "transmitters": [
+      {
         "serial_number": "P5818844ZHT",
-        "last_seen": "2026-09-11T04:16:27",
-        "temperature_c": 7.4,
-        "rh_pct": 90.5
+        "type": "VILPE RHT-1",
+        "role": "indoor"
       },
-      "outdoor": {
+      {
         "serial_number": "P581761Z6CY",
-        "last_seen": "2026-09-11T04:16:27",
-        "temperature_c": 7.4,
-        "rh_pct": 100
+        "type": "VILPE RHT-1",
+        "role": "outdoor"
+      }
+    ],
+    "latest": {
+      "fan_rpm": {
+        "value": 1755,
+        "timestamp": "2026-10-03T10:15:35.000Z"
+      },
+      "mold_index": {
+        "value": 0.16971,
+        "timestamp": "2026-10-03T11:27:54.000Z"
+      },
+      "temperature_indoor": {
+        "value": 10.9,
+        "timestamp": "2026-10-03T10:15:35.000Z"
+      },
+      "temperature_outdoor": {
+        "value": 15.7,
+        "timestamp": "2026-10-03T10:15:35.000Z"
+      },
+      "relative_humidity_indoor": {
+        "value": 100,
+        "timestamp": "2026-10-03T10:15:35.000Z"
+      },
+      "relative_humidity_outdoor": {
+        "value": 77.4,
+        "timestamp": "2026-10-03T10:15:35.000Z"
       }
     },
-    "latest": {
-      "mold_index": 0.0843,
-      "rpm": 1065
-    },
     "readings_file": "readings/fans/katto-3.csv",
-    "readings_count": 5798,
-    "public_link": "https://sense.vilpe.com/public/no2IoVSy8L"
+    "readings_count": 10622
   },
   {
     "id": "katto-4",
     "name": "VILPE Vantaa, Katto 4",
     "serial_number": "N1104957TCM",
     "type": "VILPE MCU-2",
+    "device_id": 632,
     "category": "ventilation_fan",
     "location": "roof",
     "purpose": {
@@ -156,34 +261,60 @@
     },
     "building_material": "Betoni",
     "owner": "kimmo.kujala@vilpe.com",
-    "status": "-",
-    "paired_sensors": {
-      "indoor": {
+    "status": "online",
+    "is_alert": false,
+    "coordinates": {
+      "x": 2489,
+      "y": 548
+    },
+    "public_link": "https://sense.vilpe.com/public/LdQ0OlL85z",
+    "transmitters": [
+      {
         "serial_number": "P524780245Z",
-        "last_seen": "2026-09-11T04:01:01",
-        "temperature_c": 7.7,
-        "rh_pct": 89.9
+        "type": "VILPE RHT-1",
+        "role": "indoor"
       },
-      "outdoor": {
+      {
         "serial_number": "P524820YAXC",
-        "last_seen": "2026-09-11T04:01:01",
-        "temperature_c": 8,
-        "rh_pct": 98.7
+        "type": "VILPE RHT-1",
+        "role": "outdoor"
+      }
+    ],
+    "latest": {
+      "fan_rpm": {
+        "value": 1260,
+        "timestamp": "2026-10-03T12:01:34.000Z"
+      },
+      "mold_index": {
+        "value": 0.00297,
+        "timestamp": "2026-10-03T11:27:53.000Z"
+      },
+      "temperature_indoor": {
+        "value": 14.9,
+        "timestamp": "2026-10-03T12:01:34.000Z"
+      },
+      "temperature_outdoor": {
+        "value": 11.9,
+        "timestamp": "2026-10-03T12:01:34.000Z"
+      },
+      "relative_humidity_indoor": {
+        "value": 77.3,
+        "timestamp": "2026-10-03T12:01:34.000Z"
+      },
+      "relative_humidity_outdoor": {
+        "value": 99.1,
+        "timestamp": "2026-10-03T12:01:34.000Z"
       }
     },
-    "latest": {
-      "mold_index": 0.00615,
-      "rpm": 945
-    },
     "readings_file": "readings/fans/katto-4.csv",
-    "readings_count": 5351,
-    "public_link": "https://sense.vilpe.com/public/LdQ0OlL85z"
+    "readings_count": 10180
   },
   {
     "id": "viherkatto-1",
     "name": "VILPE Vantaa, Viherkatto 1",
     "serial_number": "N1109203B9X",
     "type": "VILPE MCU-2",
+    "device_id": 751,
     "category": "ventilation_fan",
     "location": "green_roof",
     "purpose": {
@@ -192,34 +323,60 @@
     },
     "building_material": "Betoni",
     "owner": "kimmo.kujala@vilpe.com",
-    "status": "-",
-    "paired_sensors": {
-      "indoor": {
+    "status": "online",
+    "is_alert": false,
+    "coordinates": {
+      "x": 3151,
+      "y": 1000
+    },
+    "public_link": "https://sense.vilpe.com/public/vaWUGFNH2j",
+    "transmitters": [
+      {
         "serial_number": "P482027T9DH",
-        "last_seen": "2026-09-11T04:23:20",
-        "temperature_c": 10.3,
-        "rh_pct": 78.5
+        "type": "VILPE RHT-1",
+        "role": "indoor"
       },
-      "outdoor": {
+      {
         "serial_number": "P524996Y2AN",
-        "last_seen": "2026-09-11T04:23:20",
-        "temperature_c": 8.8,
-        "rh_pct": 100
+        "type": "VILPE RHT-1",
+        "role": "outdoor"
+      }
+    ],
+    "latest": {
+      "fan_rpm": {
+        "value": 1245,
+        "timestamp": "2026-10-03T10:31:18.000Z"
+      },
+      "mold_index": {
+        "value": 7e-05,
+        "timestamp": "2026-10-03T11:27:53.000Z"
+      },
+      "temperature_indoor": {
+        "value": 13.6,
+        "timestamp": "2026-10-03T10:31:18.000Z"
+      },
+      "temperature_outdoor": {
+        "value": 12.1,
+        "timestamp": "2026-10-03T10:31:18.000Z"
+      },
+      "relative_humidity_indoor": {
+        "value": 86.2,
+        "timestamp": "2026-10-03T10:31:18.000Z"
+      },
+      "relative_humidity_outdoor": {
+        "value": 100,
+        "timestamp": "2026-10-03T10:31:18.000Z"
       }
     },
-    "latest": {
-      "mold_index": 0,
-      "rpm": 825
-    },
     "readings_file": "readings/fans/viherkatto-1.csv",
-    "readings_count": 5785,
-    "public_link": "https://sense.vilpe.com/public/vaWUGFNH2j"
+    "readings_count": 10607
   },
   {
     "id": "viherkatto-2",
     "name": "VILPE Vantaa, Viherkatto 2",
     "serial_number": "N112560ZEBX",
     "type": "VILPE MCU-2",
+    "device_id": 1018,
     "category": "ventilation_fan",
     "location": "green_roof",
     "purpose": {
@@ -228,27 +385,52 @@
     },
     "building_material": "Betoni",
     "owner": "kimmo.kujala@vilpe.com",
-    "status": "-",
-    "paired_sensors": {
-      "indoor": {
+    "status": "online",
+    "is_alert": false,
+    "coordinates": {
+      "x": 2922,
+      "y": 603
+    },
+    "public_link": "https://sense.vilpe.com/public/zHzaMMgmZw",
+    "transmitters": [
+      {
         "serial_number": "P524854LXW7",
-        "last_seen": "2026-09-11T05:32:13",
-        "temperature_c": 9.9,
-        "rh_pct": 81.1
+        "type": "VILPE RHT-1",
+        "role": "indoor"
       },
-      "outdoor": {
+      {
         "serial_number": "P523772RH9R",
-        "last_seen": "2026-09-11T05:32:13",
-        "temperature_c": 9.4,
-        "rh_pct": 95.4
+        "type": "VILPE RHT-1",
+        "role": "outdoor"
+      }
+    ],
+    "latest": {
+      "fan_rpm": {
+        "value": 0,
+        "timestamp": "2026-10-03T11:29:43.000Z"
+      },
+      "mold_index": {
+        "value": 0.09166,
+        "timestamp": "2026-10-03T11:27:54.000Z"
+      },
+      "temperature_indoor": {
+        "value": 11.8,
+        "timestamp": "2026-10-03T11:29:43.000Z"
+      },
+      "temperature_outdoor": {
+        "value": 13.3,
+        "timestamp": "2026-10-03T11:29:43.000Z"
+      },
+      "relative_humidity_indoor": {
+        "value": 98.2,
+        "timestamp": "2026-10-03T11:29:43.000Z"
+      },
+      "relative_humidity_outdoor": {
+        "value": 87,
+        "timestamp": "2026-10-03T11:29:43.000Z"
       }
     },
-    "latest": {
-      "mold_index": 0.03095,
-      "rpm": 0
-    },
     "readings_file": "readings/fans/viherkatto-2.csv",
-    "readings_count": 5794,
-    "public_link": "https://sense.vilpe.com/public/zHzaMMgmZw"
+    "readings_count": 10621
   }
 ]
