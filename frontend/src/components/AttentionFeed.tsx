@@ -49,20 +49,21 @@ function Actions({ item }: { item: AttentionItem }) {
   )
 }
 
-// Lives inside the navy sidebar — light-on-dark styling, no card chrome.
+// Lives inside the navy sidebar. Only rendered when something needs the
+// homeowner — the overview headline already says when all is well.
 export default function AttentionFeed({ items }: { items: AttentionItem[] }) {
+  if (items.length === 0) return null
   return (
     <section className="flex flex-col gap-3 border-t border-white/10 pt-4">
       <h2 className="font-display text-xs font-semibold tracking-[0.25em] text-white/50 uppercase">
         Needs attention
       </h2>
-      {items.length === 0 && (
-        <p className="text-sm text-white/50">
-          Everything looks normal — nothing needs your attention right now.
-        </p>
-      )}
       {items.map((a) => (
-        <article key={a.sensor_id + a.since} className="flex items-start gap-3">
+        <article
+          key={a.sensor_id + a.since}
+          className="flex items-start gap-3 rounded-2xl border-l-4 bg-white/5 p-4"
+          style={{ borderLeftColor: SEVERITY_COLOR[a.severity] }}
+        >
           <span
             className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
             style={{ background: SEVERITY_COLOR[a.severity] }}
