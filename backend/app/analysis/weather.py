@@ -28,7 +28,11 @@ _CONDITIONS = {
 
 def current() -> dict[str, Any]:
     cached = db.weather.find_one({"_id": "vaasa"})
-    if cached and datetime.now(UTC) - cached["fetched_at"].replace(tzinfo=UTC) < CACHE_TTL:
+    if (
+        cached
+        and "rain_chance_pct" in cached["weather"]
+        and datetime.now(UTC) - cached["fetched_at"].replace(tzinfo=UTC) < CACHE_TTL
+    ):
         return cached["weather"]
 
     fresh = _fetch()
