@@ -166,9 +166,11 @@ function HouseModel() {
 
 export default function HouseScene({
   sensors,
+  autoRotate = true,
   onSelect,
 }: {
   sensors: HouseSensor[]
+  autoRotate?: boolean
   onSelect: (s: HouseSensor) => void
 }) {
   const anchors = useMemo(() => {
@@ -213,8 +215,8 @@ export default function HouseScene({
         far={4}
       />
       <OrbitControls
-        autoRotate
-        autoRotateSpeed={0.6}
+        autoRotate={autoRotate}
+        autoRotateSpeed={0.5}
         enableDamping
         dampingFactor={0.08}
         enablePan={false}
