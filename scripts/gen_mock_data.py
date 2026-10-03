@@ -217,6 +217,10 @@ def write_report() -> None:
                 "grow. Seasonal peaks — the roof in winter and the crawl space "
                 "in late summer — stayed well below the risk threshold."
             ),
+            "recommendations": [
+                "No action needed — both monitored structures stayed dry "
+                "through the whole period."
+            ],
             "mold_threshold": 1,
             "months": months,
             "structures": [
@@ -304,6 +308,10 @@ def main() -> None:
                 "The roof is drying normally for early October, and the crawl "
                 "space fan is keeping the crawl space in check."
             ),
+            "recommendations": [
+                "Nothing needed right now. We'll keep watching."
+            ],
+            "narrative_source": "fallback",
             "weather": {
                 "temp_c": 8.6,
                 "condition": "Overcast",

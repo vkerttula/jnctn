@@ -347,6 +347,15 @@ def house_state() -> dict[str, Any]:
                 "actions": ["inspection", "expert"] if sev == "alert" else ["expert"],
             }
         )
+    # Prefer the narrative's own wording for feed items, matched on the
+    # location label findings carry. Each narrative item is consumed once so
+    # two findings at the same location don't repeat the same text.
+    narrative_items: dict[str, list[dict]] = {}
+    for item in analysis["attention_items"]:
+        loc = (item.get("location") or "").strip().lower()
+        if loc:
+            narrative_items.setdefault(loc, []).append(item)
+
     for f in analysis["findings"]:
         if f["severity"] not in ("watch", "attention"):
             continue
@@ -355,12 +364,18 @@ def house_state() -> dict[str, Any]:
         sid = _finding_sensor_id(f, serial_quad)
         if sid is None:
             continue
-        item = fallback.describe_finding(f)
+        items = narrative_items.get((f.get("location") or "").strip().lower())
+        if items:
+            n = items.pop(0)
+            message = f"{n['title']} — {n['detail']}"
+        else:
+            item = fallback.describe_finding(f)
+            message = f"{item.title} — {item.detail}"
         attention.append(
             {
                 "sensor_id": sid,
                 "severity": SEVERITY_MAP[f["severity"]],
-                "message": f"{item.title} — {item.detail}",
+                "message": message,
                 "since": f.get("since") or analysis["generated_at"],
                 "actions": ["inspection", "expert"]
                 if f["severity"] == "attention"
@@ -397,6 +412,14 @@ def house_state() -> dict[str, Any]:
             else "One area of the roof needs watching — the rest of the house looks normal."
         )
 
+    recommendations = analysis["recommendations"]
+    if sim:
+        recommendations = (
+            ["Have the roof checked — fixing a leak early keeps repairs small."]
+            if _sim_severity(sim) == "alert"
+            else ["Keep an eye on the roof — we'll tell you if it keeps rising."]
+        )
+
     return {
         "home": HOME,
         "score": score,
@@ -405,6 +428,8 @@ def house_state() -> dict[str, Any]:
         "areas": areas,
         "headline": headline,
         "summary": summary,
+        "recommendations": recommendations,
+        "narrative_source": "demo" if sim else analysis["source"],
         "weather": weather.current(),
         "attention": attention,
         "sensors": sensors,
@@ -651,6 +676,7 @@ def report() -> dict[str, Any]:
         "verified": f"{start.year}–{end.year}",
         "headline": analysis["headline"],
         "summary": analysis["summary"],
+        "recommendations": analysis["recommendations"],
         "mold_threshold": 1,
         "months": months,
         "structures": structures,

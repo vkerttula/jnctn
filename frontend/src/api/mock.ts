@@ -113,6 +113,11 @@ function applySim(h: HouseState): HouseState {
       severity === 'alert'
         ? 'We found a likely leak in the roof. Everything else looks normal.'
         : 'One area of the roof needs watching — the rest of the house looks normal.',
+    recommendations:
+      severity === 'alert'
+        ? ['Have the roof checked — fixing a leak early keeps repairs small.']
+        : ["Keep an eye on the roof — we'll tell you if it keeps rising."],
+    narrative_source: 'demo',
     attention,
     sensors: h.sensors.map((s) =>
       s.id === sim!.targetId

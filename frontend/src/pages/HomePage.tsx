@@ -21,6 +21,27 @@ function Overview({ state }: { state: HouseState }) {
           {state.headline}
         </h1>
         <p className="text-base leading-relaxed text-navy/75">{state.summary}</p>
+        {state.recommendations.length > 0 && (
+          <ul className="mt-1 flex flex-col gap-1.5">
+            {state.recommendations.map((r) => (
+              <li
+                key={r}
+                className="flex items-start gap-2 text-sm leading-relaxed text-navy/70"
+              >
+                <span
+                  className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-vilpe-orange"
+                  aria-hidden
+                />
+                {r}
+              </li>
+            ))}
+          </ul>
+        )}
+        {state.narrative_source === 'llm' && (
+          <span className="mt-1 w-fit rounded-full border border-navy/15 bg-white/60 px-2.5 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
+            AI insight
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col items-end gap-1 rounded-2xl border border-white/70 bg-white/80 px-5 py-3 shadow-lg shadow-navy/5 backdrop-blur-md">

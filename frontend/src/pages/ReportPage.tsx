@@ -109,6 +109,22 @@ export default function ReportPage() {
                   {report.headline}
                 </h3>
                 <p className="text-sm leading-relaxed text-navy/80">{report.summary}</p>
+                {report.recommendations.length > 0 && (
+                  <ul className="mt-1 flex flex-col gap-1">
+                    {report.recommendations.map((r) => (
+                      <li
+                        key={r}
+                        className="flex items-start gap-2 text-sm leading-relaxed text-navy/75"
+                      >
+                        <span
+                          className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-vilpe-orange"
+                          aria-hidden
+                        />
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               <div className="flex h-24 w-24 shrink-0 flex-col items-center justify-center rounded-full border-2 border-ok text-center">
                 <span className="text-lg text-ok">✓</span>
