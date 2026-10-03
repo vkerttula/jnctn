@@ -8,6 +8,7 @@ dependencies = [
     "uvicorn[standard]>=0.30",
     "pymongo>=4.9",
     "python-dotenv>=1.2.4",
+    "google-genai==2.25.0",
 ]
 
 [dependency-groups]

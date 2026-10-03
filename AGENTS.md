@@ -43,7 +43,21 @@ Dev scaffolding plus a minimal, verified app skeleton:
   readings served from the `sense_*` Mongo collections — 404s until
   `uv run python -m app.ingest` has run; `app/ingest.py` pulls the live
   VILPE Sense API plus `data/readings/sensors.csv` and upserts
-  idempotently), pymongo client in `app/db.py`, pytest + ruff configured
+  idempotently), pymongo client in `app/db.py`, pytest + ruff configured.
+  `app/analysis/` is the interpretation layer: `digest.py` aggregates the
+  `sense_*` collections into a compact context packet per window
+  (day/week/month/year — stats + detected events, never raw series),
+  `score.py` turns it into a 0-100 score + findings (deterministic — the
+  LLM never picks the number), `llm.py` narrates it via Gemini
+  (`GEMINI_API_KEY`/`GEMINI_MODEL` in `.env`, structured JSON out), and
+  `fallback.py` renders the same shape from templates when no key/call
+  works. `service.py` caches results in `analyses` per (window, period).
+  `simulate.py` backs the demo leak moment: `POST /api/simulate/leak`
+  injects a synthetic moisture event the whole pipeline reacts to.
+  `app/routers/house.py` implements the frontend contract
+  (`frontend/src/api/types.ts`): `/api/house`, `/api/sensors/{id}`,
+  `/api/sensors/{id}/series`, `/api/simulate/*`. `/api/analysis` serves
+  the raw analysis, `/api/analysis/digest` the context packet
 - `frontend/` — Vite + React + TS + Tailwind v4 (vite plugin). The app is the
   "Oura for a house" consumer view (see `docs/specs/`), routed with
   `react-router-dom` in `src/App.tsx`. `components/AppShell.tsx` is the
