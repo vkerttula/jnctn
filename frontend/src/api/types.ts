@@ -44,6 +44,12 @@ export interface HelpRequest {
   status_text: string
 }
 
+export interface Area {
+  id: 'roof' | 'crawl_space'
+  name: string
+  status: SensorStatus
+}
+
 export interface SensorLatest {
   temp_c: number | null
   rh_pct: number | null
@@ -76,6 +82,10 @@ export interface HouseState {
   score: number
   score_word: ScoreWord
   score_trend: ScoreTrend
+  // one point per day, oldest first, last = today
+  score_history: { date: string; score: number }[]
+  // structure-level verdicts that make up the score
+  areas: Area[]
   headline: string
   summary: string
   weather: Weather
@@ -102,6 +112,9 @@ export interface SeriesPoint {
 export interface SensorSeries {
   id: string
   range: SeriesRange
+  // the expected humidity range for this device and season, drawn as a
+  // calm band behind the line; null when there is no humidity reading
+  normal: { label: string; rh_pct: [number, number] } | null
   points: SeriesPoint[]
 }
 

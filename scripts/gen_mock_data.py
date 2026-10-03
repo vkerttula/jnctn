@@ -148,18 +148,45 @@ def write_json(path: Path, payload: dict) -> None:
     WRITTEN.add(path)
 
 
-def write_series(sensor_id: str, points: list[dict]) -> None:
+def normal_band(points: list[dict]) -> dict | None:
+    # "Normal for <month>": the device's own 20th–80th percentile humidity
+    # over the last 30 days, widened a little. The real backend would derive
+    # it from history + season + weather; this keeps the shape honest.
     end = points[-1]["t"]
+    rh = sorted(p["rh_pct"] for p in points if p["rh_pct"] is not None and p["t"] >= end - timedelta(days=30))
+    if len(rh) < 10:
+        return None
+    lo, hi = rh[len(rh) // 5], rh[len(rh) * 4 // 5]
+    return {
+        "label": f"Normal for {end.strftime('%B')}",
+        "rh_pct": [max(0, round(lo - 3)), min(100, round(hi + 3))],
+    }
+
+
+def write_series(sensor_id: str, points: list[dict], end: datetime) -> None:
+    normal = normal_band(points)
+    last = points[-1]["t"]
     for label, days in [("24h", 1), ("7d", 7), ("30d", 30)]:
-        window = [p for p in points if p["t"] >= end - timedelta(days=days)]
+        window = [p for p in points if p["t"] >= last - timedelta(days=days)]
         write_json(
             OUT / "series" / f"{sensor_id}-{label}.json",
             {
                 "id": sensor_id,
                 "range": label,
+                "normal": normal and {**normal, "label": f"Normal for {end.strftime('%B')}"},
                 "points": [{**p, "t": iso(p["t"])} for p in downsample(window)],
             },
         )
+
+
+def score_history(end: datetime, today: int) -> list[dict]:
+    # 30 calm days that land on today's score.
+    days = []
+    for i in range(29, -1, -1):
+        wobble = 2.2 * math.sin(i / 4.3) + 1.1 * math.sin(i / 1.7)
+        score = today if i == 0 else round(today - 1 + wobble)
+        days.append({"date": (end - timedelta(days=i)).date().isoformat(), "score": score})
+    return days
 
 
 def write_report() -> None:
@@ -269,7 +296,7 @@ def main() -> None:
                 "updated_at": iso(updated),
             },
         )
-        write_series(dev["id"], series)
+        write_series(dev["id"], series, updated)
 
     write_json(
         OUT / "house.json",
@@ -278,6 +305,11 @@ def main() -> None:
             "score": 86,
             "score_word": "Good",
             "score_trend": "stable",
+            "score_history": score_history(updated, 86),
+            "areas": [
+                {"id": "roof", "name": "Roof", "status": "ok"},
+                {"id": "crawl_space", "name": "Crawl space", "status": "ok"},
+            ],
             "headline": "Your home is in good shape",
             "summary": (
                 "The roof is drying normally for early October, and the crawl "
