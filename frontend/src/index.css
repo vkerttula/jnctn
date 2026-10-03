@@ -23,7 +23,10 @@
 
 body {
   font-family: var(--font-sans);
-  background: var(--color-mist);
+  background:
+    radial-gradient(1100px 720px at 50% 28%, #fbfcfd 0%, rgba(245, 245, 245, 0)
+      70%),
+    var(--color-mist);
   color: var(--color-navy);
   -webkit-font-smoothing: antialiased;
 }

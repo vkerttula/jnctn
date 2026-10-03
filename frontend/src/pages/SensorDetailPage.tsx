@@ -80,7 +80,7 @@ export default function SensorDetailPage() {
           >
             ← Back to your house
           </Link>
-          <span className="font-display text-lg font-bold text-navy">jnctn</span>
+          <img src="/vilpe-logo.png" alt="VILPE" className="h-5 w-auto" />
         </header>
 
         {error && !detail && (
