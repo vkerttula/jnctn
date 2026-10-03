@@ -196,38 +196,92 @@ export default function ScorePage() {
               </div>
             )}
 
-            <section className="flex flex-col gap-3 rounded-3xl border border-line bg-white p-5 text-sm leading-relaxed text-navy/80 shadow-sm">
+            <section className="flex flex-col gap-5 rounded-3xl border border-line bg-white p-6 text-sm leading-relaxed text-navy/80 shadow-sm">
               <h2 className="font-display text-xs font-semibold tracking-[0.25em] text-muted uppercase">
                 How it's worked out
               </h2>
-              <p>
-                The score starts at 100 and points come off for what the
-                sensors actually find. The{' '}
-                <span className="font-semibold text-navy">mould index</span> —
-                the Finnish mould growth model developed by VTT, which weighs
-                humidity, temperature and time — carries the most weight.
-              </p>
-              <p>
-                Humidity that stays high after we've accounted for the outdoor
-                air (the structure holding moisture rather than just mirroring
-                the weather) deducts a little, as do fans that stop or go
-                quiet. Repeated episodes of the same issue count once, at
-                their worst — the score won't spiral from old history.
-              </p>
-              <p className="text-muted">
-                Bands: <span className="text-ok">75–100 Good</span> ·{' '}
-                <span className="text-watch">60–74 Fair</span> ·{' '}
-                <span className="text-alert">0–59 Attention</span>. It changes
-                slowly — one damp day won't move it.{' '}
-                <a
-                  href="https://www.vilpe.com/en/vilpe-sense-mould-index/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-medium text-sense underline-offset-2 hover:underline"
-                >
-                  About the mould growth model ↗
-                </a>
-              </p>
+
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="flex flex-col gap-3">
+                  <p className="font-semibold text-navy">
+                    The score starts at 100 — and only real findings move it.
+                  </p>
+                  <p>
+                    Points come off for what the sensors actually detect:
+                    humidity that stays high after we've accounted for the
+                    outdoor air, a mould index that climbs, and fans that stop
+                    or go quiet. Repeated episodes of the same issue count
+                    once, at their worst — the score won't spiral from old
+                    history.
+                  </p>
+                  <div className="flex gap-1.5">
+                    {(
+                      [
+                        ['75–100', 'Good', 'var(--color-ok)'],
+                        ['60–74', 'Fair', 'var(--color-watch)'],
+                        ['0–59', 'Attention', 'var(--color-alert)'],
+                      ] as const
+                    ).map(([range, word, c]) => (
+                      <span
+                        key={word}
+                        className="flex flex-1 flex-col items-center rounded-lg bg-mist py-1.5"
+                      >
+                        <span className="font-semibold" style={{ color: c }}>
+                          {word}
+                        </span>
+                        <span className="text-[10px] text-muted">{range}</span>
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted">
+                    It changes slowly — one damp day won't move it.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <p>
+                    The heaviest input is the{' '}
+                    <span className="font-semibold text-navy">mould index</span>{' '}
+                    — the Finnish Mould Growth Model, developed by Tampere
+                    University of Technology and VTT. It estimates how
+                    favourable conditions are for mould growth from
+                    temperature, humidity and time.
+                  </p>
+                  <div className="rounded-2xl border border-line bg-mist/60 px-4 py-3.5">
+                    <div className="relative pt-5 pb-1">
+                      <span className="absolute top-0 left-0 text-[10px] text-muted">
+                        0 · no growth
+                      </span>
+                      <span className="absolute top-0 right-0 text-[10px] text-muted">
+                        6 · very rich growth
+                      </span>
+                      <div className="h-2 w-full rounded-full bg-gradient-to-r from-ok via-watch to-alert" />
+                      <div
+                        className="absolute top-3.5 flex -translate-x-1/2 flex-col items-center"
+                        style={{ left: `${(2.5 / 6) * 100}%` }}
+                      >
+                        <div className="h-3 w-px bg-alert" />
+                        <span className="mt-0.5 text-[10px] font-semibold text-alert">
+                          automatic alert at 2.5
+                        </span>
+                      </div>
+                    </div>
+                    <p className="mt-4 text-xs text-muted">
+                      In VILPE Sense the index runs 0–6 and the system alerts
+                      automatically once it passes 2.5. It's rarely exactly
+                      zero — what matters is when it rises.
+                    </p>
+                  </div>
+                  <a
+                    href="https://www.vilpe.com/en/vilpe-sense-mould-index/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="self-start text-xs font-medium text-sense underline-offset-2 hover:underline"
+                  >
+                    VILPE Sense — the mould growth model ↗
+                  </a>
+                </div>
+              </div>
             </section>
           </>
         ) : (
