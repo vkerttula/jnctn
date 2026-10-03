@@ -19,7 +19,7 @@ export const USERS: User[] = [
     id: 'demo',
     name: 'Demo Family',
     email: 'demo@vilpe.fi',
-    home: 'Sample house',
+    home: 'Mäntytie 8, Tampere',
     dataMode: 'mock',
     initials: 'DF',
   },
