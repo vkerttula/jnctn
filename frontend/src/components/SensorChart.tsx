@@ -52,7 +52,9 @@ function tickFormat(range: SeriesRange) {
   return (t: number) =>
     range === '24h'
       ? new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-      : new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+      : range === '1y'
+        ? new Date(t).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })
+        : new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
 function Toggle({

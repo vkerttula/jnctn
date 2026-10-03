@@ -10,6 +10,7 @@ const RANGES: { id: SeriesRange; label: string }[] = [
   { id: '24h', label: '24 h' },
   { id: '7d', label: '7 days' },
   { id: '30d', label: '30 days' },
+  { id: '1y', label: '1 year' },
 ]
 
 function Latest({

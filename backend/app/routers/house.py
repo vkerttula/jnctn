@@ -494,10 +494,10 @@ def sensor_detail(sensor_id: str) -> dict[str, Any]:
 
 @router.get("/sensors/{sensor_id}/series")
 def sensor_series(
-    sensor_id: str, range: Literal["24h", "7d", "30d"] = "7d"
+    sensor_id: str, range: Literal["24h", "7d", "30d", "1y"] = "7d"
 ) -> dict[str, Any]:
     _entry(sensor_id)
-    days = {"24h": 1, "7d": 7, "30d": 30}[range]
+    days = {"24h": 1, "7d": 7, "30d": 30, "1y": 365}[range]
     quads = _quadrant_members()
 
     if sensor_id in quads:
@@ -572,14 +572,16 @@ def sensor_series(
                 "rh_pct": [max(0, round(lo - 3)), min(100, round(hi + 3))],
             }
 
-    # Bucket by hour, averaging across whatever members feed this sensor.
+    # Bucket by hour for short ranges, by day for the year view, averaging
+    # across whatever members feed this sensor.
+    bucket = "hour" if days <= 30 else "day"
     rows = list(
         coll.aggregate(
             [
                 {"$match": {**match, "ts": {"$gte": start}}},
                 {
                     "$group": {
-                        "_id": {"$dateTrunc": {"date": "$ts", "unit": "hour"}},
+                        "_id": {"$dateTrunc": {"date": "$ts", "unit": bucket}},
                         **{k: {"$avg": v} for k, v in agg.items()},
                     }
                 },

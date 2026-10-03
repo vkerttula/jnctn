@@ -5,7 +5,7 @@ export type SensorStatus = 'ok' | 'watch' | 'alert'
 export type Severity = 'watch' | 'alert'
 export type SensorKind = 'leak_sensor' | 'fan' | 'climate_sensor'
 export type Zone = 'roof_south' | 'roof_north' | 'ridge' | 'crawl_space'
-export type SeriesRange = '24h' | '7d' | '30d'
+export type SeriesRange = '24h' | '7d' | '30d' | '1y'
 export type ScoreWord = 'Good' | 'Fair' | 'Attention'
 export type ScoreTrend = 'improving' | 'stable' | 'declining'
 // who wrote headline/summary/recommendations: gemini, the deterministic

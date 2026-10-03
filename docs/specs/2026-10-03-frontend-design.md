@@ -173,7 +173,7 @@ crawl-space fan reports only `fan_rpm`; its humidity comes from the paired
 sensor). The detail page shows `last_reading_at` and links the `works_with`
 device.
 
-### `GET /api/sensors/{id}/series?range=24h|7d|30d`
+### `GET /api/sensors/{id}/series?range=24h|7d|30d|1y`
 
 ```json
 {
