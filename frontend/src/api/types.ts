@@ -34,11 +34,6 @@ export interface AttentionItem {
   actions: HelpKind[]
 }
 
-export interface Monitoring {
-  online: number
-  total: number
-  last_check_at: string
-}
 
 export interface SensorLatest {
   temp_c: number | null
@@ -74,7 +69,6 @@ export interface HouseState {
   weather: Weather
   attention: AttentionItem[]
   sensors: HouseSensor[]
-  monitoring: Monitoring
   simulating: boolean
   updated_at: string
 }

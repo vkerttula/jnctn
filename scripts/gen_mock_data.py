@@ -289,11 +289,6 @@ def main() -> None:
             },
             "attention": [],
             "sensors": house_sensors,
-            "monitoring": {
-                "online": len(house_sensors),
-                "total": len(house_sensors),
-                "last_check_at": iso(updated),
-            },
             "simulating": False,
             "updated_at": iso(updated),
         },

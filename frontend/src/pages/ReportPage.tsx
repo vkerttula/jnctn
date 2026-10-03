@@ -11,6 +11,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { Link } from 'react-router-dom'
 import { api, type Report } from '../api'
 
 // Moisture History Report — the sellable "structures healthy for N years"
@@ -51,6 +52,12 @@ export default function ReportPage() {
   return (
     <div className="h-full overflow-y-auto print:h-auto print:overflow-visible">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 px-5 py-6 print:max-w-none print:p-0">
+        <Link
+          to="/"
+          className="self-start text-sm font-medium text-sense hover:underline print:hidden"
+        >
+          ← Back to overview
+        </Link>
         <div className="flex items-center justify-between print:hidden">
           <h1 className="font-display text-xl font-bold text-navy">Moisture History Report</h1>
           {report && (
