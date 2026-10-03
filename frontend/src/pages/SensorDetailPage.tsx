@@ -156,7 +156,7 @@ export default function SensorDetailPage() {
                 <p className="text-sm leading-relaxed text-navy/75">
                   {current.data.summary}{' '}
                   {current.data.summary_source === 'llm' && (
-                    <span className="text-[10px] font-medium tracking-[0.14em] text-navy/30 uppercase">
+                    <span className="text-[9px] font-medium tracking-[0.14em] text-navy/30 uppercase">
                       AI insight
                     </span>
                   )}
