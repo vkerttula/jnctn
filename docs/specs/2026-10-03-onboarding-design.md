@@ -16,7 +16,8 @@ take. See `docs/VISION.md` for tone ("calm, no scary numbers").
 | Demo role | **Recorded video** | Flow must actually run; pacing deterministic, no waits, "Start over" enables re-takes |
 | Sensor placement | **Auto-suggested, user confirms + can drag** | Sells "installation is easy, VILPE knows where sensors belong"; dragging is the interactive demo moment |
 | Address lookup | **Canned list** | 3–5 hand-written Finnish addresses incl. the real Vantaa site; offline-safe, zero risk during recording |
-| Auth | **Light mock-auth** | Email + password → localStorage session; logged-in state in header. No backend — spec's "auth out of scope" holds |
+| Auth | **Light mock-auth now** | Email + password → localStorage session; logged-in state in header. Real auth + persistence lands in a follow-up commit |
+| Backend persistence | **Phased — mock first** | Onboarding ships on localStorage/mock; `POST /api/houses` + session auth replaces it in a separate commit once the mock shape has settled |
 | History after setup | **Instant 30 days** | Dashboard arrives fully populated — "as if you'd been a customer for a month" |
 
 ## User flow
@@ -105,6 +106,11 @@ list is therefore profile-driven; the canned "no profile" fixture is the
 fallback for a session that skips onboarding (shouldn't happen — the
 guard redirects).
 
+The `HouseProfile` JSON above is deliberately shaped as the body of a
+future `POST /api/houses` — when backend persistence lands, `auth/` and
+the profile store swap localStorage for `client.ts` calls and nothing
+else in the flow changes.
+
 ## Architecture additions
 
 ```
@@ -138,13 +144,16 @@ button).
 - The transition from step 5 to the dashboard should land on an already
   populated house — the "wow, it's alive" reveal.
 
-## Out of scope
+## Phasing & out of scope
 
-- Real auth, backend persistence, real geocoding, multiple homes,
-  interior cutaway view, mobile layout — all post-hackathon.
-- Backend unchanged: auth and profiles stay client-side; the only
-  contract touch is the `profile` shape above, which the real backend
-  can adopt later.
+- **This commit:** everything client-side — mock-auth + localStorage
+  profile, `api/mock.ts` synthesizes the rest. Backend untouched.
+- **Follow-up commit:** real persistence — `users`/`houses` collections,
+  `POST /api/houses` accepting the `HouseProfile` body, session auth in
+  `client.ts`. The frontend contract is already shaped for it; the swap
+  is confined to `auth/` and the profile store.
+- Post-hackathon: real geocoding, multiple homes, interior cutaway view,
+  mobile layout.
 
 ## Verification
 
