@@ -111,6 +111,9 @@ cd frontend && npm run lint && npm run build
   or at minimum a smoke run) and look at the output before saying something works.
 - **Don't commit secrets.** No `.env` files, API keys, or credentials. MongoDB in
   dev has no auth — don't add code that assumes any.
+- **Don't commit third-party materials.** Sponsor decks, challenge PDFs and
+  other binary/proprietary handouts stay out of version control — capture
+  their content as markdown notes in `docs/topics/` instead.
 - **Keep diffs focused.** One logical change per commit; don't bundle unrelated
   cleanup into feature work.
 - **Match existing conventions.** Look at neighboring files before introducing a
