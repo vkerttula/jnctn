@@ -318,6 +318,7 @@ def main() -> None:
                 {"id": "roof", "name": "Roof", "status": "ok"},
                 {"id": "crawl_space", "name": "Crawl space", "status": "ok"},
             ],
+            "score_factors": [],
             "headline": "Your home is in good shape",
             "summary": (
                 "The roof is drying normally for early October, and the crawl "

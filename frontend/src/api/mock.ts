@@ -106,6 +106,14 @@ function applySim(h: HouseState): HouseState {
     score,
     score_word: scoreWord(score),
     areas: h.areas.map((a) => (a.id === area ? { ...a, status: severity } : a)),
+    score_factors: [
+      {
+        code: 'SENSOR_LEAK_SIMULATED',
+        severity: 'attention',
+        location: where,
+        detail: { peak_rh: LEAK_RH, simulated: true },
+      },
+    ],
     score_trend: 'declining',
     headline:
       severity === 'alert' ? 'Possible leak in the roof' : 'One area needs watching',

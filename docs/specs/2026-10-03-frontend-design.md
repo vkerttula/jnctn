@@ -78,6 +78,11 @@ Frontend polls `GET /api/house`; everything else is on demand.
     { "id": "roof", "name": "Roof", "status": "ok" },
     { "id": "crawl_space", "name": "Crawl space", "status": "ok" }
   ],
+  "score_factors": [
+    { "code": "MOLD_INDEX_ELEVATED", "severity": "attention",
+      "location": "the crawl space",
+      "detail": { "peak": 0.83, "ongoing": true } }
+  ],
   "headline": "Your home is in good shape",
   "summary": "The roof is drying normally for early October.",
   "weather": {
@@ -128,6 +133,11 @@ Frontend polls `GET /api/house`; everything else is on demand.
 - `areas` are
   structure-level verdicts (`ok | watch | alert` → "Good / Watch / Check")
   shown as pills under the ring — what the score is made of, no numbers.
+- `score_factors[]` are the analysis findings the score is deducted from —
+  tapping the ring opens a card listing them in plain language with the
+  real numbers (`detail`: mould index `peak`, `duration_hours`,
+  `pct_sensors_high`, …). Empty when nothing pulls the score down.
+  `severity`: `info | watch | attention`.
 - `home` is the address shown over the 3D view; `headline` is a short
   plain-language verdict (one line), `summary` one supporting sentence.
 - `weather` is the outdoor context for the home's location (FMI later).

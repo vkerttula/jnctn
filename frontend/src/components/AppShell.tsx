@@ -32,9 +32,9 @@ export default function AppShell() {
     <div className="flex min-h-svh flex-col bg-mist lg:h-svh lg:flex-row print:block print:h-auto print:bg-white">
       <aside className="flex w-full shrink-0 flex-col gap-5 bg-navy px-6 py-6 text-white lg:h-svh lg:w-[340px] lg:overflow-y-auto print:hidden">
         <div className="flex items-center gap-3">
-          <img src="/vilpe-logo.png" alt="VILPE" className="h-6 w-auto" />
-          <span className="h-7 w-px bg-white/25" aria-hidden />
-          <span className="font-display text-[13px] leading-tight font-semibold tracking-wide text-white/80">
+          <img src="/vilpe-logo.png" alt="VILPE" className="h-8 w-auto" />
+          <span className="h-9 w-px bg-white/25" aria-hidden />
+          <span className="font-display text-sm leading-tight font-semibold tracking-wide text-white/80">
             Peace of mind
             <br />
             for your home

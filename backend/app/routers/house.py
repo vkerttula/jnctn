@@ -426,6 +426,9 @@ def house_state() -> dict[str, Any]:
         "score_word": score_word,
         "score_trend": "declining" if sim else analysis["score_trend"],
         "areas": areas,
+        # the findings the score is deducted from — surfaced so the UI can
+        # show the real inputs (mould index peaks, durations, %)
+        "score_factors": analysis["findings"],
         "headline": headline,
         "summary": summary,
         "recommendations": recommendations,
