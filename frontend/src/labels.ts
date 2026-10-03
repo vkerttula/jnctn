@@ -19,6 +19,12 @@ export const ZONE_LABEL: Record<Zone, string> = {
   crawl_space: 'Crawl space',
 }
 
+export const AREA_WORD = {
+  ok: 'Good',
+  watch: 'Watch',
+  alert: 'Check',
+} as const
+
 // The few readings worth showing at a glance, in homeowner order.
 export function keyValues(l: SensorLatest): string[] {
   const out: string[] = []

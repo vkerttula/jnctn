@@ -105,7 +105,7 @@ export default function AppShell() {
       </aside>
 
       <div className="relative min-h-[55svh] flex-1 overflow-hidden lg:h-full lg:min-h-0 print:h-auto print:overflow-visible">
-        <Outlet context={{ state }} />
+        <Outlet context={{ state, refresh }} />
       </div>
 
       {signingOut && (

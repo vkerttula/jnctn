@@ -11,9 +11,9 @@ import {
   YAxis,
 } from 'recharts'
 import { api, type SensorSeries } from '../api'
-import { AREA_WORD, ScoreRing } from '../components/ScoreCard'
+import { ScoreRing } from '../components/ScoreCard'
 import { useHouse } from '../hooks/useHouse'
-import { factorText } from '../labels'
+import { AREA_WORD, factorText } from '../labels'
 import { STATUS_COLOR } from '../theme'
 
 const WORD_COLOR = {
