@@ -46,17 +46,17 @@ const FAN_H = 0.75
 // Anchor slots per zone, filled in sensor order; each with a callout offset.
 const SLOTS: Record<Zone, { at: Vec3; callout: Vec3 }[]> = {
   roof_south: [
-    { at: onSlope('south', -1.9, 1.7), callout: [-0.5, 1.3, 0.9] },
-    { at: onSlope('south', 1.9, 1.7), callout: [0.5, 1.3, 0.9] },
+    { at: onSlope('south', -1.9, 1.7), callout: [-0.4, 0.95, 0.7] },
+    { at: onSlope('south', 1.9, 1.7), callout: [0.4, 0.95, 0.7] },
   ],
   roof_north: [
-    { at: onSlope('north', -1.9, 1.7), callout: [-0.5, 1.3, -0.9] },
-    { at: onSlope('north', 1.9, 1.7), callout: [0.5, 1.3, -0.9] },
+    { at: onSlope('north', -1.9, 1.7), callout: [-0.4, 0.95, -0.7] },
+    { at: onSlope('north', 1.9, 1.7), callout: [0.4, 0.95, -0.7] },
   ],
   ridge: [
     {
       at: [FAN_BASE[0], FAN_BASE[1] + FAN_H + 0.12, FAN_BASE[2]],
-      callout: [0.3, 1.2, 0.2],
+      callout: [0.3, 0.7, 0.2],
     },
   ],
   crawl_space: [
@@ -228,71 +228,89 @@ function SensorDot({
   )
 }
 
-// --- Callouts (screen-space) -------------------------------------------------
-// Cards live in two columns at the canvas edges, stacked so they never
-// overlap or leave the viewport; a leader line runs from each dot to its card.
+// --- Callouts ----------------------------------------------------------------
+// Each card sits right next to its device (above the dot, out along the
+// slot's callout offset), like a label pinned to the house. Cards that
+// collide are nudged apart and everything is kept inside the canvas, so no
+// card ever hides behind another or off-screen.
 
-const CARD_W = 184
-const CARD_H = 50
-const GAP = 10
-const MARGIN = 20
-const SWITCH_PX = 40 // hysteresis before a card swaps columns
+const GAP = 8
+const MARGIN = 12
+const RELAX_STEPS = 8
 
 type Placed = { sensor: HouseSensor; at: Vec3; out: Vec3 }
 type Els = Map<string, { card?: HTMLButtonElement | null; line?: SVGLineElement | null }>
+type Box = { id: string; ax: number; ay: number; x: number; y: number; w: number; h: number; front: boolean }
 
 function CalloutLayout({ placed, els }: { placed: Placed[]; els: RefObject<Els> }) {
   const { camera, size } = useThree()
-  const pos = useRef(new Map<string, { x: number; y: number; right: boolean }>())
+  const pos = useRef(new Map<string, { x: number; y: number }>())
   const v = useMemo(() => new Vector3(), [])
   const toCam = useMemo(() => new Vector3(), [])
 
   useFrame(() => {
-    const { width: w, height: h } = size
-    const pts = placed.map(({ sensor, at, out }) => {
-      v.set(...at).project(camera)
-      const px = ((v.x + 1) / 2) * w
-      const py = ((1 - v.y) / 2) * h
-      const prev = pos.current.get(sensor.id)
-      const right = prev
-        ? prev.right
-          ? px > w / 2 - SWITCH_PX
-          : px > w / 2 + SWITCH_PX
-        : px > w / 2
+    const { width: W, height: H } = size
+    const toPx = (p: Vec3) => {
+      v.set(...p).project(camera)
+      return [((v.x + 1) / 2) * W, ((1 - v.y) / 2) * H] as const
+    }
+
+    const boxes: Box[] = placed.map(({ sensor, at, out }) => {
+      const el = els.current.get(sensor.id)?.card
+      const w = el?.offsetWidth ?? 160
+      const h = el?.offsetHeight ?? 46
+      const [ax, ay] = toPx(at)
+      const [ex, ey] = toPx([at[0] + out[0], at[1] + out[1], at[2] + out[2]])
       toCam.copy(camera.position).sub(v.set(...at)).setY(0).normalize()
-      const facing = toCam.x * out[0] + toCam.z * out[2] > -0.15
-      return { id: sensor.id, px, py, right, facing }
+      const front = toCam.x * out[0] + toCam.z * out[2] > -0.15
+      // card bottom-centre at the callout end point
+      return { id: sensor.id, ax, ay, x: ex - w / 2, y: ey - h, w, h, front }
     })
 
-    for (const right of [false, true]) {
-      const col = pts.filter((p) => p.right === right).sort((a, b) => a.py - b.py)
-      const ys = col.map((p) => Math.min(Math.max(p.py - CARD_H / 2, MARGIN), h - MARGIN - CARD_H))
-      for (let i = 1; i < ys.length; i++) ys[i] = Math.max(ys[i], ys[i - 1] + CARD_H + GAP)
-      for (let i = ys.length - 1; i >= 0; i--) {
-        const limit = i === ys.length - 1 ? h - MARGIN - CARD_H : ys[i + 1] - CARD_H - GAP
-        ys[i] = Math.max(Math.min(ys[i], limit), MARGIN)
+    const clamp = (b: Box) => {
+      b.x = Math.min(Math.max(b.x, MARGIN), W - MARGIN - b.w)
+      b.y = Math.min(Math.max(b.y, MARGIN), H - MARGIN - b.h)
+    }
+    boxes.forEach(clamp)
+    // Push overlapping cards apart vertically; back-side cards yield first.
+    for (let step = 0; step < RELAX_STEPS; step++) {
+      let moved = false
+      for (let i = 0; i < boxes.length; i++) {
+        for (let j = i + 1; j < boxes.length; j++) {
+          const a = boxes[i]
+          const b = boxes[j]
+          const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) + GAP
+          const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) + GAP
+          if (ox <= 0 || oy <= 0) continue
+          moved = true
+          const [upper, lower] = a.y + a.h / 2 <= b.y + b.h / 2 ? [a, b] : [b, a]
+          const share = upper.front === lower.front ? 0.5 : upper.front ? 0 : 1
+          upper.y -= oy * share
+          lower.y += oy * (1 - share)
+          clamp(upper)
+          clamp(lower)
+        }
       }
-      col.forEach((p, i) => {
-        const tx = right ? w - MARGIN - CARD_W : MARGIN
-        const prev = pos.current.get(p.id)
-        const s = prev
-          ? { x: prev.x + (tx - prev.x) * 0.15, y: prev.y + (ys[i] - prev.y) * 0.15, right }
-          : { x: tx, y: ys[i], right }
-        pos.current.set(p.id, s)
-        const el = els.current.get(p.id)
-        const opacity = p.facing ? '1' : '0.45'
-        if (el?.card) {
-          el.card.style.transform = `translate(${s.x}px, ${s.y}px)`
-          el.card.style.opacity = opacity
-        }
-        if (el?.line) {
-          el.line.setAttribute('x1', String(p.px))
-          el.line.setAttribute('y1', String(p.py))
-          el.line.setAttribute('x2', String(right ? s.x : s.x + CARD_W))
-          el.line.setAttribute('y2', String(s.y + CARD_H / 2))
-          el.line.style.opacity = p.facing ? '0.5' : '0.2'
-        }
-      })
+      if (!moved) break
+    }
+
+    for (const b of boxes) {
+      const prev = pos.current.get(b.id)
+      const s = prev ? { x: prev.x + (b.x - prev.x) * 0.2, y: prev.y + (b.y - prev.y) * 0.2 } : { x: b.x, y: b.y }
+      pos.current.set(b.id, s)
+      const el = els.current.get(b.id)
+      if (el?.card) {
+        el.card.style.transform = `translate(${s.x}px, ${s.y}px)`
+        el.card.style.opacity = b.front ? '1' : '0.4'
+        el.card.style.zIndex = b.front ? '2' : '1'
+      }
+      if (el?.line) {
+        el.line.setAttribute('x1', String(b.ax))
+        el.line.setAttribute('y1', String(b.ay))
+        el.line.setAttribute('x2', String(s.x + b.w / 2))
+        el.line.setAttribute('y2', String(s.y + b.h))
+        el.line.style.opacity = b.front ? '0.45' : '0.15'
+      }
     }
   })
 
@@ -317,19 +335,19 @@ function CalloutCard({
       onClick={() => onSelect(sensor)}
       onMouseEnter={() => onHover(sensor.id)}
       onMouseLeave={() => onHover(null)}
-      style={{ width: CARD_W, height: CARD_H, opacity: 0 }}
-      className="pointer-events-auto absolute top-0 left-0 flex cursor-pointer flex-col justify-center gap-0.5 rounded-xl border border-white/70 bg-white/90 px-3 text-left shadow-lg shadow-navy/10 backdrop-blur-md transition-[opacity,box-shadow] duration-300 hover:shadow-navy/25"
+      style={{ opacity: 0 }}
+      className="pointer-events-auto absolute top-0 left-0 flex cursor-pointer flex-col gap-0.5 rounded-xl border border-white/70 bg-white/90 px-3 py-2 text-left whitespace-nowrap shadow-lg shadow-navy/10 backdrop-blur-md transition-[opacity,box-shadow] duration-300 hover:shadow-navy/25"
     >
       <span className="flex items-center gap-2">
         <span
           className={`h-2.5 w-2.5 shrink-0 rounded-full ${sensor.status === 'ok' ? '' : 'animate-pulse'}`}
           style={{ background: color, boxShadow: `0 0 0 3px ${color}33` }}
         />
-        <span className="truncate font-display text-xs font-semibold text-navy">
+        <span className="font-display text-xs font-semibold text-navy">
           {sensor.name}
         </span>
       </span>
-      <span className="truncate pl-[18px] text-[11px] text-muted tabular-nums">
+      <span className="pl-[18px] text-[11px] text-muted tabular-nums">
         {keyValues(sensor.latest).join(' · ')}
       </span>
     </button>
@@ -407,7 +425,6 @@ export default function HouseScene({
               ref={register(sensor.id, 'line')}
               stroke="#01273e"
               strokeWidth={1}
-              strokeDasharray="3 3"
               style={{ opacity: 0 }}
             />
           ))}
