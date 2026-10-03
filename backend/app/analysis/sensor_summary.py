@@ -97,7 +97,11 @@ def get_summary(
         "stats": _stats(points),
     }
 
-    if llm.available():
+    if simulated:
+        # During the leak demo nothing is cached — template wording keeps the
+        # chart summary instant and saves the LLM quota for real reads.
+        narrative, source = fallback.describe_sensor(context), "demo"
+    elif llm.available():
         try:
             narrative, source = llm.narrate_sensor(context), "llm"
         except Exception:

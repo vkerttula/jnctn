@@ -44,6 +44,11 @@ def get_analysis(
 
     if not digest["devices"] and not digest["sensor_grid"]["count"]:
         narrative, source = _no_data(), "no-data"
+    elif sim:
+        # Demo mode: the routers already write the staged leak copy, and the
+        # result is never cached — paying an LLM call per poll (the UI hits
+        # this every few seconds during a demo) is pure latency + quota.
+        narrative, source = fallback.render(digest, scored), "demo"
     elif llm.available():
         try:
             narrative = llm.narrate(digest, scored, _previous_summary(window, pkey))
