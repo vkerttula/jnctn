@@ -1,0 +1,264 @@
+# Frontend spec — "Oura for a house"
+
+**Status:** proposed · **Date:** 2026-10-03 · **Owners:** frontend (this spec) /
+backend (separate dev, same contract)
+
+The consumer-facing view on top of VILPE Sense data. Backend (FastAPI +
+MongoDB, built by a separate dev) is the interpretation layer; the frontend
+renders meaning, never raw telemetry. See `docs/VISION.md` — it is the north
+star for every choice not nailed down here.
+
+**Demo goal:** a judge rotates a 3D house, clicks a pulsing sensor, and reads
+one calm sentence telling them what's happening and why it matters — zero
+explanation, zero scary numbers.
+
+## Locked decisions
+
+| Decision | Choice | Why |
+| --- | --- | --- |
+| House view | **react-three-fiber 3D** | Tesla-style rotatable house per the vision |
+| UI language | **English** | Junction judges are international |
+| Live updates | **Polling, 60 s** | Real sensor data changes ~2×/day; score is smoothed anyway |
+| Leak-moment polling | **15 s burst** after "Simulate leak" until reset | Keeps the demo moment alive; back to 60 s after |
+| Coupling | **Contract-first + mock layer** | Frontend builds against fixtures; backend implements the same contract independently — nobody blocks |
+
+## Architecture
+
+```
+frontend/src/
+  api/
+    client.ts      # typed fetch wrappers — the only place URLs live
+    types.ts       # API contract types (mirror of the JSON below)
+    index.ts       # exports getHouseState() etc; picks impl via VITE_API_MODE
+    mock.ts        # fixture-backed impl, reads /mock/*.json
+  components/
+    HouseScene.tsx     # R3F canvas: house + hotspots + orbit controls
+    Hotspot.tsx        # one sensor dot on the model
+    ScoreCard.tsx      # score ring + number + word + one sentence
+    AttentionFeed.tsx  # calm list of watch/alert items
+    SensorChart.tsx    # smoothed recharts chart for detail pages
+  pages/
+    HomePage.tsx
+    SensorDetailPage.tsx
+  hooks/
+    useHouseState.ts   # polling hook (60 s; 15 s while leak sim active)
+```
+
+Routing: `react-router-dom`. `/` → HomePage, `/sensors/:id` →
+SensorDetailPage (deep-linkable for the demo). The old stats landing page is
+removed; `/api/stats` endpoints stay for the backend dev if useful.
+
+API mode switch: `VITE_API_MODE=mock|live` in `.env`, default `live`. Mock
+mode reads `frontend/public/mock/*.json` via the same `client.ts` paths, so
+swapping is a no-op.
+
+## API contract
+
+The shared artifact with the backend dev. All timestamps ISO 8601 UTC.
+Frontend polls `GET /api/house`; everything else is on demand.
+
+### `GET /api/house` — home snapshot
+
+```json
+{
+  "score": 82,
+  "score_word": "Good",
+  "score_trend": "stable",
+  "summary": "Your structures are drying normally for October.",
+  "weather": { "temp_c": 8.2, "condition": "light rain", "location": "Vaasa" },
+  "attention": [
+    {
+      "sensor_id": "katto-2",
+      "severity": "watch",
+      "message": "Humidity on the green roof is rising slowly. We're watching it — no action needed yet.",
+      "since": "2026-10-01T14:00:00Z"
+    }
+  ],
+  "sensors": [
+    {
+      "id": "katto-2",
+      "name": "Green roof, west",
+      "kind": "leak_sensor",
+      "zone": "green_roof",
+      "status": "watch",
+      "primary": true
+    }
+  ],
+  "simulating": false,
+  "updated_at": "2026-10-03T12:00:00Z"
+}
+```
+
+- `score` 0–100; `score_word` one of `Good | Fair | Attention`; `score_trend`
+  one of `improving | stable | declining`.
+- `attention[]` ordered by severity (`alert` before `watch`), max ~5 items.
+- `sensors[]`: every sensor the house scene renders. `kind`:
+  `fan | leak_sensor`. `status`: `ok | watch | alert`. `zone`: a stable string
+  the frontend maps to a fixed 3D anchor — proposed zones: `flat_roof`,
+  `green_roof`, `ridge`, `crawl_space`, `wall`. `primary: true` marks the
+  ~10–15 hotspots shown as visible dots; the rest can back zone health.
+- `simulating: true` while a leak simulation is running — the frontend uses
+  this to keep the 15 s polling burst and can show a subtle "demo" badge.
+
+### `GET /api/sensors/{id}` — detail
+
+```json
+{
+  "id": "katto-2",
+  "name": "Green roof, west",
+  "kind": "leak_sensor",
+  "zone": "green_roof",
+  "status": "watch",
+  "status_text": "Humidity here is slightly above what we'd expect for October, but it's been falling for three days.",
+  "latest": { "temp_c": 11.2, "rh_pct": 78.4, "mold_index": 0.83, "fan_rpm": null },
+  "updated_at": "2026-10-03T12:00:00Z"
+}
+```
+
+`status_text` is the interpreted, calm sentence — backend writes it, frontend
+never composes interpretation. `latest` fields are nullable per `kind`
+(fans have `fan_rpm`/`mold_index`, leak sensors don't).
+
+### `GET /api/sensors/{id}/series?range=24h|7d|30d`
+
+```json
+{
+  "id": "katto-2",
+  "range": "7d",
+  "points": [
+    { "t": "2026-10-01T00:00:00Z", "temp_c": 11.0, "rh_pct": 79.1, "mold_index": null }
+  ]
+}
+```
+
+Backend downsamples to ≤ ~300 points. `mold_index` present only where the
+source data has it (fans, from 2026-03).
+
+### `POST /api/simulate/leak` · `POST /api/simulate/reset`
+
+`leak` body: `{ "sensor_id": "katto-2" }` (optional; backend picks a plausible
+target if omitted). Starts a backend-side leak injection into the simulated
+stream; `reset` returns the site to normal. Frontend just renders what
+`/api/house` returns — the moment unfolds over a few minutes: `watch` →
+`alert`, attention item appears, score declines. No simulation logic in the
+frontend.
+
+## Views
+
+### HomePage (`/`)
+
+- **ScoreCard** — Oura-style SVG ring, big score number, `score_word`, trend
+  hint, and `summary` as one sentence underneath. No raw sensor values.
+- **HouseScene** — fills most of the viewport; hotspot dots colored by
+  `status`. Slow auto-rotate; OrbitControls clamped (no under-floor camera,
+  sensible zoom limits). Click hotspot → `/sensors/:id`. Hover → tooltip with
+  `name` only.
+- **AttentionFeed** — list of `attention[]` as calm sentence cards with a
+  small severity dot (amber/red). Empty state: "Everything looks normal."
+- **Demo controls** — small, secondary: "Simulate leak" button and, while
+  `simulating`, "Reset demo". Header shows location + weather chip
+  (`weather`).
+
+### SensorDetailPage (`/sensors/:id`)
+
+- `status_text` as the headline — interpretation first.
+- `SensorChart`: smoothed line(s) — `rh_pct` always, `temp_c` toggleable,
+  `mold_index` for fans when present. Range switch 24 h / 7 d / 30 d.
+  Recharts, no raw spikes — the series is already downsampled by the backend;
+  frontend additionally renders a smoothed/monotone curve.
+- `latest` values in a de-emphasized row (small, muted — raw numbers live
+  here only, never on home).
+- Back link to the house. A `status`-colored chip echoes home-state.
+
+## 3D house
+
+- `three` + `@react-three/fiber` + `@react-three/drei` (OrbitControls, Html
+  for labels, ContactShadows).
+- Procedural low-poly model echoing the real Vantaa site: flat-roof hall +
+  green-roof wing + crawl-space plinth. Materials: light walls, navy roof
+  edge — matches the VILPE palette, not a generic dark scene.
+- Zone anchors are hand-placed Vector3s in model space; each `zone` string
+  maps to an anchor, `primary` sensors get a dot at their zone anchor (small
+  jitter for multiple sensors in one zone).
+- Hotspot = small emissive sphere: `ok` → Sense green, `watch` → amber +
+  gentle pulse, `alert` → red + faster pulse. Bloom is optional polish —
+  emissive + CSS glow is enough if postprocessing costs time.
+- Ground: soft disc + ContactShadows, light fog — calm, Oura-like space.
+
+## Visual identity — VILPE brand
+
+Extracted from `vilpe.com` and `sense.vilpe.com` production CSS (Oct 2026).
+The app is **light** — VILPE is a light brand; the previous dark/fuchsia
+hackathon landing is replaced.
+
+**Palette**
+
+| Token | Hex | Use |
+| --- | --- | --- |
+| `navy` | `#01273e` | Primary brand color — headings, dark surfaces, text emphasis |
+| `orange` | `#e3530f` | VILPE accent — primary CTAs, score ring accent |
+| `sense-blue` | `#004f9f` | Interactive elements, links, info |
+| `ok` | `#50c92f` | Status ok (Sense app green) |
+| `watch` | `#f5be23` | Status watch (Sense app amber) |
+| `alert` | `#df0a15` | Status alert (Sense app red) |
+| `bg` | `#f5f5f5` | Page background |
+| `surface` | `#fefefe` | Cards |
+| `muted` | `#797979` | Secondary text |
+| `line` | `#e6e6e6` | Borders, dividers |
+
+Map these as Tailwind v4 `@theme` tokens in `index.css`; status colors are
+semantic and identical to the real Sense app.
+
+**Type**
+
+- Display/headings: **Titillium Web** (Google Fonts) — closest free
+  approximation of Klavika, the Typekit font the Sense app uses for headers.
+- Body: `Inter`, falling back to `Helvetica Neue, Arial, sans-serif` —
+  matches the Neue Haas Grotesk look of vilpe.com without a license.
+
+**Tone of voice:** calm, plain English, no jargon, no exclamation marks.
+Attention items read like "Your structures are drying normally for October;
+keep an eye on the north slope" — never "RH 78.4% +2.1pp".
+
+## Frontend rules (from the vision)
+
+- **No raw numbers on home.** Score, word, sentences, colored dots — that's
+  it. Raw values only on sensor detail, always muted.
+- **Interpretation comes from the API.** Frontend renders `summary`,
+  `status_text`, `attention[].message` verbatim; it never invents text.
+- **Slow and smoothed.** 60 s polling, smoothed charts, gentle animations.
+  Nothing flickers or live-gauges.
+- **Responsive enough.** Desktop-first for the demo; must not break at
+  laptop/tablet widths. Mobile is post-hackathon.
+
+## Dependencies
+
+New: `react-router-dom`, `three`, `@react-three/fiber`, `@react-three/drei`,
+`recharts`. All established; pin versions ≥ 1 week old at install. Google
+Fonts via `<link>` in `index.html` (no font dep).
+
+## Mock layer
+
+- `VITE_API_MODE=mock` → `client.ts` reads `public/mock/*.json` with the same
+  paths (`/mock/house.json`, `/mock/sensors/katto-2.json`, …).
+- Fixtures are hand-written to the contract, with realistic curves — generate
+  `series` JSONs from `data/readings/fans/*.csv` where useful (a small
+  one-off script is fine, or handcraft).
+- Mock leak: `mock.ts` keeps a tiny in-memory state so "Simulate leak" flips
+  `simulating`/`status`/`attention` in mock responses — enough to rehearse
+  the demo flow end-to-end without the backend.
+
+## Verification
+
+- `npm run lint` + `npm run build` clean.
+- Manual demo-flow smoke (both `VITE_API_MODE` values): score renders, house
+  rotates and is orbitable, hotspot click → detail page with chart,
+  "Simulate leak" → within ~15 s a watch/alert state + attention item +
+  score decline, reset returns to normal.
+
+## Out of scope
+
+- Auth, multiple sites, admin views, mobile layout, PDF reports, marketplace
+  — all post-hackathon per `docs/VISION.md`.
+- Backend internals (ingest, simulation engine, FMI fetch) — the contract is
+  the boundary.
