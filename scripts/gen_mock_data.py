@@ -372,6 +372,7 @@ def main() -> None:
                 "condition": "Overcast",
                 "humidity_pct": 87,
                 "wind_ms": 4.2,
+                "rain_chance_pct": 40,
                 "location": "Vaasa",
             },
             "attention": [],
