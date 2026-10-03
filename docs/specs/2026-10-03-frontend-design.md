@@ -6,7 +6,8 @@ backend (separate dev, designed later from the same contract)
 The consumer-facing view on top of VILPE Sense data. Backend (FastAPI +
 MongoDB, built by a separate dev) is the interpretation layer; the frontend
 renders meaning, never raw telemetry. See `docs/VISION.md` — it is the north
-star for every choice not nailed down here.
+star for every choice not nailed down here. Onboarding (house setup flow)
+lives in `2026-10-03-onboarding-design.md`.
 
 **Mock-first:** the frontend runs entirely on local fixtures now. The API
 contract below is our working hypothesis of the data shape — the backend is
@@ -49,8 +50,11 @@ frontend/src/
 ```
 
 Routing: `react-router-dom`. `/` → HomePage, `/sensors/:id` →
-SensorDetailPage (deep-linkable for the demo). The old stats landing page is
-removed; `/api/stats` endpoints stay for the backend dev if useful.
+SensorDetailPage (deep-linkable for the demo). `/welcome` and `/onboarding`
+come from the onboarding spec; `/` and `/sensors/:id` are guarded (no
+session/profile → redirect `/welcome`). `/data` stays an unguarded dev page.
+The old stats landing page is removed; `/api/stats` endpoints stay for the
+backend dev if useful.
 
 API mode switch: `VITE_API_MODE=mock|live` in `.env`, default `mock` (no
 backend exists yet). Mock mode reads `frontend/public/mock/*.json` via the
@@ -99,9 +103,10 @@ Frontend polls `GET /api/house`; everything else is on demand.
 - `attention[]` ordered by severity (`alert` before `watch`), max ~5 items.
 - `sensors[]`: every sensor the house scene renders. `kind`:
   `fan | leak_sensor`. `status`: `ok | watch | alert`. `zone`: a stable string
-  the frontend maps to a fixed 3D anchor — proposed zones: `flat_roof`,
-  `green_roof`, `ridge`, `crawl_space`, `wall`. `primary: true` marks the
-  ~10–15 hotspots shown as visible dots; the rest can back zone health.
+  the frontend maps to a 3D anchor **computed from the house profile** (see
+  the onboarding spec) — proposed zones: `flat_roof`, `green_roof`, `ridge`,
+  `crawl_space`, `wall`. `primary: true` marks the ~10–15 hotspots shown as
+  visible dots; the rest can back zone health.
 - `simulating: true` while a leak simulation is running — the frontend uses
   this to keep the 15 s polling burst and can show a subtle "demo" badge.
 
@@ -179,12 +184,15 @@ frontend.
 
 - `three` + `@react-three/fiber` + `@react-three/drei` (OrbitControls, Html
   for labels, ContactShadows).
-- Procedural low-poly model echoing the real Vantaa site: flat-roof hall +
-  green-roof wing + crawl-space plinth. Materials: light walls, navy roof
-  edge — matches the VILPE palette, not a generic dark scene.
-- Zone anchors are hand-placed Vector3s in model space; each `zone` string
-  maps to an anchor, `primary` sensors get a dot at their zone anchor (small
-  jitter for multiple sensors in one zone).
+- Procedural low-poly model generated from the house profile (`house_type`,
+  `floors`, `roof_type`, `attic`, `crawl_space`, `basement`) — the same
+  generator serves the onboarding preview and this scene (see the onboarding
+  spec). Materials: light walls, navy roof edge — matches the VILPE palette,
+  not a generic dark scene.
+- Zone anchors are computed Vector3s in model space, derived by the
+  generator from the profile; each `zone` string maps to an anchor,
+  `primary` sensors get a dot at their zone anchor (small jitter for
+  multiple sensors in one zone).
 - Hotspot = small emissive sphere: `ok` → Sense green, `watch` → amber +
   gentle pulse, `alert` → red + faster pulse. Bloom is optional polish —
   emissive + CSS glow is enough if postprocessing costs time.
