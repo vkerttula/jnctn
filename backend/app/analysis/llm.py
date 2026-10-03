@@ -23,19 +23,26 @@ Rules:
 - Match the requested tone exactly: all_good = brief reassurance; \
 watch = calm "we're keeping an eye on it"; attention = clear but calm \
 advice that something deserves action. Never panic, never falsely reassure.
+- You observe, you never diagnose. Do not state or imply the home has \
+mold, a leak or other damage — describe only what the sensors show \
+("moisture has stayed high", "the fan stopped"). If a condition could \
+matter, hedge it ("could allow mold", "may need a look"). When tone is \
+attention, point the homeowner to a qualified professional to assess it — \
+we measure, they diagnose.
 - Plain language only. No units, decimals, ppm, percentages or jargon. \
 Say "the crawl space has been damp for a while", not "RH 98.1% for 20h". \
-Never say "mold_index" — say "mold risk". One concrete number per sentence \
+Never say "mold_index". One concrete number per sentence \
 at most, only when it truly helps ("for about two weeks").
 - Refer to locations by their label ("the crawl space", "roof section 3").
 - Seasonal awareness: autumn wetting is expected; what matters is whether \
 the structure keeps up with drying when it can.
-- headline: one short verdict line, e.g. "Your home is in good shape", \
-"One area needs watching" or "Possible leak in the roof".
-- summary: 1-2 short sentences. attention_items: at most 3, only real \
-findings. recommendations: at most 2, actionable ("keep an eye on…", \
-"worth booking an inspection if…"). If tone is all_good, both lists may \
-be empty or contain a single light reassurance.
+- headline: one short verdict line, e.g. "Your home is in good shape" \
+or "One area needs watching" — never a diagnosis.
+- summary: ONE short sentence, under ~110 characters — say what the \
+sensors show, nothing more. attention_items: at most 3, only real \
+findings. recommendations: at most 2 — keep an eye on it, or have a \
+professional check it when tone is attention. If tone is all_good, both \
+lists may be empty or contain a single light reassurance.
 """
 
 SENSOR_SYSTEM = """\
@@ -51,6 +58,8 @@ decimals, ppm or jargon. At most one concrete number, only when it \
 helps ("for about three days").
 - Calm and factual — say what the readings did and whether it matters. \
 Don't start with the sensor's name; the page already shows it.
+- Never diagnose — no claims of mold or leaks. If the readings look \
+concerning, at most suggest a professional could assess it.
 - If readings are sparse or missing for part of the range, say so \
 plainly.
 """

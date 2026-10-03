@@ -10,7 +10,7 @@ from app.analysis.models import AttentionItem, Narrative, SensorSummary
 from app.analysis.score import TONE_ALL_GOOD, TONE_ATTENTION
 
 _ITEM_TITLES = {
-    "MOLD_INDEX_ELEVATED": "Elevated mold risk in {loc}",
+    "MOLD_INDEX_ELEVATED": "Moisture in {loc} could allow mold",
     "RH_SUSTAINED_HIGH": "Humidity staying high in {loc}",
     "AH_INVERSION": "{loc} is holding moisture",
     "FAN_STOPPED": "Ventilation fan not running in {loc}",
@@ -23,8 +23,8 @@ _ITEM_TITLES = {
 }
 
 _ITEM_DETAILS = {
-    "MOLD_INDEX_ELEVATED": "Moisture conditions there have been favorable "
-    "for mold growth. Worth watching closely.",
+    "MOLD_INDEX_ELEVATED": "Moisture conditions there could allow mold "
+    "to grow — worth having a professional check.",
     "RH_SUSTAINED_HIGH": "Humidity has stayed high there for a while rather "
     "than coming and going with the weather.",
     "AH_INVERSION": "The structure currently holds more moisture than the "
@@ -34,10 +34,10 @@ _ITEM_DETAILS = {
     "DEVICE_ALERT": "The monitoring system itself raised a flag for this location.",
     "GRID_HUMID": "A noticeable share of the roof sensors are reading humid conditions.",
     "SENSOR_OFFLINE": "One roof sensor isn't reporting — this doesn't affect the house itself.",
-    "LEAK_SIMULATED": "Humidity is climbing fast there — consistent with "
-    "a leak. Worth checking promptly.",
-    "SENSOR_LEAK_SIMULATED": "Humidity is climbing fast there — consistent "
-    "with a leak. Worth checking promptly.",
+    "LEAK_SIMULATED": "Humidity is climbing fast there — worth having "
+    "a professional check promptly.",
+    "SENSOR_LEAK_SIMULATED": "Humidity is climbing fast there — worth having "
+    "a professional check promptly.",
 }
 
 
@@ -57,7 +57,7 @@ def render(digest: dict[str, Any], scored: dict[str, Any]) -> Narrative:
             f"{_loc(top, capitalize=True)} needs attention — "
             "moisture levels there have been elevated for a while."
         )
-        recs = ["Consider having the area inspected if readings don't improve."]
+        recs = ["Have a professional inspect the area if readings don't improve."]
     else:
         top = findings[0] if findings else None
         headline = "One area needs watching"
@@ -112,7 +112,7 @@ def describe_sensor(context: dict[str, Any]) -> SensorSummary:
 
     mold = stats.get("mold_index")
     if mold and mold["max"] >= 0.5:
-        parts.append("Mold risk rose above the watch level at some point.")
+        parts.append("Moisture conditions could have allowed mold at some point.")
 
     rpm = stats.get("fan_rpm")
     if rpm:
