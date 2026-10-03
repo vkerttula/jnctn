@@ -1,12 +1,16 @@
 # Frontend spec — "Oura for a house"
 
-**Status:** proposed · **Date:** 2026-10-03 · **Owners:** frontend (this spec) /
-backend (separate dev, same contract)
+**Status:** accepted · **Date:** 2026-10-03 · **Owners:** frontend (this spec) /
+backend (separate dev, designed later from the same contract)
 
 The consumer-facing view on top of VILPE Sense data. Backend (FastAPI +
 MongoDB, built by a separate dev) is the interpretation layer; the frontend
 renders meaning, never raw telemetry. See `docs/VISION.md` — it is the north
 star for every choice not nailed down here.
+
+**Mock-first:** the frontend runs entirely on local fixtures now. The API
+contract below is our working hypothesis of the data shape — the backend is
+designed from it once the mock has proven what we actually want.
 
 **Demo goal:** a judge rotates a 3D house, clicks a pulsing sensor, and reads
 one calm sentence telling them what's happening and why it matters — zero
@@ -20,7 +24,7 @@ explanation, zero scary numbers.
 | UI language | **English** | Junction judges are international |
 | Live updates | **Polling, 60 s** | Real sensor data changes ~2×/day; score is smoothed anyway |
 | Leak-moment polling | **15 s burst** after "Simulate leak" until reset | Keeps the demo moment alive; back to 60 s after |
-| Coupling | **Contract-first + mock layer** | Frontend builds against fixtures; backend implements the same contract independently — nobody blocks |
+| Data source | **Mock-first, API later** | Frontend ships on fixtures; the contract is the hypothesis the backend gets designed from |
 
 ## Architecture
 
@@ -48,13 +52,14 @@ Routing: `react-router-dom`. `/` → HomePage, `/sensors/:id` →
 SensorDetailPage (deep-linkable for the demo). The old stats landing page is
 removed; `/api/stats` endpoints stay for the backend dev if useful.
 
-API mode switch: `VITE_API_MODE=mock|live` in `.env`, default `live`. Mock
-mode reads `frontend/public/mock/*.json` via the same `client.ts` paths, so
-swapping is a no-op.
+API mode switch: `VITE_API_MODE=mock|live` in `.env`, default `mock` (no
+backend exists yet). Mock mode reads `frontend/public/mock/*.json` via the
+same `client.ts` paths, so swapping later is a no-op.
 
 ## API contract
 
-The shared artifact with the backend dev. All timestamps ISO 8601 UTC.
+The working contract — fulfilled by fixtures today, designed into the
+backend once the data shape has settled. All timestamps ISO 8601 UTC.
 Frontend polls `GET /api/house`; everything else is on demand.
 
 ### `GET /api/house` — home snapshot
@@ -239,8 +244,10 @@ Fonts via `<link>` in `index.html` (no font dep).
 
 ## Mock layer
 
-- `VITE_API_MODE=mock` → `client.ts` reads `public/mock/*.json` with the same
-  paths (`/mock/house.json`, `/mock/sensors/katto-2.json`, …).
+The initial data source — everything runs on this until the backend exists.
+
+- `VITE_API_MODE=mock` (default) → `client.ts` reads `public/mock/*.json`
+  with the same paths (`/mock/house.json`, `/mock/sensors/katto-2.json`, …).
 - Fixtures are hand-written to the contract, with realistic curves — generate
   `series` JSONs from `data/readings/fans/*.csv` where useful (a small
   one-off script is fine, or handcraft).
@@ -251,7 +258,7 @@ Fonts via `<link>` in `index.html` (no font dep).
 ## Verification
 
 - `npm run lint` + `npm run build` clean.
-- Manual demo-flow smoke (both `VITE_API_MODE` values): score renders, house
+- Manual demo-flow smoke (mock mode; live mode once backend lands): score renders, house
   rotates and is orbitable, hotspot click → detail page with chart,
   "Simulate leak" → within ~15 s a watch/alert state + attention item +
   score decline, reset returns to normal.
@@ -260,5 +267,5 @@ Fonts via `<link>` in `index.html` (no font dep).
 
 - Auth, multiple sites, admin views, mobile layout, PDF reports, marketplace
   — all post-hackathon per `docs/VISION.md`.
-- Backend internals (ingest, simulation engine, FMI fetch) — the contract is
-  the boundary.
+- Backend entirely — deferred until the mock has settled the data shape; the
+  contract is then the boundary the API gets designed from.
