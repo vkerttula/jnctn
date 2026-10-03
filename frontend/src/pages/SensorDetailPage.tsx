@@ -123,7 +123,8 @@ export default function SensorDetailPage() {
                 </span>
               </div>
               <div className="text-xs tracking-wide text-muted">
-                {KIND_LABEL[detail.kind]} · {ZONE_LABEL[detail.zone] ?? detail.zone}
+                {KIND_LABEL[detail.kind]} · {ZONE_LABEL[detail.zone] ?? detail.zone}{' '}
+                · <span className="font-mono text-muted/80">{detail.id}</span>
               </div>
             </section>
 
