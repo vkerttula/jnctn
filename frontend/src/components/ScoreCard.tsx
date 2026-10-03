@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { Area, HouseState, ScoreWord, SensorStatus } from '../api'
+import { useNavigate } from 'react-router-dom'
+import type { Area, HouseState, ScoreWord, SensorStatus, Zone } from '../api'
 import { STATUS_COLOR } from '../theme'
 
 const WORD_COLOR: Record<ScoreWord, string> = {
@@ -103,19 +104,52 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
 
 const AREA_WORD: Record<SensorStatus, string> = { ok: 'Good', watch: 'Watch', alert: 'Check' }
 
-function Areas({ areas }: { areas: Area[] }) {
+const AREA_OF_ZONE: Record<Zone, Area['id']> = {
+  roof_south: 'roof',
+  roof_north: 'roof',
+  ridge: 'roof',
+  crawl_space: 'crawl_space',
+}
+
+// The area chips double as the attention feed: when an attention item
+// touches an area, its chip becomes a quiet link to that sensor's page.
+function Areas({ state }: { state: HouseState }) {
+  const navigate = useNavigate()
+  const zoneOf = new Map(state.sensors.map((s) => [s.id, s.zone]))
+  const hitFor = (id: Area['id']) =>
+    state.attention.find((i) => AREA_OF_ZONE[zoneOf.get(i.sensor_id) ?? 'ridge'] === id)
   return (
     <div className="flex w-full justify-center gap-2">
-      {areas.map((a) => (
-        <span
-          key={a.id}
-          className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80"
-        >
-          <span className="h-2 w-2 rounded-full" style={{ background: STATUS_COLOR[a.status] }} />
-          {a.name}
-          <span className="font-semibold text-white">{AREA_WORD[a.status]}</span>
-        </span>
-      ))}
+      {state.areas.map((a) => {
+        const hit = hitFor(a.id)
+        const cls =
+          'flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors ' +
+          (hit
+            ? 'cursor-pointer border-white/25 bg-white/10 text-white hover:bg-white/20'
+            : 'border-white/10 bg-white/5 text-white/80')
+        const inner = (
+          <>
+            <span className="h-2 w-2 rounded-full" style={{ background: STATUS_COLOR[a.status] }} />
+            {a.name}
+            <span className="font-semibold text-white">{AREA_WORD[a.status]}</span>
+            {hit && <span aria-hidden>›</span>}
+          </>
+        )
+        return hit ? (
+          <button
+            key={a.id}
+            className={cls}
+            title={hit.message.split(' — ')[0]}
+            onClick={() => navigate(`/sensors/${hit.sensor_id}`)}
+          >
+            {inner}
+          </button>
+        ) : (
+          <span key={a.id} className={cls}>
+            {inner}
+          </span>
+        )
+      })}
     </div>
   )
 }
@@ -155,7 +189,7 @@ export default function ScoreCard({ state }: { state: HouseState }) {
         </button>
       </div>
       {explain && <ScoreExplainer onClose={() => setExplain(false)} />}
-      <Areas areas={state.areas} />
+      <Areas state={state} />
     </section>
   )
 }
