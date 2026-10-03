@@ -120,6 +120,10 @@ export interface SensorSeries {
   // calm band behind the line; null when there is no humidity reading
   normal: { label: string; rh_pct: [number, number] } | null
   points: SeriesPoint[]
+  // one-sentence read of the chart over this range (LLM or fallback
+  // wording); null when the sensor has no readings in range
+  summary: string | null
+  summary_source: NarrativeSource
 }
 
 export interface ReportStructure {

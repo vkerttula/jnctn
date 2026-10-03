@@ -142,6 +142,18 @@ export default function SensorDetailPage() {
                   ))}
                 </div>
               </div>
+              {current?.data?.summary && (
+                <div className="flex items-start gap-2">
+                  <p className="text-sm leading-relaxed text-navy/75">
+                    {current.data.summary}
+                  </p>
+                  {current.data.summary_source === 'llm' && (
+                    <span className="mt-0.5 shrink-0 rounded-full border border-navy/15 bg-white/60 px-2.5 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
+                      AI
+                    </span>
+                  )}
+                </div>
+              )}
               {current?.data ? (
                 <SensorChart series={current.data} />
               ) : (

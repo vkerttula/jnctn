@@ -163,11 +163,19 @@ def normal_band(points: list[dict]) -> dict | None:
     }
 
 
-def write_series(sensor_id: str, points: list[dict], end: datetime) -> None:
+RANGE_LABEL = {"24h": "the last 24 hours", "7d": "the past week", "30d": "the past month"}
+
+
+def write_series(sensor_id: str, kind: str, points: list[dict], end: datetime) -> None:
     normal = normal_band(points)
     last = points[-1]["t"]
     for label, days in [("24h", 1), ("7d", 7), ("30d", 30)]:
         window = [p for p in points if p["t"] >= last - timedelta(days=days)]
+        summary = (
+            f"The fan ran steadily over {RANGE_LABEL[label]}."
+            if kind == "fan"
+            else f"Humidity stayed near its normal range over {RANGE_LABEL[label]}."
+        )
         write_json(
             OUT / "series" / f"{sensor_id}-{label}.json",
             {
@@ -175,6 +183,8 @@ def write_series(sensor_id: str, points: list[dict], end: datetime) -> None:
                 "range": label,
                 "normal": normal and {**normal, "label": f"Normal for {end.strftime('%B')}"},
                 "points": [{**p, "t": iso(p["t"])} for p in downsample(window)],
+                "summary": summary,
+                "summary_source": "fallback",
             },
         )
 
@@ -290,7 +300,7 @@ def main() -> None:
                 "updated_at": iso(updated),
             },
         )
-        write_series(dev["id"], series, updated)
+        write_series(dev["id"], dev["kind"], series, updated)
 
     write_json(
         OUT / "house.json",

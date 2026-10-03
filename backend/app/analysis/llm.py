@@ -10,7 +10,7 @@ import json
 import os
 from typing import Any
 
-from app.analysis.models import Narrative
+from app.analysis.models import Narrative, SensorSummary
 
 MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
 
@@ -36,6 +36,23 @@ the structure keeps up with drying when it can.
 findings. recommendations: at most 2, actionable ("keep an eye on…", \
 "worth booking an inspection if…"). If tone is all_good, both lists may \
 be empty or contain a single light reassurance.
+"""
+
+SENSOR_SYSTEM = """\
+You are the voice of a home-monitoring product — "Oura for a house". \
+You get statistics about one sensor's readings over a time range and \
+write one sentence (two short ones at most) for the homeowner, shown \
+above that sensor's trend chart.
+
+Rules:
+- Describe the trend, not the numbers: "humidity crept up over the \
+week", "stayed in its normal range", "the fan ran steadily". No units, \
+decimals, ppm or jargon. At most one concrete number, only when it \
+helps ("for about three days").
+- Calm and factual — say what the readings did and whether it matters. \
+Don't start with the sensor's name; the page already shows it.
+- If readings are sparse or missing for part of the range, say so \
+plainly.
 """
 
 WINDOW_NAMES = {
@@ -93,3 +110,27 @@ def narrate(
         except Exception as e:  # bad JSON, quota, network — caller falls back
             last_error = e
     raise RuntimeError(f"gemini narration failed: {last_error}")
+
+
+def narrate_sensor(context: dict[str, Any]) -> SensorSummary:
+    from google import genai
+    from google.genai import types
+
+    client = genai.Client()
+    config = types.GenerateContentConfig(
+        system_instruction=SENSOR_SYSTEM,
+        response_mime_type="application/json",
+        response_schema=SensorSummary,
+        temperature=0.4,
+    )
+
+    last_error: Exception | None = None
+    for _ in range(2):
+        try:
+            resp = client.models.generate_content(
+                model=MODEL, contents=json.dumps(context, default=str), config=config
+            )
+            return SensorSummary.model_validate_json(resp.text)
+        except Exception as e:
+            last_error = e
+    raise RuntimeError(f"gemini sensor narration failed: {last_error}")
