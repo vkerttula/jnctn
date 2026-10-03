@@ -430,7 +430,7 @@ export default function HouseScene({
 
   return (
     <div className="relative h-full w-full">
-      <Canvas camera={{ position: [11.5, 8, 13.8], fov: 34 }}>
+      <Canvas camera={{ position: [13.5, 9.4, 16.2], fov: 34 }}>
         <hemisphereLight args={['#ffffff', '#dfe5ea', 0.7]} />
         <directionalLight position={[8, 12, 6]} intensity={1.4} />
         <directionalLight position={[-6, 6, -8]} intensity={0.35} />
@@ -460,7 +460,7 @@ export default function HouseScene({
           minPolarAngle={Math.PI * 0.18}
           maxPolarAngle={Math.PI * 0.46}
           minDistance={8}
-          maxDistance={22}
+          maxDistance={26}
         />
       </Canvas>
       <div className="pointer-events-none absolute inset-0">
