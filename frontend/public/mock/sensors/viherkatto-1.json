@@ -1,0 +1,1 @@
+{"id":"viherkatto-1","name":"Green roof fan 1 \u00b7 Viherkatto 1","kind":"fan","zone":"green_roof","status":"ok","status_text":"Ventilation is keeping this structure dry \u2014 humidity sits in the normal range for October.","latest":{"temp_c":13.6,"rh_pct":86.2,"mold_index":7e-05,"fan_rpm":1245},"updated_at":"2026-10-03T12:01:34Z"}

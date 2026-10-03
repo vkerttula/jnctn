@@ -1,0 +1,1 @@
+{"id":"hallin-alapohja","name":"Crawl space fan 1 \u00b7 Hallin alapohja","kind":"fan","zone":"crawl_space","status":"ok","status_text":"Ventilation is keeping this structure dry \u2014 humidity sits in the normal range for October.","latest":{"temp_c":12.3,"rh_pct":99.2,"mold_index":0.83015,"fan_rpm":1680},"updated_at":"2026-10-03T12:01:34Z"}
