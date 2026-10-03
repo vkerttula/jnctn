@@ -546,7 +546,11 @@ def sensor_series(
         }
     start = end - timedelta(days=days)
 
-    normal = _normal_band(coll, match, agg["rh_pct"], end) if "rh_pct" in agg else None
+    normal = (
+        _normal_band(coll, match, agg["rh_pct"], start, end)
+        if "rh_pct" in agg
+        else None
+    )
 
     # Bucket by hour for short ranges, by day for the year view, averaging
     # across whatever members feed this sensor.
@@ -615,13 +619,13 @@ def _round(v, nd):
     return round(v, nd) if isinstance(v, (int, float)) else v
 
 
-def _hourly_values(coll, match: dict, field: str, extra: dict) -> list[float]:
-    """Sorted hourly means of `field` over `match` + `extra` constraints."""
-    vals = [
-        r["v"]
+def _hourly_rh(coll, match: dict, field: str) -> list[tuple[datetime, float]]:
+    """Hourly means of `field` over the device's whole stored history."""
+    return [
+        (r["_id"], r["v"])
         for r in coll.aggregate(
             [
-                {"$match": {**match, **extra}},
+                {"$match": match},
                 {
                     "$group": {
                         "_id": {"$dateTrunc": {"date": "$ts", "unit": "hour"}},
@@ -632,40 +636,67 @@ def _hourly_values(coll, match: dict, field: str, extra: dict) -> list[float]:
         )
         if r["v"] is not None
     ]
-    vals.sort()
-    return vals
 
 
-def _normal_band(coll, match: dict, rh_field: str, end: datetime) -> dict | None:
-    """"Normal for <month>": the device's own 20th–80th percentile humidity
-    in the same calendar month of earlier years, widened a little. The
-    current month stays out of the baseline, so an ongoing anomaly can't
-    drift it. Falls back to the trailing 30 days when there's no
-    prior-year coverage yet (same shape as the mock generator)."""
-    rows = _hourly_values(
-        coll,
-        match,
-        rh_field,
-        {
-            "$expr": {
-                "$and": [
-                    {"$eq": [{"$month": "$ts"}, end.month]},
-                    {"$lt": [{"$year": "$ts"}, end.year]},
-                ]
-            }
-        },
-    )
-    if len(rows) < 48:  # under ~2 days of prior-year coverage isn't a season
-        rows = _hourly_values(
-            coll, match, rh_field, {"ts": {"$gte": end - timedelta(days=30)}}
-        )
-    if len(rows) < 10:
+def _month_spans(start: datetime, end: datetime):
+    """Calendar-month spans covering [start, end), clamped to the window."""
+    cur = start
+    while cur < end:
+        nxt = (cur.replace(day=1) + timedelta(days=32)).replace(day=1)
+        yield cur, min(nxt, end)
+        cur = nxt
+
+
+def _normal_band(
+    coll, match: dict, rh_field: str, start: datetime, end: datetime
+) -> dict | None:
+    """"Normal" humidity band — the device's own 20th–80th percentile,
+    widened a little. Each calendar-month span in the window gets its own
+    band from the same month in *other* years (a span's own instance and
+    the still-running current month never feed the baseline, so an
+    anomaly can't drift the band it's judged against). Months without
+    prior-year coverage fall back to the span's own readings. A window
+    inside one month produces a single "Normal for <month>" band; longer
+    windows return stepped `bands` — a seasonal ribbon (same rule as the
+    mock generator)."""
+    hourly = _hourly_rh(coll, match, rh_field)
+    if not hourly:
         return None
-    lo, hi = rows[len(rows) // 5], rows[len(rows) * 4 // 5]
-    return {
-        "label": f"Normal for {end.strftime('%B')}",
-        "rh_pct": [max(0, round(lo - 3)), min(100, round(hi + 3))],
+    cur = (end.year, end.month)
+    bands = []
+    for x1, x2 in _month_spans(start, end):
+        rows = sorted(
+            v
+            for t, v in hourly
+            if t.month == x1.month
+            and t.year != x1.year
+            and (t.year, t.month) != cur
+        )
+        if len(rows) < 48:  # no real prior-year coverage — use the span itself
+            rows = sorted(v for t, v in hourly if x1 <= t < x2)
+        if len(rows) < 10:
+            continue
+        lo, hi = rows[len(rows) // 5], rows[len(rows) * 4 // 5]
+        bands.append(
+            {
+                "from": _iso(x1),
+                "to": _iso(x2),
+                "rh_pct": [max(0, round(lo - 3)), min(100, round(hi + 3))],
+            }
+        )
+    if not bands:
+        return None
+    normal = {
+        "label": (
+            "Seasonal normal"
+            if len(bands) > 1
+            else f"Normal for {end.strftime('%B')}"
+        ),
+        "rh_pct": bands[-1]["rh_pct"],
     }
+    if len(bands) > 1:
+        normal["bands"] = bands
+    return normal
 
 
 @router.get("/report")

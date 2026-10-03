@@ -148,31 +148,59 @@ def write_json(path: Path, payload: dict) -> None:
     WRITTEN.add(path)
 
 
-def normal_band(points: list[dict]) -> dict | None:
-    # "Normal for <month>": the device's own 20th–80th percentile humidity
-    # in the same calendar month of earlier years, widened a little — the
-    # current month stays out so an ongoing anomaly can't drift the
-    # baseline. Falls back to the trailing 30 days without prior-year
-    # coverage (mirrors _normal_band in backend/app/routers/house.py).
-    end = points[-1]["t"]
-    rh = sorted(
-        p["rh_pct"]
-        for p in points
-        if p["rh_pct"] is not None and p["t"].month == end.month and p["t"].year < end.year
-    )
-    if len(rh) < 48:
-        rh = sorted(
-            p["rh_pct"]
-            for p in points
-            if p["rh_pct"] is not None and p["t"] >= end - timedelta(days=30)
-        )
-    if len(rh) < 10:
+def month_spans(start: datetime, end: datetime):
+    # Calendar-month spans covering [start, end), clamped to the window.
+    cur = start
+    while cur < end:
+        nxt = (cur.replace(day=1) + timedelta(days=32)).replace(day=1)
+        yield cur, min(nxt, end)
+        cur = nxt
+
+
+def normal_band(points: list[dict], start: datetime, end: datetime) -> dict | None:
+    # The device's own 20th–80th percentile humidity per calendar-month
+    # span, computed from the same month in *other* years (a span's own
+    # instance and the still-running current month never feed the
+    # baseline, so an anomaly can't drift the band it's judged against).
+    # Months without prior-year coverage fall back to the span's own
+    # readings; multi-month windows produce stepped `bands` — a seasonal
+    # ribbon. Mirrors _normal_band in backend/app/routers/house.py.
+    rh = [(p["t"], p["rh_pct"]) for p in points if p["rh_pct"] is not None]
+    if not rh:
         return None
-    lo, hi = rh[len(rh) // 5], rh[len(rh) * 4 // 5]
-    return {
-        "label": f"Normal for {end.strftime('%B')}",
-        "rh_pct": [max(0, round(lo - 3)), min(100, round(hi + 3))],
+    cur = (end.year, end.month)
+    bands = []
+    for x1, x2 in month_spans(start, end):
+        rows = sorted(
+            v
+            for t, v in rh
+            if t.month == x1.month
+            and t.year != x1.year
+            and (t.year, t.month) != cur
+        )
+        if len(rows) < 48:
+            rows = sorted(v for t, v in rh if x1 <= t < x2)
+        if len(rows) < 10:
+            continue
+        lo, hi = rows[len(rows) // 5], rows[len(rows) * 4 // 5]
+        bands.append(
+            {
+                "from": iso(x1),
+                "to": iso(x2),
+                "rh_pct": [max(0, round(lo - 3)), min(100, round(hi + 3))],
+            }
+        )
+    if not bands:
+        return None
+    normal = {
+        "label": (
+            "Seasonal normal" if len(bands) > 1 else f"Normal for {end.strftime('%B')}"
+        ),
+        "rh_pct": bands[-1]["rh_pct"],
     }
+    if len(bands) > 1:
+        normal["bands"] = bands
+    return normal
 
 
 RANGE_LABEL = {
@@ -184,7 +212,6 @@ RANGE_LABEL = {
 
 
 def write_series(sensor_id: str, kind: str, points: list[dict], end: datetime) -> None:
-    normal = normal_band(points)
     last = points[-1]["t"]
     for label, days in [("24h", 1), ("7d", 7), ("30d", 30), ("1y", 365)]:
         window = [p for p in points if p["t"] >= last - timedelta(days=days)]
@@ -198,7 +225,7 @@ def write_series(sensor_id: str, kind: str, points: list[dict], end: datetime) -
             {
                 "id": sensor_id,
                 "range": label,
-                "normal": normal and {**normal, "label": f"Normal for {end.strftime('%B')}"},
+                "normal": normal_band(points, last - timedelta(days=days), last),
                 "points": [{**p, "t": iso(p["t"])} for p in downsample(window)],
                 "summary": summary,
                 "summary_source": "fallback",

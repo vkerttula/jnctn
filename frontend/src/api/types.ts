@@ -129,8 +129,14 @@ export interface SensorSeries {
   id: string
   range: SeriesRange
   // the expected humidity range for this device and season, drawn as a
-  // calm band behind the line; null when there is no humidity reading
-  normal: { label: string; rh_pct: [number, number] } | null
+  // calm band behind the line; null when there is no humidity reading.
+  // `bands` is present when the window spans several calendar months —
+  // a stepped per-month band instead of one flat range.
+  normal: {
+    label: string
+    rh_pct: [number, number]
+    bands?: { from: string; to: string; rh_pct: [number, number] }[]
+  } | null
   points: SeriesPoint[]
   // one-sentence read of the chart over this range (LLM or fallback
   // wording); null when the sensor has no readings in range
