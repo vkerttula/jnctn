@@ -58,11 +58,9 @@ export default function HomePage() {
 
       <div className="relative z-10 flex flex-col gap-4 p-4 sm:p-6 lg:pointer-events-none lg:h-svh">
         <header className="flex items-center justify-between gap-3">
-          <img
-            src="/vilpe-logo.png"
-            alt="VILPE"
-            className="pointer-events-auto h-6 w-auto"
-          />
+          <div className="pointer-events-auto rounded-2xl bg-navy px-4 py-3 shadow-lg shadow-navy/20">
+            <img src="/vilpe-logo.png" alt="VILPE" className="h-5 w-auto" />
+          </div>
           <div className="pointer-events-auto flex items-center gap-2">
             {state?.simulating && (
               <span className="rounded-full bg-watch/15 px-3 py-1.5 text-xs font-semibold text-navy">
