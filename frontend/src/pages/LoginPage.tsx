@@ -1,17 +1,31 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { findByEmail, signIn, USERS } from '../auth'
+import { findByEmail, hasAccess, signIn, unlock, USERS } from '../auth'
 import type { User } from '../auth'
 import Spinner from '../components/Spinner'
 
 // Brand-styled login: navy panel with the VILPE lockup on the left, a sign-in
-// card on the right. Two preset demo accounts fill/skip the form — any
-// password is accepted for a known email in this demo build.
+// card on the right. A shared access code gates the whole page — without it
+// neither the UI nor the live API is usable (X-Demo-Key middleware). Two
+// preset demo accounts fill/skip the form — any password is accepted for a
+// known email in this demo build.
 export default function LoginPage() {
+  const [unlocked, setUnlocked] = useState(hasAccess)
+  const [code, setCode] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState<User | null>(null)
+
+  const submitCode = (e: FormEvent) => {
+    e.preventDefault()
+    if (unlock(code)) {
+      setError(null)
+      setUnlocked(true)
+    } else {
+      setError('Wrong access code.')
+    }
+  }
 
   // Brief fake loading beat before the reload — makes the demo read like a
   // real session starting instead of an instant page swap.
@@ -71,6 +85,31 @@ export default function LoginPage() {
                 </p>
               </div>
             </div>
+          ) : !unlocked ? (
+            <>
+          <h2 className="font-display text-xl font-semibold">Access code</h2>
+          <p className="mt-1 text-xs text-muted">
+            This demo is invite-only — enter the code you were given.
+          </p>
+          <form onSubmit={submitCode} className="mt-5 flex flex-col gap-3">
+            <input
+              type="text"
+              required
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Access code"
+              autoComplete="off"
+              className="w-full rounded-xl border border-line px-4 py-2.5 text-sm outline-none transition-colors placeholder:text-muted focus:border-navy/40"
+            />
+            {error && <p className="text-xs font-medium text-alert">{error}</p>}
+            <button
+              type="submit"
+              className="mt-1 w-full rounded-xl bg-navy py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sense"
+            >
+              Continue
+            </button>
+          </form>
+            </>
           ) : (
             <>
           <h2 className="font-display text-xl font-semibold">Sign in</h2>

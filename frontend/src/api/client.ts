@@ -1,9 +1,16 @@
 // Live API implementation — unused until the backend lands (VITE_API_MODE=live).
 // The Vite dev proxy forwards /api to FastAPI on :8000.
+import { accessCode } from '../auth'
 import type { Api } from './types'
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(`/api${path}`, init)
+  const r = await fetch(`/api${path}`, {
+    ...init,
+    headers: {
+      'x-demo-key': accessCode() ?? '',
+      ...(init?.headers as Record<string, string>),
+    },
+  })
   if (!r.ok) throw new Error(`API ${r.status} on ${path}`)
   return r.json() as Promise<T>
 }
