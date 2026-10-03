@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import type { HouseState } from '../api'
 import HouseScene from '../components/HouseScene'
+import Spinner from '../components/Spinner'
 import { useHouse } from '../hooks/useHouse'
 
 // Room kept free at the top of the canvas for the overlay below.
@@ -62,8 +63,8 @@ export default function HomePage() {
           <Overview state={state} />
         </>
       ) : (
-        <div className="flex h-full items-center justify-center text-sm text-muted">
-          Loading your house…
+        <div className="flex h-full items-center justify-center">
+          <Spinner label="Loading your house…" />
         </div>
       )}
     </div>
