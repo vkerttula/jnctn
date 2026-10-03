@@ -7,10 +7,10 @@
 
 **"Oura for a house."** VILPE Sense hardware measures humidity and
 temperature inside building structures — but measuring isn't understanding.
-jnctn is the interpretation layer: raw sensor series in, a deterministic
-0–100 condition score, a plain-language narrative, attention items and a
-printable moisture report out. Built in a weekend — `docs/VISION.md` is
-the product contract, `docs/specs/` the design specs.
+jnctn is the interpretation layer: raw sensor series in; a deterministic
+0–100 condition score, LLM-written plain-language summaries, attention
+items and a printable moisture report out. Built in a weekend —
+`docs/VISION.md` is the product contract, `docs/specs/` the design specs.
 
 ## The pipeline
 
@@ -24,8 +24,9 @@ digest    per-window context packet: stats + detected events, never raw
           series — context size stays flat as history grows
 score     deterministic 0–100 + findings, computed in code — the LLM can
           narrate but never picks the number
-narrate   Gemini, structured JSON → validated output | template fallback
-          renders the identical shape
+narrate   an LLM (Gemini) summarizes the packet into consumer copy —
+          headline, recommendations, attention feed — as structured JSON,
+          validated before serving | template fallback, identical shape
 cache     results per (window, period) — a ~20 req/day Gemini free tier
           survives a full demo day
 ```
@@ -42,8 +43,9 @@ Around that core:
 - **`POST /api/simulate/leak`.** Injects a synthetic moisture event the
   whole pipeline — digest, score, narrative, UI — reacts to. The demo
   moment is real data flow, not a scripted overlay.
-- **Per-sensor narration.** The same narrate-or-fallback path runs over
-  each chart's own hourly buckets, cached per (sensor, range, period).
+- **Per-sensor AI summaries.** The same narrate-or-fallback path runs over
+  each chart's own hourly buckets and writes the "AI insight" line on
+  sensor detail pages, cached per (sensor, range, period).
 
 ## Frontend
 
@@ -58,6 +60,29 @@ react-three-fiber renders the rotatable house with status dots and pinned
 callout cards; recharts draws the trends. The report is print-styled to a
 single A4 page — `print-color-adjust: exact` keeps status colors and navy
 surfaces in the exported PDF.
+
+## Deliberate cuts — what's not built
+
+The weekend was scoped hard; these are known gaps, not bugs:
+
+- **No real auth or multi-tenancy.** Sign-in is three preset users plus
+  localStorage, and the access code ships in the JS bundle. Real accounts,
+  `POST /api/houses` and session auth were designed (the onboarding spec
+  shapes `HouseProfile` as the request body) but not implemented.
+- **No onboarding flow.** `docs/specs/2026-10-03-onboarding-design.md`
+  specs address lookup → house profile → dragging sensors onto the 3D
+  model; the demo house is hardcoded fixtures instead.
+- **Sensors aren't live.** Fans and weather stream from the live Sense
+  API and Open-Meteo, but the 51 RHT sensors come from a one-year CSV
+  snapshot ending 2026-09-11 — ingest doesn't tail a live feed.
+- **No alerting.** Analysis is computed on request and cached — there's
+  no scheduler recomputing it and no push or email when the score moves.
+- **Help requests go nowhere.** `POST /api/help-requests` persists the
+  "book an inspection" intent to Mongo; nothing consumes it. The
+  marketplace, remote expert review and sellable certified report are
+  business-model ammo in `VISION.md`, deliberately out of scope.
+- **Web only, no frontend tests.** Desktop web is the demo surface; CI
+  lints and builds the frontend, but only the backend has a pytest suite.
 
 ## Stack
 
