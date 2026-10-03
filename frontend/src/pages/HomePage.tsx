@@ -53,7 +53,7 @@ function Overview({ state }: { state: HouseState }) {
       </div>
 
       <div
-        className="flex items-center gap-2 self-center rounded-full border border-white/70 bg-white/80 px-2.5 py-1 shadow-sm backdrop-blur-md"
+        className="flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-2.5 py-1 shadow-sm backdrop-blur-md"
         title={`${weather.condition} · ${weather.location} · wind ${weather.wind_ms.toFixed(0)} m/s`}
       >
         <WeatherIcon condition={weather.condition} className="h-4 w-4 shrink-0" />
