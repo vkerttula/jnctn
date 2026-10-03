@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { api } from '../api'
+import { api, apiMode } from '../api'
 import Clock from './Clock'
 import ScoreCard from './ScoreCard'
 import ServicesList from './ServicesList'
@@ -72,24 +72,25 @@ export default function AppShell() {
         <div className="mt-auto flex flex-col gap-3 border-t border-white/10 pt-4">
           <Clock />
           <div className="flex items-center gap-2">
-            {state?.simulating ? (
-              <button
-                onClick={() => demo('reset')}
-                disabled={busy}
-                className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-50"
-              >
-                Reset demo
-              </button>
-            ) : (
-              <button
-                onClick={() => demo('leak')}
-                disabled={busy}
-                className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/20 disabled:opacity-50"
-              >
-                Simulate leak
-              </button>
-            )}
-            {state?.simulating && (
+            {apiMode === 'mock' &&
+              (state?.simulating ? (
+                <button
+                  onClick={() => demo('reset')}
+                  disabled={busy}
+                  className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/20 disabled:opacity-50"
+                >
+                  Reset demo
+                </button>
+              ) : (
+                <button
+                  onClick={() => demo('leak')}
+                  disabled={busy}
+                  className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/20 disabled:opacity-50"
+                >
+                  Simulate leak
+                </button>
+              ))}
+            {apiMode === 'mock' && state?.simulating && (
               <span className="rounded-full bg-watch/20 px-3 py-1.5 text-xs font-semibold text-watch">
                 demo running
               </span>
