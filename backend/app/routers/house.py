@@ -546,34 +546,7 @@ def sensor_series(
         }
     start = end - timedelta(days=days)
 
-    # "Normal for <month>": the device's own 20th–80th percentile humidity
-    # over the last 30 days, widened a little (same rule as the mock).
-    normal = None
-    if "rh_pct" in agg:
-        rh_rows = [
-            r["v"]
-            for r in coll.aggregate(
-                [
-                    {"$match": {**match, "ts": {"$gte": end - timedelta(days=30)}}},
-                    {
-                        "$group": {
-                            "_id": {
-                                "$dateTrunc": {"date": "$ts", "unit": "hour"}
-                            },
-                            "v": {"$avg": agg["rh_pct"]},
-                        }
-                    },
-                ]
-            )
-            if r["v"] is not None
-        ]
-        rh_rows.sort()
-        if len(rh_rows) >= 10:
-            lo, hi = rh_rows[len(rh_rows) // 5], rh_rows[len(rh_rows) * 4 // 5]
-            normal = {
-                "label": f"Normal for {end.strftime('%B')}",
-                "rh_pct": [max(0, round(lo - 3)), min(100, round(hi + 3))],
-            }
+    normal = _normal_band(coll, match, agg["rh_pct"], end) if "rh_pct" in agg else None
 
     # Bucket by hour for short ranges, by day for the year view, averaging
     # across whatever members feed this sensor.
@@ -640,6 +613,59 @@ def sensor_series(
 
 def _round(v, nd):
     return round(v, nd) if isinstance(v, (int, float)) else v
+
+
+def _hourly_values(coll, match: dict, field: str, extra: dict) -> list[float]:
+    """Sorted hourly means of `field` over `match` + `extra` constraints."""
+    vals = [
+        r["v"]
+        for r in coll.aggregate(
+            [
+                {"$match": {**match, **extra}},
+                {
+                    "$group": {
+                        "_id": {"$dateTrunc": {"date": "$ts", "unit": "hour"}},
+                        "v": {"$avg": field},
+                    }
+                },
+            ]
+        )
+        if r["v"] is not None
+    ]
+    vals.sort()
+    return vals
+
+
+def _normal_band(coll, match: dict, rh_field: str, end: datetime) -> dict | None:
+    """"Normal for <month>": the device's own 20th–80th percentile humidity
+    in the same calendar month of earlier years, widened a little. The
+    current month stays out of the baseline, so an ongoing anomaly can't
+    drift it. Falls back to the trailing 30 days when there's no
+    prior-year coverage yet (same shape as the mock generator)."""
+    rows = _hourly_values(
+        coll,
+        match,
+        rh_field,
+        {
+            "$expr": {
+                "$and": [
+                    {"$eq": [{"$month": "$ts"}, end.month]},
+                    {"$lt": [{"$year": "$ts"}, end.year]},
+                ]
+            }
+        },
+    )
+    if len(rows) < 48:  # under ~2 days of prior-year coverage isn't a season
+        rows = _hourly_values(
+            coll, match, rh_field, {"ts": {"$gte": end - timedelta(days=30)}}
+        )
+    if len(rows) < 10:
+        return None
+    lo, hi = rows[len(rows) // 5], rows[len(rows) * 4 // 5]
+    return {
+        "label": f"Normal for {end.strftime('%B')}",
+        "rh_pct": [max(0, round(lo - 3)), min(100, round(hi + 3))],
+    }
 
 
 @router.get("/report")
