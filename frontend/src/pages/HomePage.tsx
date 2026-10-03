@@ -22,7 +22,7 @@ function Overview({ state }: { state: HouseState }) {
         </h1>
         <p className="text-base leading-relaxed text-navy/75">{state.summary}</p>
         {state.narrative_source === 'llm' && (
-          <span className="mt-1 w-fit rounded-full border border-navy/15 bg-white/60 px-2.5 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
+          <span className="mt-1 w-fit text-[10px] font-medium tracking-[0.14em] text-navy/30 uppercase">
             AI insight
           </span>
         )}

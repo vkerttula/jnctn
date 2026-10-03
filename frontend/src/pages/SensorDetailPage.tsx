@@ -157,7 +157,7 @@ export default function SensorDetailPage() {
                     {current.data.summary}
                   </p>
                   {current.data.summary_source === 'llm' && (
-                    <span className="w-fit rounded-full border border-navy/15 bg-white/60 px-2.5 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
+                    <span className="w-fit text-[10px] font-medium tracking-[0.14em] text-navy/30 uppercase">
                       AI insight
                     </span>
                   )}
