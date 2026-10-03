@@ -125,7 +125,6 @@ export const mock: Api = {
       ...h,
       sensors,
       updated_at: shift(h.updated_at, ms),
-      monitoring: { ...h.monitoring, last_check_at: shift(h.monitoring.last_check_at, ms) },
     })
   },
 

@@ -4,7 +4,6 @@ import { api } from '../api'
 import AttentionFeed from './AttentionFeed'
 import ScoreCard from './ScoreCard'
 import { useHouseState } from '../hooks/useHouseState'
-import { timeAgo } from '../labels'
 
 const NAV = [
   { to: '/', label: 'Overview', end: true },
@@ -71,23 +70,6 @@ export default function AppShell() {
         {state && <AttentionFeed items={state.attention} />}
 
         <div className="mt-auto flex flex-col gap-3 pt-4">
-          {state && (
-            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ok opacity-60" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-ok" />
-              </span>
-              <span className="flex flex-col">
-                <span className="text-sm font-semibold text-white">
-                  Watching your home 24/7
-                </span>
-                <span className="text-xs text-white/55">
-                  {state.monitoring.online} of {state.monitoring.total} sensors online · last
-                  check {timeAgo(state.monitoring.last_check_at)}
-                </span>
-              </span>
-            </div>
-          )}
           <div className="flex items-center gap-2">
             {state?.simulating ? (
               <button

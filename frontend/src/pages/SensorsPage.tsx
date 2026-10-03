@@ -12,6 +12,9 @@ export default function SensorsPage() {
   return (
     <div className="h-full overflow-y-auto p-6">
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+        <Link to="/" className="self-start text-sm font-medium text-sense hover:underline">
+          ← Back to overview
+        </Link>
         <h1 className="font-display text-xl font-bold text-navy">Sensors</h1>
         {!state && <p className="text-sm text-muted">Loading sensors…</p>}
         {groups.map((group) => (

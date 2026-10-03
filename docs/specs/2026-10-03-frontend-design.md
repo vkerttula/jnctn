@@ -102,7 +102,6 @@ Frontend polls `GET /api/house`; everything else is on demand.
       "last_reading_at": "2026-10-03T12:01:34Z"
     }
   ],
-  "monitoring": { "online": 7, "total": 7, "last_check_at": "2026-10-03T12:01:34Z" },
   "simulating": false,
   "updated_at": "2026-10-03T12:00:00Z"
 }
@@ -113,7 +112,6 @@ Frontend polls `GET /api/house`; everything else is on demand.
 - `attention[]` ordered by severity (`alert` before `watch`), max ~5 items.
   `actions` lists one-tap next steps (`inspection` = book a local inspector,
   `expert` = remote VILPE expert review) — the vision's alert → fixed path.
-- `monitoring` backs the sidebar's "Watching your home 24/7" line.
 - `home` is the address shown over the 3D view; `headline` is a short
   plain-language verdict (one line), `summary` one supporting sentence.
 - `weather` is the outdoor context for the home's location (FMI later).
@@ -220,9 +218,9 @@ frontend.
 ### Sidebar (AppShell)
 
 VILPE logo + tagline ("Peace of mind for your home"), nav (Overview,
-Sensors, Report), score ring, attention feed with action buttons, a
-"Watching your home 24/7 · N of N sensors online · last check …" line,
-demo controls and small dev links.
+Sensors, Report), score ring, attention feed with action buttons, demo
+controls and small dev links. Subpages (sensors, sensor detail, report)
+start with a "← Back to overview" link.
 
 ### ReportPage (`/report`)
 
