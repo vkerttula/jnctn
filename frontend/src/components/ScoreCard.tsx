@@ -50,11 +50,19 @@ function ScoreHint({ onClose }: { onClose: () => void }) {
   )
 }
 
-function ScoreRing({ score, color }: { score: number; color: string }) {
+export function ScoreRing({
+  score,
+  color,
+  className = 'h-52 w-52',
+}: {
+  score: number
+  color: string
+  className?: string
+}) {
   const r = 64
   const c = 2 * Math.PI * r
   return (
-    <svg viewBox="0 0 160 160" className="h-52 w-52 -rotate-90">
+    <svg viewBox="0 0 160 160" className={`${className} -rotate-90`}>
       <circle
         cx="80"
         cy="80"
@@ -79,7 +87,11 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
   )
 }
 
-const AREA_WORD: Record<SensorStatus, string> = { ok: 'Good', watch: 'Watch', alert: 'Check' }
+export const AREA_WORD: Record<SensorStatus, string> = {
+  ok: 'Good',
+  watch: 'Watch',
+  alert: 'Check',
+}
 
 const AREA_OF_ZONE: Record<Zone, Area['id']> = {
   roof_south: 'roof',
