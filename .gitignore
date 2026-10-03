@@ -23,8 +23,9 @@ dist/
 data/site-layout.pdf
 data/site-layout.png
 
-# OS / editor
+# OS / editor / tooling artifacts
 .DS_Store
 .idea/
+.playwright-mcp/
 .vscode/*
 !.vscode/extensions.json
