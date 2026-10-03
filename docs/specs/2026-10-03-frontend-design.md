@@ -173,7 +173,8 @@ only where the source data has it (fans, from 2026-03).
 
 ### `POST /api/help-requests`
 
-Body `{ "sensor_id": "roof-nw", "kind": "inspection" | "expert" }` →
+Body `{ "kind": "inspection" | "expert", "sensor_id": "roof-nw" | null }`
+(`sensor_id` is null when requested from the sidebar's Services list) →
 `{ "message": "Inspection requested. A local VILPE-certified inspector will call you within one working day." }`.
 The frontend shows the message in place of the action buttons.
 
@@ -217,9 +218,11 @@ frontend.
 
 ### Sidebar (AppShell)
 
-VILPE logo + tagline ("Peace of mind for your home"), nav (Overview,
-Sensors, Report), score ring, attention feed with action buttons, demo
-controls and small dev links. Subpages (sensors, sensor detail, report)
+VILPE logo + tagline ("Peace of mind for your home"), Overview | Sensors
+switch, score ring, attention feed with action buttons, a **Services** list
+(Moisture History Report → `/report`; Ask a VILPE expert and Book an
+inspection, each with a confirm step before `POST /api/help-requests`), a
+live clock, demo controls and small dev links. Subpages (sensors, sensor detail, report)
 start with a "← Back to overview" link.
 
 ### ReportPage (`/report`)

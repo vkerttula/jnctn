@@ -14,12 +14,38 @@ type Field = Exclude<keyof SeriesPoint, 't'>
 
 // Every reading a device may report; only the ones present in the series
 // are offered. Each gets its own (hidden) axis so scales don't fight.
-const LINES: { key: Field; label: string; color: string; unit: string; domain?: [number, number] }[] = [
+// `minSpan` keeps an auto-scaled axis from stretching a few degrees of
+// normal day/night variation across the whole chart — calm, not scary.
+type LineDef = {
+  key: Field
+  label: string
+  color: string
+  unit: string
+  domain?: [number, number]
+  minSpan?: number
+  floor?: number
+}
+const LINES: LineDef[] = [
   { key: 'rh_pct', label: 'Humidity', color: '#004f9f', unit: '%', domain: [0, 100] },
-  { key: 'temp_c', label: 'Temperature', color: '#e3530f', unit: '°C' },
-  { key: 'fan_rpm', label: 'Fan speed', color: '#01273e', unit: ' rpm' },
-  { key: 'mold_index', label: 'Mold index', color: '#df0a15', unit: '' },
+  { key: 'temp_c', label: 'Temperature', color: '#e3530f', unit: '°C', minSpan: 30 },
+  { key: 'fan_rpm', label: 'Fan speed', color: '#01273e', unit: ' rpm', minSpan: 3000, floor: 0 },
+  { key: 'mold_index', label: 'Mold index', color: '#df0a15', unit: '', minSpan: 2, floor: 0 },
 ]
+
+function domainOf(l: LineDef, points: SeriesPoint[]): [number, number] {
+  if (l.domain) return l.domain
+  const vals = points.map((p) => p[l.key]).filter((v): v is number => v != null)
+  const lo = Math.min(...vals)
+  const hi = Math.max(...vals)
+  const pad = Math.max(0, (l.minSpan ?? 0) - (hi - lo)) / 2
+  let min = lo - pad
+  let max = hi + pad
+  if (l.floor != null && min < l.floor) {
+    max += l.floor - min
+    min = l.floor
+  }
+  return [Math.floor(min), Math.ceil(max)]
+}
 
 function tickFormat(range: SeriesRange) {
   return (t: number) =>
@@ -119,7 +145,7 @@ export default function SensorChart({ series }: { series: SensorSeries }) {
                 key={l.key}
                 yAxisId={l.key}
                 hide={l !== axis}
-                domain={l.domain ?? ['auto', 'auto']}
+                domain={domainOf(l, series.points)}
                 unit={l.unit}
                 stroke="var(--color-muted)"
                 tick={{ fontSize: 11 }}
