@@ -35,7 +35,9 @@ Collections: `sense_site` (1 doc), `sense_devices` (7), `sense_sensors`
 (51), `sense_fan_readings` (~74k, unique on `device_id`+`ts`),
 `sense_sensor_readings` (~37k, unique on `sensor_id`+`ts`). All Mongo
 timestamps are proper UTC datetimes; the CSV's naive Helsinki times are
-converted on ingest.
+converted on ingest. The `/api/dataset` endpoints serve these collections
+— the `data/` files are only the ingest source for `sensors.csv` (and
+`site.json`'s `description_fi`, which the API doesn't expose).
 
 ## Layout
 

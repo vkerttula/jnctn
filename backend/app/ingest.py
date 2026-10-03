@@ -45,6 +45,13 @@ DEVICE_LINKS = {
 HELSINKI = ZoneInfo("Europe/Helsinki")
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 
+LOCATION_BY_PURPOSE = {
+    "roof": "roof",
+    "green_roof": "green_roof",
+    "crawl_space": "crawl_space",
+    "base_floor": "crawl_space",
+}
+
 # (identifier, isIndoor) -> (subdoc, field); subdoc None = top level
 SERIES_TO_FIELD = {
     ("fan_rpm", None): (None, "rpm"),
@@ -77,11 +84,21 @@ def bulk_upsert(coll, ops: list[UpdateOne], label: str) -> None:
     print(f"  {label}: {len(ops)} docs upserted")
 
 
+def site_description_fi() -> str | None:
+    """Not exposed by the API — preserved from the zip-derived site.json."""
+    path = DATA_DIR / "site.json"
+    if path.is_file():
+        return json.loads(path.read_text()).get("description_fi")
+    existing = db.sense_site.find_one({"_id": "vilpe-vantaa"})
+    return (existing or {}).get("description_fi")
+
+
 def ingest_site(site: dict) -> None:
     doc = {
         "_id": "vilpe-vantaa",
         "api_site_id": site["id"],
         "name": site["name"],
+        "description_fi": site_description_fi(),
         "public_site_link": f"https://sense.vilpe.com/public/site/{SITE_LINK}",
         "layout_url": site.get("layoutUrl"),
         "layout_calibration_factor": site.get("layoutCalibrationFactor"),
@@ -149,6 +166,8 @@ def ingest_devices(site: dict) -> dict[str, dict]:
             "name": d["name"],
             "slug": slug,
             "type": d["type"],
+            "category": "ventilation_fan",
+            "status": "online" if d["isOnline"] else "offline",
             "is_online": d["isOnline"],
             "is_alert": d["isAlert"],
             "coordinates": d["coordinatesInRoofLayout"],
@@ -200,6 +219,19 @@ def ingest_fan_readings(slugs: dict[str, dict]) -> None:
             continue
         meas = api_get(
             f"/public-measurements/{link}/1970-01-01T00:00:00Z/2999-01-01T00:00:00Z"
+        )
+        location = LOCATION_BY_PURPOSE.get(meas.get("purpose"), "roof")
+        transmitters = [
+            {
+                "serial_number": t["serialNumber"],
+                "type": t.get("type"),
+                "role": "indoor" if t["isIndoorMaster"] else "outdoor",
+            }
+            for t in meas.get("transmitters", [])
+        ]
+        db.sense_devices.update_one(
+            {"serial_number": serial},
+            {"$set": {"location": location, "transmitters": transmitters}},
         )
         points = merged_readings(meas)
         ops = [
