@@ -11,8 +11,10 @@ import {
   YAxis,
 } from 'recharts'
 import { api, type SensorSeries } from '../api'
+import { AREA_WORD, ScoreRing } from '../components/ScoreCard'
 import { useHouse } from '../hooks/useHouse'
 import { factorText } from '../labels'
+import { STATUS_COLOR } from '../theme'
 
 const WORD_COLOR = {
   Good: 'var(--color-ok)',
@@ -144,20 +146,46 @@ export default function ScorePage() {
 
         {state ? (
           <>
-            <section className="flex items-center gap-5">
-              <span className="font-display text-6xl font-bold text-navy">
-                {state.score}
-              </span>
-              <div className="flex flex-col">
-                <h1 className="font-display text-xl font-bold text-navy">
-                  Home score
-                </h1>
-                <span
-                  className="text-sm font-semibold"
-                  style={{ color: WORD_COLOR[state.score_word] }}
-                >
-                  {state.score_word} · {TREND_LABEL[state.score_trend]}
+            <section className="flex items-center gap-6 rounded-3xl bg-navy p-6 text-white shadow-sm">
+              <div className="relative flex h-28 w-28 shrink-0 items-center justify-center">
+                <ScoreRing
+                  score={state.score}
+                  color={WORD_COLOR[state.score_word]}
+                  className="h-28 w-28"
+                />
+                <div className="absolute flex flex-col items-center">
+                  <span className="font-display text-3xl leading-none font-bold">
+                    {state.score}
+                  </span>
+                  <span
+                    className="text-[10px] font-semibold tracking-wide"
+                    style={{ color: WORD_COLOR[state.score_word] }}
+                  >
+                    {state.score_word}
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <h1 className="font-display text-xl font-bold">Home score</h1>
+                <span className="text-sm text-white/70">
+                  {TREND_LABEL[state.score_trend]} — one number for your roof
+                  and crawl space.
                 </span>
+                <div className="flex gap-2">
+                  {state.areas.map((a) => (
+                    <span
+                      key={a.id}
+                      className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] whitespace-nowrap"
+                    >
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ background: STATUS_COLOR[a.status] }}
+                      />
+                      {a.name}
+                      <span className="font-semibold">{AREA_WORD[a.status]}</span>
+                    </span>
+                  ))}
+                </div>
               </div>
             </section>
 
