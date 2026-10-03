@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber'
-import { ContactShadows, Html, Line, OrbitControls } from '@react-three/drei'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
+import { ContactShadows, OrbitControls } from '@react-three/drei'
 import { ExtrudeGeometry, Shape, Vector3, type Mesh } from 'three'
 import type { HouseSensor, Zone } from '../api'
 import { keyValues } from '../labels'
@@ -178,94 +178,161 @@ function HouseModel() {
 
 // --- Sensors ----------------------------------------------------------------
 
-function SensorPoint({
+function SensorDot({
   sensor,
   at,
-  callout,
   onHover,
   onSelect,
 }: {
   sensor: HouseSensor
   at: Vec3
-  callout: Vec3
   onHover: (id: string | null) => void
   onSelect: (s: HouseSensor) => void
 }) {
   const dot = useRef<Mesh>(null)
-  const card = useRef<HTMLButtonElement>(null)
   const color = STATUS_COLOR[sensor.status]
-  const end: Vec3 = [at[0] + callout[0], at[1] + callout[1], at[2] + callout[2]]
-  const facing = useMemo(
-    () => new Vector3(callout[0], 0, callout[2]).normalize(),
-    [callout],
-  )
-  const anchor = useMemo(() => new Vector3(...at), [at])
-  const tmp = useMemo(() => new Vector3(), [])
 
   useEffect(() => () => void (document.body.style.cursor = 'auto'), [])
 
-  useFrame(({ clock, camera }) => {
-    if (dot.current) {
-      const speed = sensor.status === 'alert' ? 6 : sensor.status === 'watch' ? 3 : 0
-      dot.current.scale.setScalar(speed ? 1 + 0.3 * Math.sin(clock.elapsedTime * speed) : 1)
-    }
-    // Fade callouts on the far side of the house so the front stays readable.
-    if (card.current) {
-      const toCam = tmp.copy(camera.position).sub(anchor).setY(0).normalize()
-      card.current.style.opacity = toCam.dot(facing) > -0.15 ? '1' : '0.35'
-    }
+  useFrame(({ clock }) => {
+    if (!dot.current) return
+    const speed = sensor.status === 'alert' ? 6 : sensor.status === 'watch' ? 3 : 0
+    dot.current.scale.setScalar(speed ? 1 + 0.3 * Math.sin(clock.elapsedTime * speed) : 1)
   })
 
-  const hoverOn = (e?: ThreeEvent<PointerEvent>) => {
-    e?.stopPropagation()
-    onHover(sensor.id)
-    document.body.style.cursor = 'pointer'
-  }
-  const hoverOff = () => {
-    onHover(null)
-    document.body.style.cursor = 'auto'
-  }
-
   return (
-    <group>
+    <group position={at}>
       <mesh
-        position={at}
         onClick={(e: ThreeEvent<MouseEvent>) => {
           e.stopPropagation()
           onSelect(sensor)
         }}
-        onPointerOver={hoverOn}
-        onPointerOut={hoverOff}
+        onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+          e.stopPropagation()
+          onHover(sensor.id)
+          document.body.style.cursor = 'pointer'
+        }}
+        onPointerOut={() => {
+          onHover(null)
+          document.body.style.cursor = 'auto'
+        }}
       >
         <sphereGeometry args={[0.3, 12, 12]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
-      <mesh ref={dot} position={at}>
+      <mesh ref={dot}>
         <sphereGeometry args={[0.1, 24, 24]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} />
       </mesh>
-      <Line points={[at, end]} color="#01273e" lineWidth={1} transparent opacity={0.45} />
-      <Html position={end} zIndexRange={[20, 0]}>
-        <button
-          ref={card}
-          onClick={() => onSelect(sensor)}
-          onMouseEnter={() => onHover(sensor.id)}
-          onMouseLeave={() => onHover(null)}
-          className="flex -translate-x-1/2 -translate-y-full cursor-pointer flex-col gap-0.5 rounded-xl border border-white/70 bg-white/90 px-3 py-2 text-left whitespace-nowrap shadow-lg shadow-navy/10 backdrop-blur-md transition duration-300 hover:scale-105"
-        >
-          <span className="flex items-center gap-2">
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${sensor.status === 'ok' ? '' : 'animate-pulse'}`}
-              style={{ background: color, boxShadow: `0 0 0 3px ${color}33` }}
-            />
-            <span className="font-display text-xs font-semibold text-navy">{sensor.name}</span>
-          </span>
-          <span className="pl-[18px] text-[11px] text-muted tabular-nums">
-            {keyValues(sensor.latest).join(' · ')}
-          </span>
-        </button>
-      </Html>
     </group>
+  )
+}
+
+// --- Callouts (screen-space) -------------------------------------------------
+// Cards live in two columns at the canvas edges, stacked so they never
+// overlap or leave the viewport; a leader line runs from each dot to its card.
+
+const CARD_W = 184
+const CARD_H = 50
+const GAP = 10
+const MARGIN = 20
+const SWITCH_PX = 40 // hysteresis before a card swaps columns
+
+type Placed = { sensor: HouseSensor; at: Vec3; out: Vec3 }
+type Els = Map<string, { card?: HTMLButtonElement | null; line?: SVGLineElement | null }>
+
+function CalloutLayout({ placed, els }: { placed: Placed[]; els: RefObject<Els> }) {
+  const { camera, size } = useThree()
+  const pos = useRef(new Map<string, { x: number; y: number; right: boolean }>())
+  const v = useMemo(() => new Vector3(), [])
+  const toCam = useMemo(() => new Vector3(), [])
+
+  useFrame(() => {
+    const { width: w, height: h } = size
+    const pts = placed.map(({ sensor, at, out }) => {
+      v.set(...at).project(camera)
+      const px = ((v.x + 1) / 2) * w
+      const py = ((1 - v.y) / 2) * h
+      const prev = pos.current.get(sensor.id)
+      const right = prev
+        ? prev.right
+          ? px > w / 2 - SWITCH_PX
+          : px > w / 2 + SWITCH_PX
+        : px > w / 2
+      toCam.copy(camera.position).sub(v.set(...at)).setY(0).normalize()
+      const facing = toCam.x * out[0] + toCam.z * out[2] > -0.15
+      return { id: sensor.id, px, py, right, facing }
+    })
+
+    for (const right of [false, true]) {
+      const col = pts.filter((p) => p.right === right).sort((a, b) => a.py - b.py)
+      const ys = col.map((p) => Math.min(Math.max(p.py - CARD_H / 2, MARGIN), h - MARGIN - CARD_H))
+      for (let i = 1; i < ys.length; i++) ys[i] = Math.max(ys[i], ys[i - 1] + CARD_H + GAP)
+      for (let i = ys.length - 1; i >= 0; i--) {
+        const limit = i === ys.length - 1 ? h - MARGIN - CARD_H : ys[i + 1] - CARD_H - GAP
+        ys[i] = Math.max(Math.min(ys[i], limit), MARGIN)
+      }
+      col.forEach((p, i) => {
+        const tx = right ? w - MARGIN - CARD_W : MARGIN
+        const prev = pos.current.get(p.id)
+        const s = prev
+          ? { x: prev.x + (tx - prev.x) * 0.15, y: prev.y + (ys[i] - prev.y) * 0.15, right }
+          : { x: tx, y: ys[i], right }
+        pos.current.set(p.id, s)
+        const el = els.current.get(p.id)
+        const opacity = p.facing ? '1' : '0.45'
+        if (el?.card) {
+          el.card.style.transform = `translate(${s.x}px, ${s.y}px)`
+          el.card.style.opacity = opacity
+        }
+        if (el?.line) {
+          el.line.setAttribute('x1', String(p.px))
+          el.line.setAttribute('y1', String(p.py))
+          el.line.setAttribute('x2', String(right ? s.x : s.x + CARD_W))
+          el.line.setAttribute('y2', String(s.y + CARD_H / 2))
+          el.line.style.opacity = p.facing ? '0.5' : '0.2'
+        }
+      })
+    }
+  })
+
+  return null
+}
+
+function CalloutCard({
+  sensor,
+  cardRef,
+  onHover,
+  onSelect,
+}: {
+  sensor: HouseSensor
+  cardRef: (el: HTMLButtonElement | null) => void
+  onHover: (id: string | null) => void
+  onSelect: (s: HouseSensor) => void
+}) {
+  const color = STATUS_COLOR[sensor.status]
+  return (
+    <button
+      ref={cardRef}
+      onClick={() => onSelect(sensor)}
+      onMouseEnter={() => onHover(sensor.id)}
+      onMouseLeave={() => onHover(null)}
+      style={{ width: CARD_W, height: CARD_H, opacity: 0 }}
+      className="pointer-events-auto absolute top-0 left-0 flex cursor-pointer flex-col justify-center gap-0.5 rounded-xl border border-white/70 bg-white/90 px-3 text-left shadow-lg shadow-navy/10 backdrop-blur-md transition-[opacity,box-shadow] duration-300 hover:shadow-navy/25"
+    >
+      <span className="flex items-center gap-2">
+        <span
+          className={`h-2.5 w-2.5 shrink-0 rounded-full ${sensor.status === 'ok' ? '' : 'animate-pulse'}`}
+          style={{ background: color, boxShadow: `0 0 0 3px ${color}33` }}
+        />
+        <span className="truncate font-display text-xs font-semibold text-navy">
+          {sensor.name}
+        </span>
+      </span>
+      <span className="truncate pl-[18px] text-[11px] text-muted tabular-nums">
+        {keyValues(sensor.latest).join(' · ')}
+      </span>
+    </button>
   )
 }
 
@@ -277,6 +344,7 @@ export default function HouseScene({
   onSelect: (s: HouseSensor) => void
 }) {
   const [hovered, setHovered] = useState<string | null>(null)
+  const els = useRef<Els>(new Map())
 
   const placed = useMemo(() => {
     const used: Partial<Record<Zone, number>> = {}
@@ -285,43 +353,75 @@ export default function HouseScene({
       if (!s.primary || !slots?.length) return []
       const i = used[s.zone] ?? 0
       used[s.zone] = i + 1
-      return [{ sensor: s, ...slots[i % slots.length] }]
+      const slot = slots[i % slots.length]
+      return [{ sensor: s, at: slot.at, out: slot.callout }]
     })
   }, [sensors])
 
+  const register = (id: string, key: 'card' | 'line') => (el: HTMLButtonElement | SVGLineElement | null) => {
+    const entry = els.current.get(id) ?? {}
+    Object.assign(entry, { [key]: el })
+    els.current.set(id, entry)
+  }
+
   return (
-    <Canvas camera={{ position: [10, 6.5, 12], fov: 34 }}>
-      <hemisphereLight args={['#ffffff', '#dfe5ea', 0.7]} />
-      <directionalLight position={[8, 12, 6]} intensity={1.4} />
-      <directionalLight position={[-6, 6, -8]} intensity={0.35} />
-      <HouseModel />
-      {placed.map(({ sensor, at, callout }) => (
-        <SensorPoint
-          key={sensor.id}
-          sensor={sensor}
-          at={at}
-          callout={callout}
-          onHover={setHovered}
-          onSelect={onSelect}
+    <div className="relative h-full w-full">
+      <Canvas camera={{ position: [10, 6.5, 12], fov: 34 }}>
+        <hemisphereLight args={['#ffffff', '#dfe5ea', 0.7]} />
+        <directionalLight position={[8, 12, 6]} intensity={1.4} />
+        <directionalLight position={[-6, 6, -8]} intensity={0.35} />
+        <HouseModel />
+        {placed.map(({ sensor, at }) => (
+          <SensorDot
+            key={sensor.id}
+            sensor={sensor}
+            at={at}
+            onHover={setHovered}
+            onSelect={onSelect}
+          />
+        ))}
+        <CalloutLayout placed={placed} els={els} />
+        <mesh rotation-x={-Math.PI / 2} position={[0, -0.01, 0]}>
+          <circleGeometry args={[14, 64]} />
+          <meshStandardMaterial color={COLORS.ground} />
+        </mesh>
+        <ContactShadows position={[0, 0, 0]} opacity={0.35} scale={20} blur={2.4} far={5} />
+        <OrbitControls
+          target={[0, 2, 0]}
+          autoRotate={hovered === null}
+          autoRotateSpeed={0.35}
+          enableDamping
+          dampingFactor={0.08}
+          enablePan={false}
+          minPolarAngle={Math.PI * 0.18}
+          maxPolarAngle={Math.PI * 0.46}
+          minDistance={8}
+          maxDistance={22}
         />
-      ))}
-      <mesh rotation-x={-Math.PI / 2} position={[0, -0.01, 0]}>
-        <circleGeometry args={[14, 64]} />
-        <meshStandardMaterial color={COLORS.ground} />
-      </mesh>
-      <ContactShadows position={[0, 0, 0]} opacity={0.35} scale={20} blur={2.4} far={5} />
-      <OrbitControls
-        target={[0, 2, 0]}
-        autoRotate={hovered === null}
-        autoRotateSpeed={0.35}
-        enableDamping
-        dampingFactor={0.08}
-        enablePan={false}
-        minPolarAngle={Math.PI * 0.18}
-        maxPolarAngle={Math.PI * 0.46}
-        minDistance={8}
-        maxDistance={22}
-      />
-    </Canvas>
+      </Canvas>
+      <div className="pointer-events-none absolute inset-0">
+        <svg className="absolute inset-0 h-full w-full">
+          {placed.map(({ sensor }) => (
+            <line
+              key={sensor.id}
+              ref={register(sensor.id, 'line')}
+              stroke="#01273e"
+              strokeWidth={1}
+              strokeDasharray="3 3"
+              style={{ opacity: 0 }}
+            />
+          ))}
+        </svg>
+        {placed.map(({ sensor }) => (
+          <CalloutCard
+            key={sensor.id}
+            sensor={sensor}
+            cardRef={register(sensor.id, 'card')}
+            onHover={setHovered}
+            onSelect={onSelect}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
