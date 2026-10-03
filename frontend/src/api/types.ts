@@ -8,6 +8,9 @@ export type Zone = 'roof_south' | 'roof_north' | 'ridge' | 'crawl_space'
 export type SeriesRange = '24h' | '7d' | '30d'
 export type ScoreWord = 'Good' | 'Fair' | 'Attention'
 export type ScoreTrend = 'improving' | 'stable' | 'declining'
+// who wrote headline/summary/recommendations: gemini, the deterministic
+// template fallback, or the hardcoded leak-demo copy
+export type NarrativeSource = 'llm' | 'fallback' | 'no-data' | 'demo'
 
 export interface Home {
   address: string
@@ -86,6 +89,9 @@ export interface HouseState {
   areas: Area[]
   headline: string
   summary: string
+  // narrative next-steps for the homeowner (LLM or fallback wording)
+  recommendations: string[]
+  narrative_source: NarrativeSource
   weather: Weather
   attention: AttentionItem[]
   sensors: HouseSensor[]
@@ -137,6 +143,7 @@ export interface Report {
   verified: string
   headline: string
   summary: string
+  recommendations: string[]
   mold_threshold: number
   months: { month: string; roof: number; crawl_space: number }[]
   structures: ReportStructure[]
