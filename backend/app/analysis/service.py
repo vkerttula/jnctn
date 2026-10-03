@@ -31,7 +31,10 @@ def get_analysis(
 
     if not refresh and not sim:
         cached = analyses.find_one({"window": window, "period_key": pkey})
-        if cached:
+        # Never serve a cached no-data result: the ingest may have landed after
+        # it was computed, and we don't want an empty-DB moment to stick for the
+        # whole cache period.
+        if cached and cached.get("source") != "no-data":
             return _response(cached)
 
     digest = digest_mod.build(window, now)  # type: ignore[arg-type]
@@ -68,8 +71,10 @@ def get_analysis(
         "digest": digest,
     }
     # While simulating, keep the cache clean — simulated analyses must not
-    # persist past POST /api/simulate/reset.
-    if not sim:
+    # persist past POST /api/simulate/reset. No-data results aren't persisted
+    # either so the first request after ingest recomputes instead of serving a
+    # stale "waiting for data" placeholder.
+    if not sim and source != "no-data":
         analyses.replace_one({"window": window, "period_key": pkey}, doc, upsert=True)
     return _response(doc)
 
