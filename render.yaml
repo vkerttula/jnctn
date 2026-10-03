@@ -1,0 +1,17 @@
+# Render blueprint — "New > Blueprint" in the dashboard picks this up and
+# creates the web service in one step. Builds the root Dockerfile and
+# redeploys on every push to main.
+services:
+  - type: web
+    name: jnctn
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /api/health
+    envVars:
+      # Atlas M0 connection string — sync:false makes Render prompt for the
+      # value so it never lands in the repo.
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: jnctn
