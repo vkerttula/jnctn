@@ -12,7 +12,13 @@ const RANGES: { id: SeriesRange; label: string }[] = [
   { id: '30d', label: '30 days' },
 ]
 
-function Latest({ detail }: { detail: SensorDetail }) {
+function Latest({
+  detail,
+  pair,
+}: {
+  detail: SensorDetail
+  pair?: { id: string; name: string }
+}) {
   const { latest } = detail
   const cells: [string, string][] = []
   if (latest.temp_c != null) cells.push(['Temperature', `${latest.temp_c.toFixed(1)} °C`])
@@ -20,7 +26,19 @@ function Latest({ detail }: { detail: SensorDetail }) {
   if (latest.mold_index != null) cells.push(['Mold index', latest.mold_index.toFixed(1)])
   if (latest.fan_rpm != null) cells.push(['Fan', `${latest.fan_rpm.toFixed(0)} rpm`])
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="flex flex-wrap items-stretch gap-2">
+      <div className="flex items-center gap-2.5 rounded-2xl border border-line bg-white px-4 py-3">
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-ok" />
+        <div>
+          <div className="text-[10px] font-medium tracking-[0.15em] text-muted uppercase">
+            Last reading
+          </div>
+          <div className="mt-1 text-sm font-medium whitespace-nowrap text-navy">
+            {formatDateTime(detail.last_reading_at)} ·{' '}
+            {timeAgo(detail.last_reading_at)}
+          </div>
+        </div>
+      </div>
       {cells.map(([label, value]) => (
         <div
           key={label}
@@ -34,6 +52,14 @@ function Latest({ detail }: { detail: SensorDetail }) {
           </div>
         </div>
       ))}
+      {pair && (
+        <Link
+          to={`/sensors/${pair.id}`}
+          className="flex items-center rounded-2xl border border-line bg-white px-4 py-3 text-sm font-medium text-sense hover:underline"
+        >
+          Works with {pair.name} →
+        </Link>
+      )}
     </div>
   )
 }
@@ -99,27 +125,9 @@ export default function SensorDetailPage() {
               <div className="text-xs tracking-wide text-muted">
                 {KIND_LABEL[detail.kind]} · {ZONE_LABEL[detail.zone] ?? detail.zone}
               </div>
-              <p className="max-w-2xl text-base leading-relaxed text-navy/85">
-                {detail.status_text}
-              </p>
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-ok" />
-                  Last reading {formatDateTime(detail.last_reading_at)} ·{' '}
-                  {timeAgo(detail.last_reading_at)}
-                </span>
-                {pair && (
-                  <Link
-                    to={`/sensors/${pair.id}`}
-                    className="font-medium text-sense hover:underline"
-                  >
-                    Works together with {pair.name} →
-                  </Link>
-                )}
-              </div>
             </section>
 
-            <Latest detail={detail} />
+            <Latest detail={detail} pair={pair} />
 
             <section className="flex flex-col gap-4 rounded-3xl border border-line bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between">
@@ -143,13 +151,13 @@ export default function SensorDetailPage() {
                 </div>
               </div>
               {current?.data?.summary && (
-                <div className="flex items-start gap-2">
+                <div className="flex flex-col gap-1">
                   <p className="text-sm leading-relaxed text-navy/75">
                     {current.data.summary}
                   </p>
                   {current.data.summary_source === 'llm' && (
-                    <span className="mt-0.5 shrink-0 rounded-full border border-navy/15 bg-white/60 px-2.5 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
-                      AI
+                    <span className="w-fit rounded-full border border-navy/15 bg-white/60 px-2.5 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
+                      AI insight
                     </span>
                   )}
                 </div>
