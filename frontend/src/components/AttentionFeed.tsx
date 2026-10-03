@@ -1,14 +1,6 @@
 import type { AttentionItem } from '../api'
+import { timeAgo } from '../labels'
 import { SEVERITY_COLOR } from '../theme'
-
-function since(isoDate: string): string {
-  const mins = Math.max(0, Math.round((Date.now() - Date.parse(isoDate)) / 60000))
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins} min ago`
-  const h = Math.round(mins / 60)
-  if (h < 24) return `${h} h ago`
-  return `${Math.round(h / 24)} d ago`
-}
 
 // Lives inside the navy sidebar — light-on-dark styling, no card chrome.
 export default function AttentionFeed({ items }: { items: AttentionItem[] }) {
@@ -30,7 +22,7 @@ export default function AttentionFeed({ items }: { items: AttentionItem[] }) {
           />
           <div className="flex flex-col gap-1">
             <p className="text-sm leading-relaxed text-white/85">{a.message}</p>
-            <span className="text-xs text-white/40">{since(a.since)}</span>
+            <span className="text-xs text-white/40">{timeAgo(a.since)}</span>
           </div>
         </article>
       ))}

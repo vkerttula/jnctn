@@ -60,9 +60,8 @@ export default function ScoreCard({ state }: { state: HouseState }) {
         </div>
       </div>
       <div className="text-xs font-medium tracking-wide text-white/50">
-        {TREND_LABEL[state.score_trend]}
+        Home score · {TREND_LABEL[state.score_trend]}
       </div>
-      <p className="text-sm leading-relaxed text-white/75">{state.summary}</p>
     </section>
   )
 }

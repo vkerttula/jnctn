@@ -70,16 +70,21 @@ Frontend polls `GET /api/house`; everything else is on demand.
 
 ```json
 {
+  "home": { "address": "Yliopistonranta 1", "city": "Vaasa" },
   "score": 82,
   "score_word": "Good",
   "score_trend": "stable",
-  "summary": "Your structures are drying normally for October.",
-  "weather": { "temp_c": 8.2, "condition": "light rain", "location": "Vaasa" },
+  "headline": "Your home is in good shape",
+  "summary": "The roof is drying normally for early October.",
+  "weather": {
+    "temp_c": 8.6, "condition": "Overcast", "humidity_pct": 87,
+    "wind_ms": 4.2, "location": "Vaasa"
+  },
   "attention": [
     {
-      "sensor_id": "katto-2",
+      "sensor_id": "roof-nw",
       "severity": "watch",
-      "message": "Humidity on the green roof is rising slowly. We're watching it — no action needed yet.",
+      "message": "Moisture in the north-west roof is rising slowly. We're watching it — no action needed yet.",
       "since": "2026-10-01T14:00:00Z"
     }
   ],
@@ -91,7 +96,9 @@ Frontend polls `GET /api/house`; everything else is on demand.
       "zone": "roof_north",
       "status": "watch",
       "primary": true,
-      "latest": { "temp_c": 17.2, "rh_pct": 58.2, "mold_index": null, "fan_rpm": null }
+      "works_with": null,
+      "latest": { "temp_c": 17.2, "rh_pct": 58.2, "mold_index": null, "fan_rpm": null },
+      "last_reading_at": "2026-10-03T12:01:34Z"
     }
   ],
   "simulating": false,
@@ -102,16 +109,23 @@ Frontend polls `GET /api/house`; everything else is on demand.
 - `score` 0–100; `score_word` one of `Good | Fair | Attention`; `score_trend`
   one of `improving | stable | declining`.
 - `attention[]` ordered by severity (`alert` before `watch`), max ~5 items.
+- `home` is the address shown over the 3D view; `headline` is a short
+  plain-language verdict (one line), `summary` one supporting sentence.
+- `weather` is the outdoor context for the home's location (FMI later).
 - `sensors[]`: every device the house scene renders. `kind`:
-  `leak_sensor | fan | climate_sensor | ventilation_unit`. `status`:
-  `ok | watch | alert`. `zone`: a stable string the frontend maps to a 3D
-  anchor **computed from the house profile** (see the onboarding spec) —
-  zones: `roof_south`, `roof_north`, `ridge`, `crawl_space`, `indoor`.
-  `primary: true` marks devices shown on the model. `latest` (same shape as
-  the detail endpoint) feeds the key values in each 3D callout.
-- **Demo home** (mock fixtures): a detached house — four roof moisture
-  sensors (two per slope), a roof fan on the ridge, one crawl-space sensor
-  and a separate ventilation unit. Seven devices.
+  `leak_sensor | fan | climate_sensor`. `status`: `ok | watch | alert`.
+  `zone`: a stable string the frontend maps to a 3D anchor **computed from
+  the house profile** (see the onboarding spec) — zones: `roof_south`,
+  `roof_north`, `ridge`, `crawl_space`. `primary: true` marks devices shown
+  on the model. `latest` (same shape as the detail endpoint) feeds the key
+  values in each 3D callout. `last_reading_at` is when that device last
+  reported. `works_with` links devices installed as one package — the
+  crawl-space humidity sensor and the fan that dries the crawl space point
+  at each other.
+- **Demo home** (mock fixtures): a detached house at Yliopistonranta 1,
+  Vaasa — four roof moisture sensors (two per slope), a roof fan on the
+  ridge, and the crawl-space package (humidity sensor + drying fan). Seven
+  devices.
 - `simulating: true` while a leak simulation is running — the frontend uses
   this to keep the 15 s polling burst and can show a subtle "demo" badge.
 
@@ -119,39 +133,44 @@ Frontend polls `GET /api/house`; everything else is on demand.
 
 ```json
 {
-  "id": "katto-2",
-  "name": "Green roof, west",
-  "kind": "leak_sensor",
-  "zone": "green_roof",
-  "status": "watch",
-  "status_text": "Humidity here is slightly above what we'd expect for October, but it's been falling for three days.",
-  "latest": { "temp_c": 11.2, "rh_pct": 78.4, "mold_index": 0.83, "fan_rpm": null },
-  "updated_at": "2026-10-03T12:00:00Z"
+  "id": "crawl-space",
+  "name": "Crawl space",
+  "kind": "climate_sensor",
+  "zone": "crawl_space",
+  "status": "ok",
+  "status_text": "The crawl space is a little damp, which is normal for autumn. The crawl space fan is drying it.",
+  "latest": { "temp_c": 15.5, "rh_pct": 73.0, "mold_index": 0.0, "fan_rpm": null },
+  "works_with": "crawl-fan",
+  "last_reading_at": "2026-10-03T11:45:46Z",
+  "updated_at": "2026-10-03T12:01:34Z"
 }
 ```
 
 `status_text` is the interpreted, calm sentence — backend writes it, frontend
-never composes interpretation. `latest` fields are nullable per `kind`
-(fans have `fan_rpm`/`mold_index`, leak sensors don't).
+never composes interpretation. `latest` fields are nullable per device (the
+crawl-space fan reports only `fan_rpm`; its humidity comes from the paired
+sensor). The detail page shows `last_reading_at` and links the `works_with`
+device.
 
 ### `GET /api/sensors/{id}/series?range=24h|7d|30d`
 
 ```json
 {
-  "id": "katto-2",
+  "id": "crawl-fan",
   "range": "7d",
   "points": [
-    { "t": "2026-10-01T00:00:00Z", "temp_c": 11.0, "rh_pct": 79.1, "mold_index": null }
+    { "t": "2026-10-01T00:00:00Z", "temp_c": null, "rh_pct": null, "fan_rpm": 1680, "mold_index": null }
   ]
 }
 ```
 
-Backend downsamples to ≤ ~300 points. `mold_index` present only where the
-source data has it (fans, from 2026-03).
+Backend downsamples to ≤ ~300 points. Fields are nullable per device; the
+chart offers only the readings present in the series. `mold_index` present
+only where the source data has it (fans, from 2026-03).
 
 ### `POST /api/simulate/leak` · `POST /api/simulate/reset`
 
-`leak` body: `{ "sensor_id": "katto-2" }` (optional; backend picks a plausible
+`leak` body: `{ "sensor_id": "roof-nw" }` (optional; backend picks a plausible
 target if omitted). Starts a backend-side leak injection into the simulated
 stream; `reset` returns the site to normal. Frontend just renders what
 `/api/house` returns — the moment unfolds over a few minutes: `watch` →
@@ -162,20 +181,22 @@ frontend.
 
 ### HomePage (`/`)
 
-- **ScoreCard** — Oura-style SVG ring, big score number, `score_word`, trend
-  hint, and `summary` as one sentence underneath. No raw sensor values.
+- **Overview overlay** — top of the 3D view: address (`home`), `headline` as
+  a large title with `summary` underneath, and an outdoor weather panel
+  (temperature, condition, humidity, wind). Callouts stay below it.
+- **ScoreCard** (sidebar) — Oura-style SVG ring, big score number,
+  `score_word`, trend hint. No raw sensor values.
 - **HouseScene** — fills the content area; each device is a status-colored
   dot with a leader line to a callout card (status dot, name, 2–3 key
   values). Very slow auto-rotate that pauses while hovering any dot or
   callout; OrbitControls clamped (no under-floor camera, sensible zoom
   limits). Click dot or callout → `/sensors/:id`. Callouts on the far side
-  of the house fade so the front stays readable. No on-screen usage hints
+  of the house fade, and hide while they would cover a front callout. No on-screen usage hints
   ("drag to rotate" etc.) — the homeowner shouldn't need instructions.
 - **AttentionFeed** — list of `attention[]` as calm sentence cards with a
   small severity dot (amber/red). Empty state: "Everything looks normal."
 - **Demo controls** — small, secondary: "Simulate leak" button and, while
-  `simulating`, "Reset demo". Header shows location + weather chip
-  (`weather`).
+  `simulating`, "Reset demo".
 
 ### SensorDetailPage (`/sensors/:id`)
 
@@ -264,7 +285,7 @@ Fonts via `<link>` in `index.html` (no font dep).
 The initial data source — everything runs on this until the backend exists.
 
 - `VITE_API_MODE=mock` (default) → `client.ts` reads `public/mock/*.json`
-  with the same paths (`/mock/house.json`, `/mock/sensors/katto-2.json`, …).
+  with the same paths (`/mock/house.json`, `/mock/sensors/roof-nw.json`, …).
 - Fixtures are hand-written to the contract, with realistic curves — generate
   `series` JSONs from `data/readings/fans/*.csv` where useful (a small
   one-off script is fine, or handcraft).

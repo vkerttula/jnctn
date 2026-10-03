@@ -71,6 +71,8 @@ function applySim(h: HouseState): HouseState {
     score,
     score_word: scoreWord(score),
     score_trend: 'declining',
+    headline:
+      severity === 'alert' ? 'Possible leak in the roof' : 'One area needs watching',
     summary:
       severity === 'alert'
         ? 'We found a likely leak in the roof. Everything else looks normal.'
