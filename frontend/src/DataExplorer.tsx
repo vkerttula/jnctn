@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import Spinner from './components/Spinner'
 
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
@@ -228,9 +229,7 @@ function FanSection({ fans }: { fans: Fan[] }) {
           )}
         </div>
       )}
-      {!rows && !error && (
-        <div className="text-xs text-white/30">Loading readings…</div>
-      )}
+      {!rows && !error && <Spinner dark label="Loading readings…" />}
     </section>
   )
 }
@@ -303,7 +302,7 @@ function SensorSection({ sensors }: { sensors: SensorMeta[] }) {
         <div className="text-xs text-red-400">Failed to load readings.</div>
       )}
       {sensorId !== null && !rows && !error && (
-        <div className="text-xs text-white/30">Loading readings…</div>
+        <Spinner dark label="Loading readings…" />
       )}
       {rows && (
         <div className="grid gap-4 lg:grid-cols-2">
@@ -421,9 +420,7 @@ function DataExplorer() {
           </>
         )}
 
-        {!summary && !error && (
-          <div className="text-xs text-white/30">Loading dataset…</div>
-        )}
+        {!summary && !error && <Spinner dark label="Loading dataset…" />}
       </div>
     </main>
   )
