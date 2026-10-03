@@ -1,10 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Zen+Dots&display=swap');
 @import 'tailwindcss';
 
 @theme {
-  --font-display: 'Zen Dots', ui-sans-serif, system-ui, sans-serif;
+  /* VILPE brand — extracted from vilpe.com + sense.vilpe.com (see
+     docs/specs/2026-10-03-frontend-design.md) */
+  --font-display: 'Titillium Web', 'Helvetica Neue', ui-sans-serif, system-ui,
+    sans-serif;
+  --font-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, ui-sans-serif,
+    system-ui, sans-serif;
+
+  --color-navy: #01273e;
+  --color-vilpe-orange: #e3530f;
+  --color-sense: #004f9f;
+  --color-ok: #50c92f;
+  --color-watch: #f5be23;
+  --color-alert: #df0a15;
+  --color-mist: #f5f5f5;
+  --color-muted: #797979;
+  --color-line: #e6e6e6;
 }
 
+body {
+  font-family: var(--font-sans);
+  background: var(--color-mist);
+  color: var(--color-navy);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Kept for the /data dev-explorer page's dark theme */
 .stars {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='24' cy='36' r='1' opacity='.8'/%3E%3Ccircle cx='90' cy='12' r='.7' opacity='.5'/%3E%3Ccircle cx='160' cy='60' r='1.2' opacity='.9'/%3E%3Ccircle cx='210' cy='28' r='.6' opacity='.4'/%3E%3Ccircle cx='60' cy='110' r='.8' opacity='.6'/%3E%3Ccircle cx='130' cy='140' r='1' opacity='.7'/%3E%3Ccircle cx='200' cy='120' r='.7' opacity='.5'/%3E%3Ccircle cx='40' cy='190' r='1.1' opacity='.8'/%3E%3Ccircle cx='110' cy='210' r='.6' opacity='.45'/%3E%3Ccircle cx='180' cy='200' r='.9' opacity='.65'/%3E%3Ccircle cx='230' cy='170' r='.6' opacity='.5'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='24' cy='36' r='1' opacity='.8'/%3E%3Ccircle cx='90' cy='12' r='.7' opacity='.5'/%3E%3Ccircle cx='160' cy='60' r='1.2' opacity='.9'/%3E%3Ccircle cx='210' cy='28' r='.6' opacity='.4'/%3E%3Ccircle cx='60' cy='110' r='.8' opacity='.6'/%3E%3Ccircle cx='130' cy='140' r='.7' opacity='.6'/%3E%3Ccircle cx='200' cy='120' r='.7' opacity='.5'/%3E%3Ccircle cx='40' cy='190' r='1.1' opacity='.8'/%3E%3Ccircle cx='110' cy='210' r='.6' opacity='.45'/%3E%3Ccircle cx='180' cy='200' r='.9' opacity='.65'/%3E%3Ccircle cx='230' cy='170' r='.6' opacity='.5'/%3E%3C/g%3E%3C/svg%3E");
 }
