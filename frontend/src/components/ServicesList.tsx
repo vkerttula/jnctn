@@ -76,7 +76,7 @@ function RequestItem({
   // An open request keeps the row active until it is resolved.
   if (open)
     return (
-      <div className="rounded-2xl bg-white/10">
+      <div>
         <div className={ROW}>
           <Icon>{r.icon}</Icon>
           <span className="flex min-w-0 flex-1 flex-col">
