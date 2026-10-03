@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { api } from '../api'
-import AlertToast from './AlertToast'
 import AttentionFeed from './AttentionFeed'
 import Clock from './Clock'
 import ScoreCard from './ScoreCard'
@@ -123,7 +122,6 @@ export default function AppShell() {
 
       <div className="relative min-h-[55svh] flex-1 overflow-hidden lg:h-full lg:min-h-0 print:h-auto print:overflow-visible">
         <Outlet context={{ state }} />
-        {state && <AlertToast items={state.attention} headline={state.headline} />}
       </div>
     </div>
   )
