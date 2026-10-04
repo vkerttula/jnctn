@@ -16,8 +16,8 @@ import { api, type Report, type ReportStructure } from '../api'
 import Spinner from '../components/Spinner'
 
 // Moisture History Report — the sellable "structures healthy for N years"
-// document from the vision (e.g. for house sales). Mirrors the concept
-// mockup in docs/; print/PDF via the browser.
+// document from the vision (e.g. for house sales). Contract in
+// docs/specs/2026-10-03-frontend-design.md; print/PDF via the browser.
 
 const ROOF = '#004f9f'
 const CRAWL = '#e3530f'

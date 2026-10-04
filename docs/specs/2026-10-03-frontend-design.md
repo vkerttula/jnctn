@@ -217,7 +217,7 @@ The frontend shows the message in place of the action buttons.
 
 ### `GET /api/report`
 
-The Moisture History Report (see the mockup PDF in `docs/`): property
+The Moisture History Report: property
 meta, `headline` + `summary`, `months[]` of `{ month, roof, crawl_space }`
 peak mold index, `mold_threshold`, `structures[]` (avg RH, peak mold index
 + month, risk periods, coverage, status) and measurement facts. Mock
