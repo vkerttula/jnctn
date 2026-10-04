@@ -13,6 +13,9 @@ items and a printable moisture report out. Built in a weekend —
 `docs/VISION.md` is the product contract, `docs/specs/` the design specs,
 `docs/architecture/` how the analysis actually works.
 
+**Live demo:** https://jnctn.onrender.com — deployed on Render from `main`
+(free tier sleeps when idle; the first hit can take ~30 s).
+
 ## The pipeline
 
 Interpretation is a staged pipeline over MongoDB. The `sense_*` collections
@@ -194,36 +197,6 @@ colima stop && colima start --cpu 4 --memory 8   # colima/lima
 
 Verify with `docker info | grep -i "total memory"` on the host, or
 `free -h` inside the container.
-
-## Deploy
-
-Quick demo without deploying anything:
-`cloudflared tunnel --url http://localhost:5173` — the Vite proxy serves
-the whole stack behind that one public URL (works only while the container
-runs).
-
-Real deploy (~30 min, free tiers): a single Docker image serves
-everything — the root `Dockerfile` builds the frontend in one stage, then
-the same FastAPI process serves `dist/` (mounted via `STATIC_DIR`) and
-`/api/*` from one origin — no CORS, no second service. The database is
-MongoDB Atlas.
-
-1. **MongoDB Atlas**: create an M0 (free) cluster and a database user,
-   allow connections from `0.0.0.0/0` (Render's outbound IPs are dynamic),
-   copy the `mongodb+srv://…` connection string.
-2. **Render**: New → Blueprint → this repo. `render.yaml` provisions a
-   free Docker web service (Frankfurt) and prompts for `MONGODB_URI` and
-   `DEMO_KEY` — paste the Atlas string, and set `DEMO_KEY` to the login
-   access code (`sense-demo` in `frontend/src/auth.ts`) to gate the API.
-3. Done — the app is live at `https://<name>.onrender.com` and every push
-   to `main` rebuilds and redeploys it. For live mode, run the ingest once
-   against the Atlas URI: `MONGODB_URI=<atlas> uv run python -m
-   app.ingest`.
-
-Notes: the free plan sleeps after ~15 min idle (first hit takes ~30 s) —
-ping it before demoing, or upgrade to keep it warm. To gate deploys on
-green CI, turn off Render's auto-deploy and call the service's deploy hook
-from a CI step instead.
 
 ## License
 
