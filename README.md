@@ -205,5 +205,6 @@ Verify with `docker info | grep -i "total memory"` on the host, or
 
 ## License
 
-PolyForm Noncommercial 1.0.0 — free to use, modify and share for
-noncommercial purposes; commercial use requires permission. See `LICENSE`.
+Copyright 2026 Valtteri Kerttula and Lauri Alanen. PolyForm Noncommercial
+1.0.0 — free to use, modify and share for noncommercial purposes;
+commercial use requires permission. See `LICENSE`.
