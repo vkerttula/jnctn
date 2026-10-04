@@ -238,10 +238,10 @@ def write_series(sensor_id: str, kind: str, points: list[dict], end: datetime) -
 
 
 def write_report() -> None:
-    # Moisture History Report (concept, fictional history — mirrors the
-    # "Moisture History Report mockup" PDF in docs/). Monthly peak mold index:
-    # the roof peaks in winter, the crawl space in late summer, both far
-    # below the growth threshold of 1.
+    # Moisture History Report (concept, fictional history — see the
+    # `GET /api/report` section of docs/specs/2026-10-03-frontend-design.md).
+    # Monthly peak mold index: the roof peaks in winter, the crawl space in
+    # late summer, both far below the growth threshold of 1.
     def seasonal(month: int, peak_month: int) -> float:
         return max(0.0, math.cos(2 * math.pi * (month - peak_month) / 12)) ** 2
 
