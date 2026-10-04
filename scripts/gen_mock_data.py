@@ -5,7 +5,8 @@ The demo home is a detached house at Mäntytie 8, Tampere: four moisture
 sensors in the roof (two per slope), a roof fan on the ridge, and the crawl
 space package — a humidity sensor plus the fan that dries the crawl space.
 Every device is backed by one real VILPE Sense series from data/ — the same
-source the live API uses (backend/app/catalog.py).
+source the live API uses (backend/app/catalog.py), except where MOCK_SOURCES
+swaps in a calmer series to keep the mock house all-good.
 
 Writes the contract-shaped JSON the mock API serves (see
 docs/specs/2026-10-03-frontend-design.md):
@@ -37,12 +38,19 @@ HELSINKI = ZoneInfo("Europe/Helsinki")
 MAX_POINTS = 300
 FIELDS = ("temp_c", "rh_pct", "fan_rpm", "mold_index")
 
-# The same logical sensors and physical sources as the live API — each
-# device reads one source from app.catalog: a grid RHT-2 sensor or a fan.
+# Mock mode shows an all-good house with only small fluctuations, so the
+# leak demo has something to fall from. The real crawl space is persistently
+# damp (mould index ~0.8), so mock borrows a calm roof fan's series for it.
+# Every other device uses its live catalog source.
+MOCK_SOURCES = {"crawl-space": "fan:katto-2"}
+
+# The same logical sensors as the live API — each device reads one source
+# from app.catalog (a grid RHT-2 sensor or a fan), unless overridden above.
 DEVICES = [
     {
         **{k: v for k, v in s.items() if k not in ("grid", "fan")},
-        "source": f"rht:{s['grid']['sensor_id']}" if "grid" in s else f"fan:{s['fan']}",
+        "source": MOCK_SOURCES.get(s["id"])
+        or (f"rht:{s['grid']['sensor_id']}" if "grid" in s else f"fan:{s['fan']}"),
         "fields": ("temp_c", "rh_pct") if "grid" in s else s["fields"],
         "state_label": {"roof-fan": "Running", "crawl-fan": "Drying"}.get(s["id"]),
     }
