@@ -103,7 +103,10 @@ Dev scaffolding plus a minimal, verified app skeleton:
 - `docs/` — `VISION.md` (the product vision, written for agents — see above),
   `specs/` (design specs — frontend is built contract-first against
   `specs/2026-10-03-frontend-design.md`, extended by the onboarding flow in
-  `specs/2026-10-03-onboarding-design.md`), plus `topics/` and `ideas/` for
+  `specs/2026-10-03-onboarding-design.md`), `architecture/` (living as-built
+  references: `deterministic-analysis.md` — digest, events, score, normal
+  band; `llm-narration.md` — Gemini prompts, fallback, caching; update them
+  when you change `app/analysis/`), plus `topics/` and `ideas/` for
   hackathon brainstorming
 - `data/` — VILPE Sense demo-site dataset (Vantaa): `site.json`,
   `devices.json` (7 MCU-2 ventilation fans), `sensors.json` (51 RHT-2
