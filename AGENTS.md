@@ -62,7 +62,8 @@ Dev scaffolding plus a minimal, verified app skeleton:
   no averaging: 4 grid sensors for the roof, `katto-3` for `roof-fan`, and
   `hallin-alapohja` split into `crawl-space` + `crawl-fan`. The digest
   reads only these sources and labels them with the UI's names, and
-  `scripts/gen_mock_data.py` imports the catalog too.
+  `scripts/gen_mock_data.py` imports the catalog too. Mock is an all-good
+  house, so its `MOCK_SOURCES` swaps the damp crawl space for a calm series.
   `app/analysis/weather.py` fills the `/api/house` `weather` pill from
   Open-Meteo (Vaasa, Mongo-cached 30 min) with the fans' outdoor
   transmitters as fallback, and supplies daily history for the sensor site

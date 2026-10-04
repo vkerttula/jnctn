@@ -127,7 +127,7 @@ the plan and `y ≤ median` counts as north. The pick's mean RH also sits near
 the quadrant median, and it covers the full grid snapshot. `katto-3` is a
 running roof fan, and the only one with a visible mould signal (peak 0.17).
 `scripts/gen_mock_data.py` imports the catalog, so mock fixtures use the
-same sources.
+same sources, except for the mock crawl space (§7, mock-mode differences).
 
 **Latest values** (`_latest_for`): each field's newest non-null value from
 the source. `last_reading_at` is the newest of those timestamps.
@@ -554,6 +554,9 @@ differs:
 - RHT series are **time-shifted** (about 22 days) to end "now", so mock
   "Normal for October" for the roof sensors is built mostly from September
   2025 readings relabelled as October.
+- Mock is scripted as an all-good house. Its `crawl-space` therefore reads
+  `katto-2` (a calm roof fan, `MOCK_SOURCES`) instead of the damp
+  `hallin-alapohja`. All other mock devices use their catalog source.
 
 ## 8. Moisture History Report (`/api/report`)
 
