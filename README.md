@@ -13,8 +13,9 @@ items and a printable moisture report out. Built in a weekend —
 `docs/VISION.md` is the product contract, `docs/specs/` the design specs,
 `docs/architecture/` how the analysis actually works.
 
-**Live demo:** https://jnctn.onrender.com — deployed on Render from `main`
-(free tier sleeps when idle; the first hit can take ~30 s).
+**Live demo:**
+
+<img width="720" height="405" alt="demo" src="https://github.com/user-attachments/assets/53d9277d-e4b8-48ce-8ad3-e4afaeab80a8" />
 
 ## The pipeline
 
