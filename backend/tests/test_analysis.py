@@ -395,6 +395,26 @@ def test_sensor_summary_fallback_and_cache(monkeypatch):
         db.sensor_summaries.delete_many({"sensor_id": "test-sensor"})
 
 
+def test_stale_narration_version_is_regenerated(seeded_device):
+    from app.analysis import sensor_summary, service
+
+    first = client.get("/api/analysis", params={"window": "day", "refresh": True}).json()
+    service.analyses.update_one(
+        {"window": "day", "period_key": first["period_key"]},
+        {"$set": {"version": llm.NARRATION_VERSION - 1, "summary": "stale words"}},
+    )
+    again = client.get("/api/analysis", params={"window": "day"}).json()
+    assert again["summary"] != "stale words"
+
+    sensor = {"id": "test-sensor", "name": "Test", "kind": "fan", "zone": "ridge"}
+    points = [{"t": "2026-10-03T10:00:00Z", "rh_pct": 60.0, "fan_rpm": 1200}]
+    sensor_summary.get_summary(sensor, "24h", points, None)
+    sensor_summary.summaries.update_many(
+        {"sensor_id": "test-sensor"}, {"$set": {"version": 0, "summary": "stale words"}}
+    )
+    assert sensor_summary.get_summary(sensor, "24h", points, None)["summary"] != "stale words"
+
+
 def test_help_request():
     try:
         r = client.post(

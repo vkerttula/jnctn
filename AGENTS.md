@@ -80,7 +80,9 @@ Dev scaffolding plus a minimal, verified app skeleton:
   returns `summary` + `summary_source` computed from the chart's own
   hourly buckets, Mongo-cached per (sensor, range, period). Mind the
   Gemini free-tier quota (~20 req/day on gemini-3-flash-preview) — the
-  caches exist so the UI doesn't burn it on every load.
+  caches exist so the UI doesn't burn it on every load. Bump
+  `llm.NARRATION_VERSION` when prompts or narrator inputs change; cached
+  text from another version regenerates on its next read.
   `/api/analysis` serves the raw analysis, `/api/analysis/digest` the
   context packet
 - `frontend/` — Vite + React + TS + Tailwind v4 (vite plugin). The app is the
