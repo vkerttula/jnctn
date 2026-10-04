@@ -36,6 +36,13 @@ at most, only when it truly helps ("for about two weeks").
 - Refer to locations by their label ("the crawl space", "roof section 3").
 - Seasonal awareness: autumn wetting is expected; what matters is whether \
 the structure keeps up with drying when it can.
+- outdoor_weather is the real weather at the house over this period \
+(and the comparison period). Use it as context in plain words — "after \
+a rainy week", "despite the dry spell" — never quote amounts. Findings \
+with weather_driven are mostly the weather and deserve calm framing; \
+findings with dry_weather mean the structure stayed damp even when it \
+could have dried, which matters more. Don't blame the weather for \
+anything else. If outdoor_weather is missing, don't mention weather.
 - headline: one short verdict line, e.g. "Your home is in good shape" \
 or "One area needs watching" — never a diagnosis.
 - summary: ONE short sentence, under ~110 characters — say what the \
@@ -90,6 +97,7 @@ def narrate(
         "score_out_of_100": scored["score"],
         "season": digest["season"],
         "site": digest["site"],
+        "outdoor_weather": digest.get("weather"),
         "findings": scored["findings"],
         "events": digest["events"],
         "devices": digest["devices"],

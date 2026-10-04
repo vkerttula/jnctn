@@ -85,6 +85,12 @@ def describe_finding(finding: dict[str, Any]) -> AttentionItem:
     )
     title = title[0].upper() + title[1:]
     detail = _ITEM_DETAILS.get(finding["code"], "We're monitoring this.")
+    facts = finding.get("detail") or {}
+    if finding["code"] == "RH_SUSTAINED_HIGH" and facts.get("weather_driven"):
+        detail = ("Humidity has been high there, but mostly in step with the "
+                  "damp weather outside rather than building up in the structure.")
+    elif finding["code"] == "AH_INVERSION" and facts.get("dry_weather"):
+        detail += " That's despite dry weather, when it should have had a chance to dry."
     if finding.get("occurrences", 1) > 1:
         detail += f" This has come up {finding['occurrences']} times in this period."
     return AttentionItem(title=title, detail=detail, location=loc)
