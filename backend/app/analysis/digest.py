@@ -4,12 +4,16 @@ The LLM never sees raw time series — it sees this digest. Statistics preserve
 the facts (peaks, durations, deltas) that prose summaries would lose, and the
 same `build_digest(window)` path powers day/week/month/year analyses by just
 widening the span and bucketing coarser.
+
+Only the physical sources behind the house's logical sensors
+(`app.catalog`) are read, and they are labelled with the UI's names.
 """
 
 from datetime import UTC, date, datetime, timedelta
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
+from app import catalog
 from app.analysis import weather
 from app.db import db
 
@@ -32,17 +36,6 @@ PERIOD_KEY_FORMAT = {
     "year": "%Y-%m",
 }
 
-# Friendly names so the LLM (and the UI) can say "the crawl space" instead of
-# a device serial. Keys are the device slugs written by app.ingest.
-DEVICE_LABELS = {
-    "katto-1": "roof section 1",
-    "katto-2": "roof section 2",
-    "katto-3": "roof section 3",
-    "katto-4": "roof section 4",
-    "viherkatto-1": "green roof 1",
-    "viherkatto-2": "green roof 2",
-    "hallin-alapohja": "the crawl space",
-}
 
 # Event-detection thresholds. mold_index is VILPE's own mold-risk metric,
 # observed in the data on a ~0..1 scale.
@@ -93,8 +86,8 @@ def build_digest(
     buckets = _device_buckets(span_start, cfg["bucket"]) if cfg["bucket"] else {}
 
     devices = []
-    for meta in db.sense_devices.find():
-        slug = meta.get("slug") or meta["serial_number"]
+    for meta in db.sense_devices.find({"slug": {"$in": catalog.FAN_DEVICES}}):
+        slug = meta["slug"]
         devices.append(
             _device_digest(meta, stats.get(slug), baseline.get(slug),
                            buckets.get(slug, []), span_start, now)
@@ -196,7 +189,7 @@ def _site() -> dict[str, Any]:
 
 
 def _device_stats(start: datetime, end: datetime | None) -> dict[str, dict]:
-    match: dict[str, Any] = {"ts": {"$gte": start}}
+    match: dict[str, Any] = {"device": {"$in": catalog.FAN_DEVICES}, "ts": {"$gte": start}}
     if end:
         match["ts"]["$lt"] = end
     return {
@@ -211,7 +204,7 @@ def _device_buckets(start: datetime, unit: str) -> dict[str, list[dict]]:
     out: dict[str, list[dict]] = {}
     for r in db.sense_fan_readings.aggregate(
         [
-            {"$match": {"ts": {"$gte": start}}},
+            {"$match": {"device": {"$in": catalog.FAN_DEVICES}, "ts": {"$gte": start}}},
             {
                 "$group": {
                     "_id": {
@@ -249,7 +242,7 @@ def _device_digest(meta, stats, baseline, buckets, span_start, now) -> dict[str,
     lookback = now - timedelta(days=400)  # latest values can predate the span
     out = {
         "device": slug,
-        "label": DEVICE_LABELS.get(slug, slug),
+        "label": catalog.DEVICE_LABELS.get(slug, slug),
         "is_online": meta.get("is_online"),
         "is_alert": meta.get("is_alert"),
         "latest": {
@@ -289,7 +282,8 @@ def _sensor_grid(start: datetime, now: datetime) -> dict[str, Any]:
     # The sensor grid comes from a CSV snapshot that ends before "now" while fan
     # data is live. Anchor the grid window at the latest available reading and
     # report `as_of` so scoring/narration know the grid's data vintage.
-    latest_doc = db.sense_sensor_readings.find_one(sort=[("ts", -1)], projection={"ts": 1})
+    ids = {"sensor_id": {"$in": catalog.GRID_IDS}}
+    latest_doc = db.sense_sensor_readings.find_one(ids, sort=[("ts", -1)], projection={"ts": 1})
     as_of = latest_doc["ts"].replace(tzinfo=UTC) if latest_doc else None
     span_len = now - start
     if as_of is None:
@@ -302,7 +296,7 @@ def _sensor_grid(start: datetime, now: datetime) -> dict[str, Any]:
         r["_id"]: r
         for r in db.sense_sensor_readings.aggregate(
             [
-                {"$match": {"ts": {"$gte": start}}},
+                {"$match": {**ids, "ts": {"$gte": start}}},
                 {
                     "$group": {
                         "_id": "$sensor_id",
@@ -317,7 +311,7 @@ def _sensor_grid(start: datetime, now: datetime) -> dict[str, Any]:
             ]
         )
     }
-    meta_by_id = {s["sensor_id"]: s for s in db.sense_sensors.find()}
+    meta_by_id = {s["sensor_id"]: s for s in db.sense_sensors.find(ids)}
 
     means = sorted(r["rh_mean"] for r in per_sensor.values() if r["rh_mean"] is not None)
     median = means[len(means) // 2] if means else None
@@ -330,7 +324,7 @@ def _sensor_grid(start: datetime, now: datetime) -> dict[str, Any]:
             {
                 "sensor_id": sensor_id,
                 "serial": m.get("serial_number"),
-                "coordinates": m.get("coordinates"),
+                "label": catalog.grid_label(m.get("serial_number")),
                 "offline": offline,
                 "span": _round_dict(
                     {
@@ -355,7 +349,8 @@ def _sensor_grid(start: datetime, now: datetime) -> dict[str, Any]:
             "pct_sensors_mean_rh_ge_90": _pct(live, lambda s: s["span"]["rh_mean"] >= 90),
         },
         "outliers": [
-            {"serial": s["serial"], "rh_mean": s["span"]["rh_mean"], "rh_max": s["span"]["rh_max"]}
+            {"serial": s["serial"], "label": s["label"], "rh_mean": s["span"]["rh_mean"],
+             "rh_max": s["span"]["rh_max"]}
             for s in live
             if median is not None and s["span"]["rh_mean"] >= median + 10
         ],
@@ -477,7 +472,8 @@ def _events(
             events.append({"type": "DEVICE_ALERT", "device": d["device"], "label": label})
 
     for serial in digest["sensor_grid"]["offline"]:
-        events.append({"type": "SENSOR_OFFLINE", "serial": serial})
+        events.append({"type": "SENSOR_OFFLINE", "serial": serial,
+                       "label": catalog.grid_label(serial)})
 
     return events
 

@@ -4,7 +4,8 @@
 The demo home is a detached house at Mäntytie 8, Tampere: four moisture
 sensors in the roof (two per slope), a roof fan on the ridge, and the crawl
 space package — a humidity sensor plus the fan that dries the crawl space.
-Every device is backed by a real VILPE Sense series from data/.
+Every device is backed by one real VILPE Sense series from data/ — the same
+source the live API uses (backend/app/catalog.py).
 
 Writes the contract-shaped JSON the mock API serves (see
 docs/specs/2026-10-03-frontend-design.md):
@@ -20,11 +21,15 @@ Run from the repo root:  python scripts/gen_mock_data.py
 import csv
 import json
 import math
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "backend"))
+from app import catalog  # noqa: E402  (pure data — no backend deps)
+
 DATA = ROOT / "data"
 OUT = ROOT / "frontend" / "public" / "mock"
 
@@ -32,25 +37,16 @@ HELSINKI = ZoneInfo("Europe/Helsinki")
 MAX_POINTS = 300
 FIELDS = ("temp_c", "rh_pct", "fan_rpm", "mold_index")
 
-# source: "rht:<sensor_id>" (zip-export RHT-2) or "fan:<device_id>" (MCU-2)
-# fields: which readings this device exposes
+# The same logical sensors and physical sources as the live API — each
+# device reads one source from app.catalog: a grid RHT-2 sensor or a fan.
 DEVICES = [
-    {"id": "roof-sw", "name": "South-west roof", "kind": "leak_sensor", "zone": "roof_south",
-     "source": "rht:18927", "fields": ("temp_c", "rh_pct")},
-    {"id": "roof-se", "name": "South-east roof", "kind": "leak_sensor", "zone": "roof_south",
-     "source": "rht:18918", "fields": ("temp_c", "rh_pct")},
-    {"id": "roof-nw", "name": "North-west roof", "kind": "leak_sensor", "zone": "roof_north",
-     "source": "rht:18796", "fields": ("temp_c", "rh_pct")},
-    {"id": "roof-ne", "name": "North-east roof", "kind": "leak_sensor", "zone": "roof_north",
-     "source": "rht:18920", "fields": ("temp_c", "rh_pct")},
-    {"id": "roof-fan", "name": "Roof fan", "kind": "fan", "zone": "ridge",
-     "source": "fan:katto-1", "fields": ("temp_c", "rh_pct", "fan_rpm", "mold_index"),
-     "state_label": "Running"},
-    {"id": "crawl-space", "name": "Crawl space", "kind": "climate_sensor", "zone": "crawl_space",
-     "source": "fan:katto-2", "fields": ("temp_c", "rh_pct", "mold_index"), "works_with": "crawl-fan"},
-    {"id": "crawl-fan", "name": "Crawl space fan", "kind": "fan", "zone": "crawl_space",
-     "source": "fan:hallin-alapohja", "fields": ("fan_rpm",), "works_with": "crawl-space",
-     "state_label": "Drying"},
+    {
+        **{k: v for k, v in s.items() if k not in ("grid", "fan")},
+        "source": f"rht:{s['grid']['sensor_id']}" if "grid" in s else f"fan:{s['fan']}",
+        "fields": ("temp_c", "rh_pct") if "grid" in s else s["fields"],
+        "state_label": {"roof-fan": "Running", "crawl-fan": "Drying"}.get(s["id"]),
+    }
+    for s in catalog.SENSORS
 ]
 
 STATUS_TEXT = {
@@ -350,7 +346,7 @@ def main() -> None:
         OUT / "house.json",
         {
             "home": {"address": "Mäntytie 8", "city": "Tampere"},
-            "score": 86,
+            "score": 97,
             "score_word": "Good",
             "score_trend": "stable",
             "areas": [
