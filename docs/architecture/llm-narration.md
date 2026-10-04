@@ -71,10 +71,11 @@ structured data:\n"` followed by `json.dumps` of:
 
 No raw time series go in. The packet's size depends on device count × bucket
 count (none / 7 daily / ~5 weekly / 12 monthly), not on how much history
-exists. The LLM sees **physical** devices ("roof section 3", "green roof 2",
-"the crawl space"), not the 7-device logical catalog the UI shows. It is not
-given the sidebar's current Vaasa weather, the house address or the logical
-sensor names.
+exists. The LLM only sees the catalog's sources (`app/catalog.py`), labelled
+with the UI's words: "the roof" (`katto-3`), "the crawl space" and the four
+roof sensors ("the north-west roof"). It never hears about a device the UI
+doesn't show. It is not given the sidebar's current Vaasa weather or the
+house address.
 
 Some context is **only** available to the narrator, because scoring ignores
 it: grid `outliers`, `pct_sensors_mean_rh_ge_80`, `trend.mold_delta`,
@@ -98,7 +99,7 @@ finding.
 4. **Plain language.** No units, decimals, ppm, percentages or jargon. Never
    write `mold_index`. At most one concrete number per sentence, and only
    when it helps ("for about two weeks").
-5. **Locations by label** ("the crawl space", "roof section 3").
+5. **Locations by label** ("the crawl space", "the roof").
 6. **Seasonal awareness.** Autumn wetting is expected. What matters is
    whether the structure keeps up with drying when it can.
 7. **Weather as context.**
@@ -347,8 +348,6 @@ reinterpretation each time.
      weather (where the data comes from), while the UI and its weather pill
      say Vaasa. A "rainy week" in the narrative may not match the pill.
    - The per-sensor narrator (`narrate_sensor`) gets no weather.
-   - The model speaks in physical labels ("roof section 3") that don't
-     exist in the UI's logical catalog (`Roof fan`, `North-west roof`).
 6. **Prompt vs. schema drift.** Item and recommendation limits differ, and
    the summary limit (prompt ~110, schema 120) leaves little margin, so
    overruns turn into retries.

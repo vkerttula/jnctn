@@ -9,46 +9,24 @@
     POST /api/simulate/reset                 -> stop it
 
 The API exposes a *logical* sensor catalog — 7 devices of a detached house:
-four roof moisture quadrants (aggregates of the 51-sensor grid), a roof fan
-(the katto-*/viherkatto-* fans), and the crawl-space package
-(hallin-alapohja split into a climate sensor + its drying fan).
+four roof moisture sensors, a roof fan, and the crawl-space package (a
+climate sensor + its drying fan). Each reads exactly one physical source,
+defined in `app.catalog` — nothing is averaged across devices.
 """
 
-import statistics
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from app import catalog
 from app.analysis import digest as digest_mod
 from app.analysis import fallback, sensor_summary, service, simulate, weather
 from app.db import db
 
 router = APIRouter(tags=["house"])
 
-# Logical sensors in display order. Roof quadrants aggregate the sensor grid
-# by layout coordinates; the crawl-space pair maps to hallin-alapohja.
-CATALOG = [
-    {"id": "roof-sw", "name": "South-west roof", "kind": "leak_sensor", "zone": "roof_south"},
-    {"id": "roof-se", "name": "South-east roof", "kind": "leak_sensor", "zone": "roof_south"},
-    {"id": "roof-nw", "name": "North-west roof", "kind": "leak_sensor", "zone": "roof_north"},
-    {"id": "roof-ne", "name": "North-east roof", "kind": "leak_sensor", "zone": "roof_north"},
-    {"id": "roof-fan", "name": "Roof fan", "kind": "fan", "zone": "ridge"},
-    {
-        "id": "crawl-space", "name": "Crawl space", "kind": "climate_sensor",
-        "zone": "crawl_space", "works_with": "crawl-fan",
-    },
-    {
-        "id": "crawl-fan", "name": "Crawl space fan", "kind": "fan",
-        "zone": "crawl_space", "works_with": "crawl-space",
-    },
-]
-
-ROOF_FAN_SLUGS = [
-    "katto-1", "katto-2", "katto-3", "katto-4", "viherkatto-1", "viherkatto-2",
-]
-CRAWL_SLUG = "hallin-alapohja"
 CLIMATE_FINDINGS = {"RH_SUSTAINED_HIGH", "MOLD_INDEX_ELEVATED", "AH_INVERSION", "GRID_HUMID"}
 FAN_FINDINGS = {"FAN_STOPPED", "FAN_NO_DATA", "DEVICE_ALERT"}
 
@@ -113,105 +91,46 @@ def _iso(dt: datetime | None) -> str | None:
     return dt.replace(tzinfo=UTC).isoformat().replace("+00:00", "Z") if dt else None
 
 
-def _quadrant_members() -> dict[str, list[dict]]:
-    """Split roof sensors into logical quadrant ids by layout coordinates."""
-    out: dict[str, list[dict]] = {q: [] for q in ("roof-nw", "roof-ne", "roof-sw", "roof-se")}
-    sensors = [s for s in db.sense_sensors.find() if s.get("coordinates")]
-    if not sensors:
-        return out
-    mid_x = statistics.median(s["coordinates"]["x"] for s in sensors)
-    mid_y = statistics.median(s["coordinates"]["y"] for s in sensors)
-    for s in sensors:
-        x, y = s["coordinates"]["x"], s["coordinates"]["y"]
-        quad = ("roof-n" if y <= mid_y else "roof-s") + ("w" if x <= mid_x else "e")
-        out[quad].append(s)
-    return out
+def _fan_device_id(slug: str) -> int | None:
+    dev = db.sense_devices.find_one({"slug": slug}, {"device_id": 1})
+    return dev["device_id"] if dev else None
 
 
-def _lat(device_id: int, dotted: str) -> tuple[float | None, datetime | None]:
-    doc = db.sense_fan_readings.find_one(
-        {"device_id": device_id, dotted: {"$ne": None}},
-        {dotted: 1, "ts": 1},
-        sort=[("ts", -1)],
-    )
-    if not doc:
-        return None, None
-    node = doc
-    for part in dotted.split("."):
-        node = node[part]
-    return node, doc["ts"]
-
-
-def _devices() -> dict[str, dict]:
-    return {d.get("slug") or d["serial_number"]: d for d in db.sense_devices.find()}
-
-
-def _latest_for(sensor_id: str, quads: dict[str, list[dict]]) -> dict[str, Any]:
-    """latest{} + last_reading_at for a logical sensor id."""
-    latest: dict[str, Any] = {
-        "temp_c": None, "rh_pct": None, "mold_index": None, "fan_rpm": None
-    }
-    if sensor_id in quads:
-        ids = [s["sensor_id"] for s in quads[sensor_id]]
-        docs = list(
-            db.sense_sensor_readings.find(
-                {"sensor_id": {"$in": ids}},
-                {"sensor_id": 1, "temp_c": 1, "rh_pct": 1, "ts": 1},
-                sort=[("ts", -1)],
-                limit=len(ids) * 4,
-            )
+def _source(entry: dict) -> tuple[Any, dict, dict[str, str]]:
+    """(collection, match, {field: $path}) for a logical sensor's one source."""
+    if "grid" in entry:
+        return (
+            db.sense_sensor_readings,
+            {"sensor_id": entry["grid"]["sensor_id"]},
+            {"temp_c": "$temp_c", "rh_pct": "$rh_pct"},
         )
-        seen: dict[int, dict] = {}
-        for d in docs:  # newest first — first doc per sensor is its latest
-            seen.setdefault(d["sensor_id"], d)
-        temps = [d["temp_c"] for d in seen.values() if d["temp_c"] is not None]
-        rhs = [d["rh_pct"] for d in seen.values() if d["rh_pct"] is not None]
-        latest["temp_c"] = round(sum(temps) / len(temps), 1) if temps else None
-        latest["rh_pct"] = round(sum(rhs) / len(rhs), 1) if rhs else None
-        last_ts = max((d["ts"] for d in seen.values()), default=None)
-    elif sensor_id == "roof-fan":
-        devs = _devices()
-        temps, rhs, rpms, molds, tss = [], [], [], [], []
-        for slug in ROOF_FAN_SLUGS:
-            dev = devs.get(slug)
-            if not dev:
-                continue
-            for field, acc in (
-                ("indoor.temp_c", temps),
-                ("indoor.rh_pct", rhs),
-                ("rpm", rpms),
-                ("mold_index", molds),
-            ):
-                v, ts = _lat(dev["device_id"], field)
-                if v is not None:
-                    acc.append(v)
-                    tss.append(ts)
-        latest["temp_c"] = round(sum(temps) / len(temps), 1) if temps else None
-        latest["rh_pct"] = round(sum(rhs) / len(rhs), 1) if rhs else None
-        latest["fan_rpm"] = round(sum(rpms) / len(rpms)) if rpms else None
-        latest["mold_index"] = round(max(molds), 4) if molds else None
-        last_ts = max(tss) if tss else None
-    elif sensor_id == "crawl-space":
-        dev = _devices().get(CRAWL_SLUG)
-        tss = []
-        if dev:
-            for field, key in (
-                ("indoor.temp_c", "temp_c"),
-                ("indoor.rh_pct", "rh_pct"),
-                ("mold_index", "mold_index"),
-            ):
-                v, ts = _lat(dev["device_id"], field)
-                latest[key] = round(v, 4) if v is not None else None
-                if ts:
-                    tss.append(ts)
-        last_ts = max(tss) if tss else None
-    elif sensor_id == "crawl-fan":
-        dev = _devices().get(CRAWL_SLUG)
-        rpm, last_ts = _lat(dev["device_id"], "rpm") if dev else (None, None)
-        latest["fan_rpm"] = rpm
-    else:
-        last_ts = None
-    return {"latest": latest, "last_reading_at": _iso(last_ts)}
+    return (
+        db.sense_fan_readings,
+        {"device_id": _fan_device_id(entry["fan"]) or -1},
+        {f: "$" + catalog.FAN_FIELDS[f] for f in entry["fields"]},
+    )
+
+
+_DIGITS = {"temp_c": 1, "rh_pct": 1, "fan_rpm": 0, "mold_index": 4}
+
+
+def _latest_for(entry: dict) -> dict[str, Any]:
+    """latest{} + last_reading_at — each field's newest value from the source."""
+    coll, match, fields = _source(entry)
+    latest: dict[str, Any] = dict.fromkeys(_DIGITS)
+    tss = []
+    for key, path in fields.items():
+        doc = coll.find_one(
+            {**match, path[1:]: {"$ne": None}}, {path[1:]: 1, "ts": 1}, sort=[("ts", -1)]
+        )
+        if not doc:
+            continue
+        node = doc
+        for part in path[1:].split("."):
+            node = node[part]
+        latest[key] = _round(node, _DIGITS[key])
+        tss.append(doc["ts"])
+    return {"latest": latest, "last_reading_at": _iso(max(tss) if tss else None)}
 
 
 def _state_label(entry: dict, latest: dict) -> str | None:
@@ -223,18 +142,33 @@ def _state_label(entry: dict, latest: dict) -> str | None:
     return FAN_LABELS[entry["id"]]
 
 
-def _finding_sensor_id(finding: dict, serial_quad: dict[str, str]) -> str | None:
-    """Map a finding's ref (device slug / serial / logical id) to a catalog id."""
+def _finding_sensor_id(finding: dict) -> str | None:
+    """Map a finding's ref (device slug / grid serial / logical id) to a catalog id."""
     ref = finding.get("ref")
     if not ref:
         return None
-    if ref in {s["id"] for s in CATALOG}:
+    if ref in catalog.BY_ID:
         return ref
-    if ref == CRAWL_SLUG:
+    if ref == catalog.CRAWL:
         return "crawl-fan" if finding["code"] in FAN_FINDINGS else "crawl-space"
-    if ref in ROOF_FAN_SLUGS:
+    if ref == catalog.ROOF_FAN:
         return "roof-fan"
-    return serial_quad.get(ref)
+    grid = catalog.GRID.get(ref)
+    return grid["id"] if grid else None
+
+
+_RANK = {"alert": 2, "watch": 1, "ok": 0}
+
+
+def _statuses(findings: list[dict]) -> dict[str, str]:
+    """Per-sensor status — the most severe finding mapped to each sensor."""
+    status: dict[str, str] = {}
+    for f in findings:
+        sid = _finding_sensor_id(f)
+        mapped = SEVERITY_MAP.get(f["severity"], "ok")
+        if sid and _RANK[mapped] > _RANK[status.get(sid, "ok")]:
+            status[sid] = mapped
+    return status
 
 
 def _sim_severity(sim: dict) -> str:
@@ -258,25 +192,13 @@ def house_state() -> dict[str, Any]:
     analysis = service.get_analysis("day")
     sim = simulate.active()
 
-    quads = _quadrant_members()
-    serial_quad = {
-        s["serial_number"]: q for q, members in quads.items() for s in members
-    }
-    rank = {"alert": 2, "watch": 1, "ok": 0}
-    status = {}
-    for f in analysis["findings"]:
-        sid = _finding_sensor_id(f, serial_quad)
-        if not sid:
-            continue
-        mapped = SEVERITY_MAP.get(f["severity"], "ok")
-        if rank.get(mapped, 0) > rank.get(status.get(sid, "ok"), 0):
-            status[sid] = mapped
+    status = _statuses(analysis["findings"])
 
     sensors = []
-    for entry in CATALOG:
+    for entry in catalog.SENSORS:
         sim_hit = sim and sim.get("sensor_id") == entry["id"]
         st = _sim_severity(sim) if sim_hit else status.get(entry["id"], "ok")
-        base = _latest_for(entry["id"], quads)
+        base = _latest_for(entry)
         if sim_hit:
             ramped = _sim_rh(sim, base["latest"]["rh_pct"])
             if ramped is not None:
@@ -297,7 +219,7 @@ def house_state() -> dict[str, Any]:
             }
         )
 
-    rank = {"alert": 2, "watch": 1, "ok": 0}
+    rank = _RANK
     by_id = {s["id"]: s["status"] for s in sensors}
     areas = [
         {
@@ -361,7 +283,7 @@ def house_state() -> dict[str, Any]:
             continue
         if f["code"].endswith("_SIMULATED"):  # already covered above
             continue
-        sid = _finding_sensor_id(f, serial_quad)
+        sid = _finding_sensor_id(f)
         if sid is None:
             continue
         items = narrative_items.get((f.get("location") or "").strip().lower())
@@ -443,30 +365,21 @@ def house_state() -> dict[str, Any]:
 
 
 def _entry(sensor_id: str) -> dict[str, Any]:
-    for s in CATALOG:
-        if s["id"] == sensor_id:
-            return s
-    raise HTTPException(404, f"unknown sensor {sensor_id!r}")
+    if sensor_id not in catalog.BY_ID:
+        raise HTTPException(404, f"unknown sensor {sensor_id!r}")
+    return catalog.BY_ID[sensor_id]
 
 
 @router.get("/sensors/{sensor_id}")
 def sensor_detail(sensor_id: str) -> dict[str, Any]:
     entry = _entry(sensor_id)
     analysis = service.get_analysis("day")
-    quads = _quadrant_members()
-    serial_quad = {
-        s["serial_number"]: q for q, members in quads.items() for s in members
-    }
-    status = {}
-    for f in analysis["findings"]:
-        sid = _finding_sensor_id(f, serial_quad)
-        if sid:
-            status[sid] = SEVERITY_MAP.get(f["severity"], "ok")
+    status = _statuses(analysis["findings"])
     sim = simulate.active()
     sim_hit = sim and sim.get("sensor_id") == sensor_id
     st = _sim_severity(sim) if sim_hit else status.get(sensor_id, "ok")
 
-    base = _latest_for(sensor_id, quads)
+    base = _latest_for(entry)
     if sim_hit:
         ramped = _sim_rh(sim, base["latest"]["rh_pct"])
         if ramped is not None:
@@ -499,40 +412,8 @@ def sensor_detail(sensor_id: str) -> dict[str, Any]:
 def sensor_series(
     sensor_id: str, range: Literal["24h", "7d", "30d", "1y"] = "7d"
 ) -> dict[str, Any]:
-    _entry(sensor_id)
+    coll, match, agg = _source(_entry(sensor_id))
     days = {"24h": 1, "7d": 7, "30d": 30, "1y": 365}[range]
-    quads = _quadrant_members()
-
-    if sensor_id in quads:
-        ids = [s["sensor_id"] for s in quads[sensor_id]]
-        match = {"sensor_id": {"$in": ids}}
-        coll = db.sense_sensor_readings
-        agg = {"temp_c": "$temp_c", "rh_pct": "$rh_pct"}
-    elif sensor_id == "roof-fan":
-        devs = _devices()
-        ids = [devs[s]["device_id"] for s in ROOF_FAN_SLUGS if s in devs]
-        match = {"device_id": {"$in": ids}}
-        coll = db.sense_fan_readings
-        agg = {
-            "temp_c": "$indoor.temp_c",
-            "rh_pct": "$indoor.rh_pct",
-            "fan_rpm": "$rpm",
-            "mold_index": "$mold_index",
-        }
-    elif sensor_id == "crawl-fan":
-        dev = _devices().get(CRAWL_SLUG)
-        match = {"device_id": dev["device_id"] if dev else -1}
-        coll = db.sense_fan_readings
-        agg = {"fan_rpm": "$rpm"}
-    else:  # crawl-space
-        dev = _devices().get(CRAWL_SLUG)
-        match = {"device_id": dev["device_id"] if dev else -1}
-        coll = db.sense_fan_readings
-        agg = {
-            "temp_c": "$indoor.temp_c",
-            "rh_pct": "$indoor.rh_pct",
-            "mold_index": "$mold_index",
-        }
 
     end = (coll.find_one(match, {"ts": 1}, sort=[("ts", -1)]) or {}).get("ts")
     if end is None:
@@ -552,8 +433,7 @@ def sensor_series(
         else None
     )
 
-    # Bucket by hour for short ranges, by day for the year view, averaging
-    # across whatever members feed this sensor.
+    # Bucket the one source by hour for short ranges, by day for the year view.
     bucket = "hour" if days <= 30 else "day"
     rows = list(
         coll.aggregate(
@@ -711,13 +591,18 @@ def report() -> dict[str, Any]:
 
     # Monthly peak mold index per structure group (mold_index exists from
     # 2026-03 in the source data — earlier months simply have no series).
-    devs = _devices()
-    roof_ids = [devs[s]["device_id"] for s in ROOF_FAN_SLUGS if s in devs]
-    crawl_id = devs.get(CRAWL_SLUG, {}).get("device_id")
+    roof_id = _fan_device_id(catalog.ROOF_FAN)
+    roof_ids = [roof_id] if roof_id else []
+    crawl_id = _fan_device_id(catalog.CRAWL)
     monthly: dict[str, dict[str, Any]] = {}
     for r in db.sense_fan_readings.aggregate(
         [
-            {"$match": {"mold_index": {"$ne": None}}},
+            {
+                "$match": {
+                    "device_id": {"$in": roof_ids + ([crawl_id] if crawl_id else [])},
+                    "mold_index": {"$ne": None},
+                }
+            },
             {
                 "$group": {
                     "_id": {
@@ -743,10 +628,9 @@ def report() -> dict[str, Any]:
 
     analysis = service.get_analysis("year")
     structures = _report_structures(start, end, span_days, roof_ids, crawl_id)
-    total = (
-        db.sense_fan_readings.estimated_document_count()
-        + db.sense_sensor_readings.estimated_document_count()
-    )
+    total = db.sense_fan_readings.count_documents(
+        {"device_id": {"$in": roof_ids + ([crawl_id] if crawl_id else [])}}
+    ) + db.sense_sensor_readings.count_documents({"sensor_id": {"$in": catalog.GRID_IDS}})
 
     return {
         "id": f"VS-{end.year}-0001",
@@ -775,7 +659,6 @@ def report() -> dict[str, Any]:
 
 
 def _report_structures(start, end, span_days, roof_ids, crawl_id) -> list[dict[str, Any]]:
-    quads = _quadrant_members()
     structures = []
 
     def structure(name, rh_filter, mold_ids):
@@ -823,8 +706,8 @@ def _report_structures(start, end, span_days, roof_ids, crawl_id) -> list[dict[s
             else "Moisture risk",
         }
 
-    north_ids = [s["sensor_id"] for q in ("roof-nw", "roof-ne") for s in quads[q]]
-    south_ids = [s["sensor_id"] for q in ("roof-sw", "roof-se") for s in quads[q]]
+    north_ids = [catalog.BY_ID[q]["grid"]["sensor_id"] for q in ("roof-nw", "roof-ne")]
+    south_ids = [catalog.BY_ID[q]["grid"]["sensor_id"] for q in ("roof-sw", "roof-se")]
     structures.append(
         structure("Roof · north slope", {"sensor_id": {"$in": north_ids}}, roof_ids)
     )

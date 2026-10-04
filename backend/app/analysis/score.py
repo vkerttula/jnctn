@@ -237,6 +237,7 @@ def _score_event(ev: dict[str, Any]) -> tuple[dict[str, Any] | None, float]:
             {
                 "code": t,
                 "severity": "info",
+                "location": ev.get("label"),
                 "ref": ev.get("serial"),
                 "detail": {"serial": ev.get("serial")},
             },

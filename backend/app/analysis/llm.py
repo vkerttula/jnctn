@@ -33,7 +33,7 @@ we measure, they diagnose.
 Say "the crawl space has been damp for a while", not "RH 98.1% for 20h". \
 Never say "mold_index". One concrete number per sentence \
 at most, only when it truly helps ("for about two weeks").
-- Refer to locations by their label ("the crawl space", "roof section 3").
+- Refer to locations by their label ("the crawl space", "the roof").
 - Seasonal awareness: autumn wetting is expected; what matters is whether \
 the structure keeps up with drying when it can.
 - outdoor_weather is the real weather at the house over this period \

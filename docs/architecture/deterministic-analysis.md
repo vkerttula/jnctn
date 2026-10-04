@@ -13,7 +13,8 @@ before any model is called, so the number stays stable and auditable, and
 the template fallback can render the same conclusions with no model at all.
 
 Code lives in `backend/app/analysis/` (`digest.py`, `score.py`,
-`service.py`, `simulate.py`, `weather.py`), `backend/app/routers/house.py`
+`service.py`, `simulate.py`, `weather.py`), `backend/app/catalog.py` (which
+physical source backs each logical sensor), `backend/app/routers/house.py`
 (the frontend contract) and `backend/app/ingest.py`.
 
 ## Pipeline at a glance
@@ -80,15 +81,14 @@ than the outdoor air, it cannot dry by ventilation.
 
 ### Device slugs and labels
 
-Slugs come from device names (`"VILPE Vantaa, Katto 1"` → `katto-1`).
-`digest.DEVICE_LABELS` maps each slug to a human label that later appears in
-findings and narration:
-
-| Slug | Label | Location |
-| --- | --- | --- |
-| `katto-1` … `katto-4` | roof section 1–4 | roof |
-| `viherkatto-1`, `viherkatto-2` | green roof 1–2 | green roof |
-| `hallin-alapohja` | the crawl space | crawl space / base floor |
+Slugs come from device names (`"VILPE Vantaa, Katto 1"` → `katto-1`):
+`katto-1` … `katto-4` (roof), `viherkatto-1`, `viherkatto-2` (green roof),
+`hallin-alapohja` (crawl space / base floor). Ingest stores all of them, but
+the analysis reads only the catalog's sources (§2).
+`catalog.DEVICE_LABELS` names those sources in findings and narration with
+the UI's words: `katto-3` → "the roof", `hallin-alapohja` → "the crawl
+space". Grid sensors are named after their logical sensor ("the north-west
+roof").
 
 ### Cadence and time
 
@@ -105,28 +105,32 @@ findings and narration:
 
 ## 2. Physical → logical model
 
-A homeowner doesn't think in 51 sensors and 7 fans. `house.CATALOG` exposes
-**7 logical devices**:
+A homeowner doesn't think in 51 sensors and 7 fans. `catalog.SENSORS` exposes
+**7 logical devices**, and each one reads **exactly one physical source**.
+Nothing is averaged across devices. The other 5 fans and 47 grid sensors are
+ingested but ignored by the analysis and the UI, so a reading, a finding
+and a narrative sentence always refer to the same thing.
 
-| Logical id | Kind | Built from | Aggregation |
+| Logical id | Kind | Source | Fields |
 | --- | --- | --- | --- |
-| `roof-nw`, `roof-ne`, `roof-sw`, `roof-se` | `leak_sensor` | grid sensors split into quadrants | mean of member sensors |
-| `roof-fan` | `fan` | the 6 `katto-*` / `viherkatto-*` fans | mean T / RH / rpm, **max** mould index |
-| `crawl-space` | `climate_sensor` | `hallin-alapohja` indoor T / RH / mould | direct |
-| `crawl-fan` | `fan` | `hallin-alapohja` rpm | direct |
+| `roof-sw` | `leak_sensor` | grid sensor `P672786W5BZ` (id 18877) | T, RH |
+| `roof-se` | `leak_sensor` | grid sensor `P686956XTAM` (id 18945) | T, RH |
+| `roof-nw` | `leak_sensor` | grid sensor `P672830B96G` (id 18965) | T, RH |
+| `roof-ne` | `leak_sensor` | grid sensor `P655155KDRK` (id 18790) | T, RH |
+| `roof-fan` | `fan` | fan `katto-3` | indoor T / RH, rpm, mould |
+| `crawl-space` | `climate_sensor` | fan `hallin-alapohja` | indoor T / RH, mould |
+| `crawl-fan` | `fan` | fan `hallin-alapohja` | rpm |
 
-**Quadrant split** (`_quadrant_members`): the median x and median y of all
-sensor layout coordinates divide the roof plan into four parts. `y ≤
-median_y` is treated as north (it assumes the layout image has north at the
-top) and `x ≤ median_x` as west. Using medians gives each quadrant roughly a
-quarter of the sensors.
+**How the sources were picked.** Each grid pick is the sensor nearest to its
+quadrant's centre, where the median x and y of the layout coordinates split
+the plan and `y ≤ median` counts as north. The pick's mean RH also sits near
+the quadrant median, and it covers the full grid snapshot. `katto-3` is a
+running roof fan, and the only one with a visible mould signal (peak 0.17).
+`scripts/gen_mock_data.py` imports the catalog, so mock fixtures use the
+same sources.
 
-**Latest values** (`_latest_for`):
-- Quadrants: each member sensor's newest reading, averaged.
-- Roof fan: each fan's newest value per field. T, RH and rpm are averaged;
-  mould index takes the maximum, because the worst structure should not be
-  averaged away.
-- `last_reading_at` is the newest timestamp among the inputs.
+**Latest values** (`_latest_for`): each field's newest non-null value from
+the source. `last_reading_at` is the newest of those timestamps.
 
 **Fan state label**: `"Stopped"` if the latest rpm is falsy. Otherwise
 `"Running"` for the roof fan and `"Drying"` for the crawl fan.
@@ -152,7 +156,7 @@ the 7 days ending 24 h ago.
 
 ### Per-device block
 
-For every device in `sense_devices`:
+For every catalog fan device (`catalog.FAN_DEVICES`):
 
 - **`span` / `baseline` stats**: one Mongo `$group` over `sense_fan_readings`
   giving `n`, mean/max indoor RH, mean indoor/outdoor T, mean indoor/outdoor
@@ -173,7 +177,8 @@ For every device in `sense_devices`:
 
 ### Sensor-grid block
 
-`_sensor_grid` summarises the 51 grid sensors:
+`_sensor_grid` summarises the catalog's 4 grid sensors (`catalog.GRID_IDS`),
+each labelled with its logical name:
 
 1. **Anchoring.** `as_of` is the newest grid reading. If it falls before the
    span start (it does: the CSV snapshot ended 2026-09-11), the grid window
@@ -348,7 +353,7 @@ finding carries `code`, `severity`, `location` (the device label), `ref`
 | Group | Raw points | Rank | Counted |
 | --- | --- | --- | --- |
 | Mould in the crawl space, peak 0.83, ongoing | min(40, 15+24.9) = 39.9 | 0 | 39.90 |
-| Fan stopped, green roof 2 | 8 | 1 | 4.00 |
+| Fan stopped, the roof | 8 | 1 | 4.00 |
 | Crawl space RH ≥ 85 % for 20 h, ongoing, AH +1.5 (no discount) | min(12, 3+1.67) + 3 = 7.67 | 2 | 2.56 |
 | AH inversion, crawl space | 6 | 3 | 1.50 |
 | 2 grid sensors offline | 1 + 1 | 4, 5 | 0.37 |
@@ -368,12 +373,14 @@ discounting.
 - ref is a catalog id → itself (simulated events)
 - ref `hallin-alapohja` → `crawl-fan` for fan findings (`FAN_STOPPED`,
   `FAN_NO_DATA`, `DEVICE_ALERT`), otherwise `crawl-space`
-- ref in `katto-*` / `viherkatto-*` → `roof-fan`
-- ref is a grid serial → its quadrant
-- no ref (e.g. `GRID_HUMID`) → not attached to any sensor
+- ref `katto-3` (`catalog.ROOF_FAN`) → `roof-fan`
+- ref is a catalog grid serial → its roof sensor
+- no ref (e.g. `GRID_HUMID`) or a non-catalog ref → not attached to any
+  sensor
 
-**Sensor status** in `/api/house` = the most severe mapped finding (default
-`ok`). **Area status** (`roof` = 4 quadrants + roof fan, `crawl_space` =
+**Sensor status** (`_statuses`, shared by `/api/house` and
+`/api/sensors/{id}`) = the most severe mapped finding (default `ok`).
+**Area status** (`roof` = 4 quadrants + roof fan, `crawl_space` =
 crawl-space + crawl-fan) = the worst member.
 
 **Score word** (`/api/house`): `Good ≥ 75`, `Fair ≥ 60`, else `Attention`.
@@ -390,11 +397,11 @@ These are different cut-offs from the tone (see §14).
 
 ## 7. Chart analytics (`/api/sensors/{id}/series`)
 
-- **Window end** = the newest reading for that source, not "now". Grid
-  quadrants therefore end on the CSV snapshot date.
+- **Source**: the sensor's one catalog source (`house._source`).
+- **Window end** = the newest reading for that source, not "now". Roof
+  sensors therefore end on the CSV snapshot date.
 - **Bucketing**: hourly for ranges ≤ 30 d, daily for `1y`. Each bucket is the
-  mean across every member feeding the logical sensor (e.g. all quadrant
-  sensors, all six roof fans).
+  mean of that one source's readings in the hour or day.
 - **Downsampling**: keeps every `stride`-th bucket, `stride = max(1,
   len // 300)`, which gives roughly 300–600 points.
 - **Aliasing.** Downsampling picks buckets by position, regardless of which
@@ -418,8 +425,8 @@ absorbed into its own baseline.
 #### Algorithm
 
 ```
-hourly = $dateTrunc(hour) mean of the RH field over the device's FULL stored
-         history (all members averaged per bucket; no ts filter)
+hourly = $dateTrunc(hour) mean of the RH field over the source's FULL stored
+         history (no ts filter)
 cur    = (end.year, end.month)                      # the still-running month
 
 for each calendar-month span [x1, x2) covering [start, end):
@@ -445,8 +452,7 @@ Design choices worth knowing:
   % of a typical month's hours fall inside. Being outside the band is common
   enough that it shouldn't alarm anyone.
 - **Hourly means as the unit**, so a device that samples more often doesn't
-  get more weight. For multi-member sensors (quadrants, the roof fan), each
-  bucket is the mean of whichever members reported that hour.
+  get more weight.
 - **Excluding the span's own instance** is what makes this climatology and
   not a rolling percentile. The commit `cee3ea3` message explains why: the
   previous trailing-30-day rule let a slow anomaly drift into its own
@@ -467,7 +473,11 @@ Design choices worth knowing:
 
 The algorithm was re-run with a stdlib replica on `data/readings/`.
 Windows end at the source's newest reading: fans 2026-10-03, grid
-2026-09-11.
+2026-09-11. These measurements predate the one-source catalog (§2): the roof
+fan was then the mean of six fans, and each roof sensor the mean of its
+quadrant's 10–15 grid sensors. The path each window takes (climatology vs
+own span) depends on history coverage, so it carries over, but the exact
+band values and in-band shares need re-measuring.
 
 | Logical sensor | 24h | 7d | 30d | 1y (13 monthly bands) |
 | --- | --- | --- | --- | --- |
@@ -497,8 +507,7 @@ What this shows:
 4. **Summer roof bands are wide.** Individual roof fans swing roughly 25 →
    80 % RH day to night in June (P20 ≈ 22–44 %, P80 ≈ 71–79 %), so June's
    roof-fan band is [51, 100] and May's is [50, 100]. It flags little in
-   summer. Averaging a changing set of 1–5 reporting fans per hour adds some
-   noise on top.
+   summer.
 5. **12-hourly grid data starves the row thresholds.** Thresholds of "48
    hourly rows" and "10 rows" assume hourly data. A quadrant gets about 2
    buckets a day, so 24 h windows never get a band.
@@ -545,21 +554,20 @@ differs:
 - RHT series are **time-shifted** (about 22 days) to end "now", so mock
   "Normal for October" for the roof sensors is built mostly from September
   2025 readings relabelled as October.
-- The mock `crawl-space` is backed by `katto-2` (a roof fan), so mock
-  crawl-space bands look nothing like the live ones.
 
 ## 8. Moisture History Report (`/api/report`)
 
 Aggregates over the full fan history (`first → last` fan reading):
 
-- **Monthly peak mould index**, split into roof (any `katto-*` /
-  `viherkatto-*`) vs crawl space (everything else).
+- **Monthly peak mould index** from the two catalog fans: roof (`katto-3`)
+  vs crawl space (`hallin-alapohja`).
 - **Structures** (roof north slope, roof south slope, crawl space):
-  - `avg_rh_pct`: mean grid RH for the slope's quadrant sensors. For the
-    crawl space, the fan's indoor RH mean.
+  - `avg_rh_pct`: mean grid RH of the slope's two roof sensors (`roof-nw` +
+    `roof-ne`, `roof-sw` + `roof-se`). For the crawl space, the fan's indoor
+    RH mean.
   - `peak_mold_index` / `peak_month`: the month with the highest mould peak.
-    **Both roof slopes use the same six roof fans**, so their mould figures
-    are identical.
+    **Both roof slopes use the one roof fan**, so their mould figures are
+    identical.
   - `risk_periods`: number of calendar months with any mould reading ≥ 0.5.
   - `coverage_pct`: readings ÷ (span days × 24 × member count). This assumes
     hourly data, but grid sensors report every 12 h, so roof coverage comes
@@ -653,77 +661,78 @@ Consumers: `/api/house` and `/api/sensors/{id}` use the `day` analysis, and
 
 ## 13. What the real dataset looks like
 
-From `data/readings/fans/*.csv` (full history, the same data ingest loads):
+From `data/readings/fans/*.csv` (full history, the same data ingest loads).
+Only the crawl space and roof section 3 (`katto-3`, the `roof-fan` source)
+feed the analysis:
 
 | Device | Median indoor RH | Share of readings ≥ 85 % | Median AH in − out | Max mould index | Median rpm |
 | --- | --- | --- | --- | --- | --- |
 | crawl space (`hallin-alapohja`) | 95.9 % | 74 % | +1.54 g/m³ | 0.83 | 1695 |
 | roof section 1 | 76.2 % | 33 % | +0.17 | 0.008 | 1485 |
 | roof section 2 | 65.3 % | 11 % | −0.46 | 0.004 | 930 |
-| roof section 3 | 75.3 % | 34 % | −0.02 | 0.17 | 1155 |
+| **roof section 3 (`katto-3`)** | 75.3 % | 34 % | −0.02 | 0.17 | 1155 |
 | roof section 4 | 76.0 % | 33 % | −0.05 | 0.010 | 1215 |
 | green roof 1 | 69.2 % | 26 % | −0.60 | 0.006 | 930 |
 | green roof 2 | 72.0 % | 19 % | −0.30 | 0.09 | **0** (98 % of samples < 100) |
 
 What this means for the analysis:
-- The roof structures track outdoor air (AH delta ≈ 0), so their RH events
-  mostly get the weather discount.
+- The roof structure tracks outdoor air (`katto-3`'s AH delta ≈ 0), so its
+  RH events mostly get the weather discount.
 - The crawl space is persistently wetter than outdoor air. It is the only
   device that can trigger `MOLD_INDEX_ELEVATED` (26 % of its mould samples
   are ≥ 0.5), and its RH events count at full weight.
-- Green roof 2's fan is effectively always stopped, so `FAN_STOPPED` →
-  `roof-fan` = `watch` is the normal live state.
+- Green roof 2's fan is effectively always stopped. It isn't a catalog
+  source, so it no longer raises `FAN_STOPPED` (see §14).
 
 ## 14. Known gaps and inconsistencies
 
 Open as of the last-verified date. Remove an entry when its fix lands.
 
-1. **Roof quadrants can't go non-`ok` from real data.** The grid only
+1. **Roof sensors can't go non-`ok` from real data.** The grid only
    produces `SENSOR_OFFLINE` (`info → ok`) and the ref-less `GRID_HUMID`, and
    grid outliers aren't turned into events. Outside the simulation, the four
    `leak_sensor` dots are always green.
-2. **`/api/sensors/{id}` status takes the least severe finding.**
-   `sensor_detail` assigns `status[sid]` in a loop without the severity rank
-   check that `house_state` uses. Findings are sorted most severe first, so
-   the *last* (least severe) one wins. A crawl space showing `alert` on
-   `/api/house` can show `watch` on its detail page.
-3. **Tone and score word use different cut-offs** (80/55 vs 75/60). A score
+2. **Tone and score word use different cut-offs** (80/55 vs 75/60). A score
    of 77 narrates as `watch` ("one area needs watching") under a "Good"
    label. A score of 57 narrates as `watch` under "Attention".
-4. **Mould thresholds are on different footings.** The backend uses
+3. **Mould thresholds are on different footings.** The backend uses
    0.5 / 0.6 / 0.8, which fits the observed 0–0.83 range. The UI's mould
    chart and the report use 1 as the risk line, and the score page explains
    VILPE's 0–6 scale with an automatic alert at 2.5. The crawl space can be
    an `attention` finding while sitting below the chart's risk line.
-5. **Weather adjustments rarely fire on this dataset.** Roof RH episodes
+4. **Weather adjustments rarely fire on this dataset.** Roof RH episodes
    are already discounted by the AH check. The crawl space is clearly wetter
    than outdoor air (so it is never excused by rain), and none of its spans
    are `dry`. On 2026-10-04, `day`, `week`, `month` and `year` scored the
    same with and without weather. Today weather mainly adds narration
    context.
-6. **Location mismatch.** The analysis (site label and weather history)
+5. **Location mismatch.** The analysis (site label and weather history)
    uses Vantaa, where the data comes from. The UI, the sidebar weather pill
    and the report present the demo home as Vaasa.
-7. **Stale grid in short windows.** For `day`, the grid stats describe the
+6. **Stale grid in short windows.** For `day`, the grid stats describe the
    24 h before 2026-09-11, not today. `data_lag_days` reports this, but
    nothing downstream acts on it.
-8. **`FAN_STOPPED` can fire on very old data.** It reads the latest rpm
+7. **`FAN_STOPPED` can fire on very old data.** It reads the latest rpm
    within a 400-day lookback, not within the window.
-9. **Report details.** Roof coverage assumes hourly readings and divides
+8. **Report details.** Roof coverage assumes hourly readings and divides
     by the full fan-history span (from 2025-05). The grid is 12-hourly and
     only covers 2025-09 → 2026-09, so coverage is understated more than
     tenfold. Both slopes share one mould figure. `data_gaps` and
     `weather_context` are not computed (`"FMI · Vaasa"` even though the
     `year` analysis uses Open-Meteo history for Vantaa).
-10. **Seasonal normal band** (details in §7):
+9. **Seasonal normal band** (details in §7):
     - mostly self-referential on this dataset, with no flag saying which
       path was used
     - device-relative, so a saturated crawl space looks "normal"
     - the newest band isn't drawn on `1y` or fan-backed multi-band charts
     - month steps are offset by the window start's time of day
     - recomputed over the full history on every request
-11. **Downsampling aliasing** can drop every humidity point from the 30 d
+10. **Downsampling aliasing** can drop every humidity point from the 30 d
     crawl-space chart (§7).
+11. **Most of the site is ignored.** Five fans and 47 grid sensors are
+    ingested but read by neither the analysis nor the UI (§2). A real
+    problem there would go unnoticed: green roof 2's fan, stopped for most
+    of its history, raises nothing.
 
 ## Tests
 
@@ -737,6 +746,9 @@ Open as of the last-verified date. Remove an entry when its fix lands.
   without weather (`tests/conftest.py` stubs the history fetch so the suite
   stays offline)
 - fallback wording, including the weather variants
+- the one-source catalog: the digest reads only catalog sources under UI
+  labels, `/api/house` and the detail page show the roof fan's own latest
+  rpm, and sensor status takes the most severe finding
 - endpoint and cache behaviour, the `/api/house` and series contracts,
   normal-band shape, the report shape and the simulation flow
 

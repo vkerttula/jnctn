@@ -197,7 +197,10 @@ def test_llm_unavailable_without_key(monkeypatch):
 
 
 @pytest.fixture()
-def seeded_device():
+def seeded_device(monkeypatch):
+    from app import catalog
+
+    monkeypatch.setattr(catalog, "FAN_DEVICES", [*catalog.FAN_DEVICES, "test-device"])
     db.sense_devices.insert_one(
         {
             "device_id": 999999,
@@ -257,6 +260,43 @@ def test_analysis_digest_endpoint(seeded_device, monkeypatch):
     for ev in body["events"]:
         if ev["type"] in ("RH_SUSTAINED_HIGH", "AH_INVERSION"):
             assert ev["outdoor_weather"]["condition"] == "wet"
+
+
+def test_digest_reads_only_catalog_sources():
+    from app import catalog
+
+    d = digest_mod.build_digest("day", weather_days=[])
+    assert {x["device"] for x in d["devices"]} <= set(catalog.FAN_DEVICES)
+    assert all(x["label"] == catalog.DEVICE_LABELS[x["device"]] for x in d["devices"])
+    assert d["sensor_grid"]["count"] <= len(catalog.GRID)
+
+
+def test_statuses_take_the_most_severe_finding():
+    from app.routers import house
+
+    findings = [
+        {"code": "MOLD_INDEX_ELEVATED", "severity": "attention", "ref": "hallin-alapohja"},
+        {"code": "RH_SUSTAINED_HIGH", "severity": "watch", "ref": "hallin-alapohja"},
+        {"code": "FAN_STOPPED", "severity": "watch", "ref": "katto-3"},
+        {"code": "FAN_STOPPED", "severity": "watch", "ref": "viherkatto-2"},  # not in catalog
+    ]
+    assert house._statuses(findings) == {"crawl-space": "alert", "roof-fan": "watch"}
+
+
+def test_sensor_latest_is_one_source_not_an_average():
+    from app import catalog
+
+    if not db.sense_devices.find_one({"slug": catalog.ROOF_FAN}):
+        pytest.skip("no ingested dataset")
+    dev = db.sense_devices.find_one({"slug": catalog.ROOF_FAN})
+    rpm = db.sense_fan_readings.find_one(
+        {"device_id": dev["device_id"], "rpm": {"$ne": None}}, sort=[("ts", -1)]
+    )["rpm"]
+    house = client.get("/api/house").json()
+    roof_fan = next(s for s in house["sensors"] if s["id"] == "roof-fan")
+    assert roof_fan["latest"]["fan_rpm"] == round(rpm)
+    detail = client.get("/api/sensors/roof-fan").json()
+    assert detail["latest"] == roof_fan["latest"]
 
 
 def test_digest_without_weather(seeded_device):

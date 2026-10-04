@@ -38,10 +38,11 @@ cache     results per (window, period) — a ~20 req/day Gemini free tier
 Around that core:
 
 - **Physical → logical.** The raw site maps to the 7 devices a homeowner
-  recognizes: four roof quadrants aggregated from the sensor grid by
-  layout coordinates, the roof fan grouped from the `katto-*`/
-  `viherkatto-*` units, the underfloor package split into a crawl-space
-  sensor and a drying fan.
+  recognizes (`backend/app/catalog.py`). Each one reads exactly one
+  physical source, with no averaging: four grid sensors for the roof, one
+  roof fan, and the underfloor package split into a crawl-space sensor and
+  a drying fan. The analysis reads only these sources, so the score, the
+  narrative and the UI always talk about the same devices.
 - **Weather context.** Daily Open-Meteo history for the sensor site
   (Vantaa) goes into the digest. It discounts RH episodes that only
   followed a wet spell, weighs up structures that stay damp in dry
