@@ -10,7 +10,8 @@ temperature inside building structures — but measuring isn't understanding.
 jnctn is the interpretation layer: raw sensor series in; a deterministic
 0–100 condition score, LLM-written plain-language summaries, attention
 items and a printable moisture report out. Built in a weekend —
-`docs/VISION.md` is the product contract, `docs/specs/` the design specs.
+`docs/VISION.md` is the product contract, `docs/specs/` the design specs,
+`docs/architecture/` how the analysis actually works.
 
 ## The pipeline
 

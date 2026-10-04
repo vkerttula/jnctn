@@ -48,7 +48,7 @@ converted on ingest. The `/api/dataset` endpoints serve these collections
 | `devices.json` | The 7 VILPE MCU-2 ventilation fans: serial, location, transmitters, layout coordinates, latest values, public link |
 | `sensors.json` | The 51 VILPE RHT-2 environmental sensors: id ↔ serial, layout coordinates, latest readings |
 | `readings/fans/<device-id>.csv` | Per-fan time series, ~10 600 rows each, 2025-05 → now |
-| `readings/sensors.csv` | Sensor readings from the zip export, 37 303 rows, 2025-09 → 2026-09 (hourly) |
+| `readings/sensors.csv` | Sensor readings from the zip export, 37 303 rows, 2025-09 → 2026-09 (every 12 h per sensor) |
 | `readings/sensor-snapshots.csv` | Optional `--sensor-history` output: per-sensor T/RH at each 12 h value set |
 
 ## CSV schemas
