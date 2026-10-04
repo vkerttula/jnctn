@@ -7,9 +7,15 @@ fallback narrative can render the same conclusions without an LLM at all.
 
 from typing import Any
 
+from app.analysis.digest import AH_INVERSION_DELTA
+
 TONE_ALL_GOOD = "all_good"
 TONE_WATCH = "watch"
 TONE_ATTENTION = "attention"
+
+WEATHER_DISCOUNT = 0.35  # RH episode explained by the outdoor air / weather
+TRACKS_OUTDOOR_AH = 0.2  # indoor AH this close to outdoor = mirrors the air
+DRY_WEATHER_MULTIPLIER = 1.5  # still wetter than outdoors in dry weather
 
 
 def score_digest(digest: dict[str, Any]) -> dict[str, Any]:
@@ -33,10 +39,7 @@ def score_digest(digest: dict[str, Any]) -> dict[str, Any]:
         finding, points = _score_event(ev)
         if not finding:
             continue
-        # High indoor RH that merely mirrors humid outdoor air is weather,
-        # not a moisture problem — downweight it.
-        if ev["type"] == "RH_SUSTAINED_HIGH" and ah_delta.get(ev.get("device"), 1) <= 0.2:
-            points *= 0.35
+        points = _weather_adjust(ev, finding, points, ah_delta.get(ev.get("device")))
         key = (ev["type"], ev.get("device") or ev.get("serial"))
         groups.setdefault(key, []).append((ev, finding, points))
 
@@ -96,6 +99,27 @@ _SEVERITY_RANK = {"attention": 2, "watch": 1, "info": 0}
 
 def _sub(a, b):
     return a - b if a is not None and b is not None else None
+
+
+def _weather_adjust(ev, finding, points: float, ah_delta: float | None) -> float:
+    """Weigh an event against the outdoor weather it happened in."""
+    condition = (ev.get("outdoor_weather") or {}).get("condition")
+    if ev["type"] == "RH_SUSTAINED_HIGH":
+        # High indoor RH that merely mirrors humid outdoor air, or that rode a
+        # wet spell without the structure clearly holding extra moisture, is
+        # weather — not a moisture problem. Downweight it.
+        tracks_air = ah_delta is not None and ah_delta <= TRACKS_OUTDOOR_AH
+        wet_spell = condition == "wet" and (ah_delta is None or ah_delta < AH_INVERSION_DELTA)
+        finding["detail"]["weather_driven"] = tracks_air or wet_spell
+        if tracks_air or wet_spell:
+            points *= WEATHER_DISCOUNT
+    elif ev["type"] == "AH_INVERSION":
+        # Wetter than outdoor air even though the weather gave it every
+        # chance to dry — the structure isn't keeping up. Weigh it up.
+        finding["detail"]["dry_weather"] = condition == "dry"
+        if condition == "dry":
+            points *= DRY_WEATHER_MULTIPLIER
+    return points
 
 
 def score_trend(digest: dict[str, Any]) -> str:

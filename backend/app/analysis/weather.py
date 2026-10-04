@@ -1,19 +1,37 @@
-"""Outdoor weather context for the demo home (Vaasa).
+"""Outdoor weather context.
 
-Primary source is Open-Meteo (keyless); results are cached in Mongo for 30
-min. On any failure we degrade to the fans' own outdoor transmitters, then to
-the last cached document.
+`current()` is the sidebar pill for the demo home (Vaasa): Open-Meteo
+(keyless), cached in Mongo for 30 min, degrading to the last cached document
+and then the fans' own outdoor transmitters.
+
+`history()` / `summarize()` feed the analysis: daily weather where the
+sensors physically are (Vantaa), so rain and humidity line up with what the
+readings saw. Results are Mongo-cached per date range; on failure the
+analysis simply runs without weather.
 """
 
 import json
 import urllib.request
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from app.db import db
 
 VAASA = {"lat": 63.096, "lon": 21.615, "location": "Vaasa"}
+# The VILPE Sense demo site the readings come from.
+SITE = {"lat": 60.294, "lon": 25.04, "location": "Vantaa"}
 CACHE_TTL = timedelta(minutes=30)
+HISTORY_TTL = timedelta(hours=3)
+
+RAINY_DAY_MM = 1.0  # a day with at least this much precipitation is "rainy"
+_DAILY = {
+    "precipitation_sum": "precip_mm",
+    "temperature_2m_mean": "temp_mean",
+    "temperature_2m_min": "temp_min",
+    "temperature_2m_max": "temp_max",
+    "relative_humidity_2m_mean": "rh_mean",
+    "wind_speed_10m_max": "wind_max_ms",
+}
 
 # WMO weather code -> display condition (spec: capitalized, e.g. "Overcast")
 _CONDITIONS = {
@@ -103,3 +121,80 @@ def _from_sensors() -> dict[str, Any]:
         "rain_chance_pct": None,
         "location": VAASA["location"],
     }
+
+
+def history(start: date, end: date) -> list[dict[str, Any]] | None:
+    """Daily weather at the sensor site for [start, end] (local dates)."""
+    key = f"vantaa:{start.isoformat()}:{end.isoformat()}"
+    cached = db.weather.find_one({"_id": key})
+    if cached and datetime.now(UTC) - cached["fetched_at"].replace(tzinfo=UTC) < HISTORY_TTL:
+        return cached["days"]
+    days = _fetch_history(start, end)
+    if days:
+        db.weather.replace_one(
+            {"_id": key},
+            {"fetched_at": datetime.now(UTC).replace(tzinfo=None), "days": days},
+            upsert=True,
+        )
+        return days
+    return cached["days"] if cached else None
+
+
+def _fetch_history(start: date, end: date) -> list[dict[str, Any]] | None:
+    # The archive API reaches up to today (recent days are model analysis),
+    # so one endpoint covers every analysis window.
+    url = (
+        "https://archive-api.open-meteo.com/v1/archive"
+        f"?latitude={SITE['lat']}&longitude={SITE['lon']}"
+        f"&start_date={start.isoformat()}&end_date={end.isoformat()}"
+        f"&daily={','.join(_DAILY)}&timezone=Europe%2FHelsinki&wind_speed_unit=ms"
+    )
+    try:
+        with urllib.request.urlopen(url, timeout=8) as r:
+            daily = json.load(r)["daily"]
+        days = [
+            {"date": d, **{out: daily[src][i] for src, out in _DAILY.items()}}
+            for i, d in enumerate(daily["time"])
+        ]
+        return [d for d in days if d["precip_mm"] is not None] or None
+    except Exception:
+        return None
+
+
+def summarize(days: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Compact stats + a wet/mixed/dry verdict over a run of daily rows."""
+    if not days:
+        return None
+
+    def vals(k):
+        return [d[k] for d in days if d.get(k) is not None]
+
+    precip = vals("precip_mm")
+    rainy = sum(1 for p in precip if p >= RAINY_DAY_MM)
+    rh = vals("rh_mean")
+    rh_mean = round(sum(rh) / len(rh)) if rh else None
+    temps = vals("temp_mean")
+    wettest = max(days, key=lambda d: d.get("precip_mm") or 0)
+    return {
+        "days": len(days),
+        "condition": _condition(rainy / len(days), rh_mean),
+        "precip_mm": round(sum(precip), 1),
+        "rainy_days": rainy,
+        "wettest_day": {"date": wettest["date"], "precip_mm": wettest["precip_mm"]}
+        if (wettest.get("precip_mm") or 0) >= RAINY_DAY_MM
+        else None,
+        "temp_mean": round(sum(temps) / len(temps), 1) if temps else None,
+        "temp_min": min(vals("temp_min"), default=None),
+        "temp_max": max(vals("temp_max"), default=None),
+        "rh_mean": rh_mean,
+        "wind_max_ms": max(vals("wind_max_ms"), default=None),
+    }
+
+
+def _condition(rainy_share: float, rh_mean: float | None) -> str:
+    """wet = rain on half the days or saturated air; dry = little rain, drier air."""
+    if rainy_share >= 0.5 or (rh_mean is not None and rh_mean >= 90):
+        return "wet"
+    if rainy_share <= 0.2 and (rh_mean is None or rh_mean < 80):
+        return "dry"
+    return "mixed"

@@ -62,6 +62,7 @@ structured data:\n"` followed by `json.dumps` of:
 | `score_out_of_100` | integer | `score_digest` |
 | `season` | e.g. `"autumn (October)"` | digest |
 | `site` | `{name, location: "Vantaa, Finland"}` | digest |
+| `outdoor_weather` | the digest's weather block: Vantaa daily history summarised over the span, the baseline and per bucket, with a `wet` / `mixed` / `dry` `condition`; `null` if unavailable | digest |
 | `findings` | scored findings: code, severity, location, ref, detail, occurrences, since | `score_digest` |
 | `events` | every detected event incl. duplicates and simulated ones | digest |
 | `devices` | per fan: label, online/alert flags, `latest` values, span + baseline stats, buckets, trend deltas | digest |
@@ -71,9 +72,9 @@ structured data:\n"` followed by `json.dumps` of:
 No raw time series go in. The packet's size depends on device count × bucket
 count (none / 7 daily / ~5 weekly / 12 monthly), not on how much history
 exists. The LLM sees **physical** devices ("roof section 3", "green roof 2",
-"the crawl space"), not the 7-device logical catalog the UI shows. It is also
-not given the Open-Meteo weather, the house address or the logical sensor
-names.
+"the crawl space"), not the 7-device logical catalog the UI shows. It is not
+given the sidebar's current Vaasa weather, the house address or the logical
+sensor names.
 
 Some context is **only** available to the narrator, because scoring ignores
 it: grid `outliers`, `pct_sensors_mean_rh_ge_80`, `trend.mold_delta`,
@@ -100,7 +101,15 @@ finding.
 5. **Locations by label** ("the crawl space", "roof section 3").
 6. **Seasonal awareness.** Autumn wetting is expected. What matters is
    whether the structure keeps up with drying when it can.
-7. **Output limits:**
+7. **Weather as context.**
+   - `outdoor_weather` goes in plain words ("after a rainy week", "despite
+     the dry spell"), never as amounts.
+   - Findings with `detail.weather_driven` get calm framing.
+   - Findings with `detail.dry_weather` (still damp when it could have
+     dried) matter more.
+   - Don't blame the weather for anything else, and stay silent on weather
+     when it's missing.
+8. **Output limits:**
    - `headline`: a short verdict line, never a diagnosis
    - `summary`: one sentence under ~110 characters
    - `attention_items`: ≤ 3, real findings only
@@ -198,7 +207,12 @@ is no key, when the LLM call fails, and for every simulated (demo) request.
 **Attention items (`describe_finding`)**: there is one title template and one
 detail template per finding code, e.g. `MOLD_INDEX_ELEVATED` → "Moisture in
 {loc} could allow mold". It appends "This has come up N times in this period"
-when `occurrences > 1`. The fallback includes up to 5 items, while the LLM
+when `occurrences > 1`. Two findings have weather variants:
+- an RH finding with `weather_driven` says the humidity moved "in step with
+  the damp weather outside"
+- an AH inversion with `dry_weather` adds "despite dry weather"
+
+The fallback includes up to 5 items, while the LLM
 prompt allows 3. The `watch` summary always says "Humidity is a bit up" even
 when the top finding is a stopped fan.
 
@@ -329,10 +343,10 @@ reinterpretation each time.
    findings. Asking the model to echo a finding `ref`/`code` per item would
    make the match exact.
 5. **Context mismatches.**
-   - The model is told the site is "Vantaa, Finland" while the UI says
-     Vaasa.
-   - The model never sees the Open-Meteo weather the UI displays, so it
-     can't explain "it's been a rainy week".
+   - The model is told the site is "Vantaa, Finland" and gets Vantaa
+     weather (where the data comes from), while the UI and its weather pill
+     say Vaasa. A "rainy week" in the narrative may not match the pill.
+   - The per-sensor narrator (`narrate_sensor`) gets no weather.
    - The model speaks in physical labels ("roof section 3") that don't
      exist in the UI's logical catalog (`Roof fan`, `North-west roof`).
 6. **Prompt vs. schema drift.** Item and recommendation limits differ, and

@@ -61,8 +61,13 @@ Dev scaffolding plus a minimal, verified app skeleton:
   catalog (4 roof quadrants aggregated from the sensor grid by layout
   coordinates, `roof-fan` from the katto-*/viherkatto-* fans, and
   `hallin-alapohja` split into `crawl-space` + `crawl-fan`).
-  `app/analysis/weather.py` fills `weather` from Open-Meteo (Vaasa,
-  Mongo-cached 30 min) with the fans' outdoor transmitters as fallback.
+  `app/analysis/weather.py` fills the `/api/house` `weather` pill from
+  Open-Meteo (Vaasa, Mongo-cached 30 min) with the fans' outdoor
+  transmitters as fallback, and supplies daily history for the sensor site
+  (Vantaa, archive API, cached 3 h per date range). That history goes into
+  the digest's `weather` block and the events' `outdoor_weather`, where
+  scoring and the narrator use it. Tests stub the fetch
+  (`tests/conftest.py`).
   `/api/house` and `/api/report` surface the narrative beyond
   headline/summary: `recommendations`, feed `message`s taken from the
   narrative's `attention_items` (matched to findings by location label),

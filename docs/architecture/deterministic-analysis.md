@@ -194,6 +194,25 @@ The digest carries `outliers` and `pct_..._ge_80` to the narrator, but
 **scoring doesn't use them**. Scoring only uses `pct_..._ge_90` and the
 offline list.
 
+### Weather block
+
+`digest.weather` is the real outdoor weather at the sensor site (Vantaa),
+from daily Open-Meteo history (§9). `build` fetches it once for baseline +
+span and shares it with event detection. Rows use local (Helsinki) dates:
+
+- `span` / `baseline`: `weather.summarize` over the span's local dates,
+  and over the baseline's dates without the span's first day.
+  Fields: `days`, `condition`, `precip_mm`, `rainy_days` (≥ 1 mm),
+  `wettest_day`, `temp_mean` / `min` / `max`, `rh_mean`, `wind_max_ms`.
+- `buckets`: the same per day / week / month. Weeks start on Sunday to
+  match `$dateTrunc`, so the labels line up with the device buckets.
+- **`condition`** (`weather._condition`): `wet` if at least half the days are
+  rainy or mean RH ≥ 90 %, `dry` if at most 20 % are rainy and mean RH
+  < 80 %, otherwise `mixed`.
+- `null` when no history is available (network failure with nothing
+  cached). Everything downstream then behaves as it did before weather
+  existed.
+
 Also in the digest: `season` (meteorological, from the month: Dec–Feb
 winter, Mar–May spring, Jun–Aug summer, Sep–Nov autumn), `site` (name plus a
 hardcoded `"Vantaa, Finland"`) and `period`.
@@ -223,9 +242,9 @@ of N points about 2 h apart has a duration of about 2·(N−1) h.
 
 | Event | Trigger | Extra fields |
 | --- | --- | --- |
-| `RH_SUSTAINED_HIGH` | indoor RH ≥ **85 %** sustained ≥ window min-run (6 h / 24 h / 24 h / 48 h) | `peak_rh`, `duration_hours`, `ongoing` = run ended ≤ 6 h ago |
+| `RH_SUSTAINED_HIGH` | indoor RH ≥ **85 %** sustained ≥ window min-run (6 h / 24 h / 24 h / 48 h) | `peak_rh`, `duration_hours`, `ongoing` = run ended ≤ 6 h ago, `outdoor_weather` over the run's dates |
 | `MOLD_INDEX_ELEVATED` | mould index ≥ **0.5**, any duration (min-run = 0, so a single sample counts) | `peak`, `ongoing` = run ended ≤ 24 h ago |
-| `AH_INVERSION` | span mean indoor AH − outdoor AH ≥ **0.5 g/m³** | `indoor_ah`, `outdoor_ah` ("wetting, not drying") |
+| `AH_INVERSION` | span mean indoor AH − outdoor AH ≥ **0.5 g/m³** | `indoor_ah`, `outdoor_ah` ("wetting, not drying"), `outdoor_weather` over the span |
 | `FAN_STOPPED` | latest rpm (400-day lookback) < **100** | `rpm` |
 | `FAN_NO_DATA` | no rpm reading at all in the lookback | — |
 | `DEVICE_ALERT` | device metadata `is_alert` is true (VILPE's own flag) | — |
@@ -234,6 +253,8 @@ of N points about 2 h apart has a duration of about 2·(N−1) h.
 
 RH and mould events can occur multiple times per device per window (one per
 episode). The others occur at most once per device or sensor.
+`outdoor_weather` holds `{condition, days, precip_mm, rainy_days, rh_mean}`,
+or `null` without weather history.
 
 ## 5. Scoring
 
@@ -247,18 +268,33 @@ directly.
 | --- | --- | --- | --- |
 | `MOLD_INDEX_ELEVATED` | `min(40, 15 + 30·peak)` | ×0.5 if not ongoing | `attention` if peak ≥ 0.8, else `watch` |
 | `RH_SUSTAINED_HIGH` | `min(12, 3 + hours/12)` | +3 if ongoing; ×0.35 weather discount (below) | `watch` |
-| `AH_INVERSION` | 6 | — | `watch` |
+| `AH_INVERSION` | 6 | ×1.5 in dry weather (below) | `watch` |
 | `LEAK_SIMULATED`, `SENSOR_LEAK_SIMULATED` | 30 | — | `attention` |
 | `FAN_STOPPED` | 8 | — | `watch` |
 | `DEVICE_ALERT` | 10 | — | `watch` |
 | `FAN_NO_DATA` | 3 | — | `info` |
 | `SENSOR_OFFLINE` | 1 | group total capped at 5 | `info` |
 
-**Weather discount.** High indoor RH that just mirrors humid outdoor air is
-weather, not a structural problem. If a device's span mean
-`indoor_AH − outdoor_AH ≤ 0.2 g/m³`, its `RH_SUSTAINED_HIGH` points are
-multiplied by 0.35. If the device has no AH delta at all, it defaults to no
-discount (but see the edge case in §14).
+**Weather adjustments** (`score._weather_adjust`). These weigh an event
+against the weather it happened in:
+
+- **RH weather discount (×0.35).** High indoor RH that is really weather
+  isn't a structural problem. An `RH_SUSTAINED_HIGH` episode is discounted
+  in either of two cases:
+  - the device's span mean `indoor_AH − outdoor_AH ≤ 0.2 g/m³` (it mirrors
+    the outdoor air)
+  - the episode's `outdoor_weather.condition` is `wet` and the AH delta is
+    missing or `< 0.5` (it rode a wet spell without the structure clearly
+    holding extra moisture)
+
+  A structure that is clearly wetter than outdoor air (delta ≥ 0.5) is never
+  excused by rain, since rain is exactly when a leak shows. The finding
+  records `detail.weather_driven`.
+- **Dry-weather penalty (×1.5).** An `AH_INVERSION` during a `dry` span
+  means the structure stayed wetter than outdoor air even though it could
+  have dried, so it weighs more. The finding records `detail.dry_weather`.
+
+With no weather history, only the AH-delta discount applies.
 
 ### Step 2 — group recurrences
 
@@ -537,17 +573,28 @@ Aggregates over the full fan history (`first → last` fan reading):
 
 ## 9. Weather context (`analysis/weather.py`)
 
-The current conditions for Vaasa come from Open-Meteo (temperature, RH, wind,
-WMO weather code → condition word, today's max precipitation probability) and
-are cached 30 min in the `weather` collection. On failure it falls back to
-the last cached document, and then to the fans' outdoor transmitters: the
-mean of each fan's latest outdoor T/RH, condition `"Overcast"` if RH ≥ 80
-else `"Partly cloudy"`, wind 0.
+There are two separate feeds:
 
-This weather is **display-only**: it feeds the sidebar pill and never
-reaches the digest, the score or the LLM. The analysis's notion of "outdoor"
-is the fans' own outdoor transmitters (outdoor RH/T/AH in the digest) plus
-the season string.
+**Sidebar pill (`current()`, Vaasa, display-only).** The current conditions
+for the demo home come from Open-Meteo (temperature, RH, wind, WMO weather
+code → condition word, today's max precipitation probability) and are cached
+for 30 min in the `weather` collection. On failure it falls back to the last
+cached document, then to the fans' outdoor transmitters: the mean of each
+fan's latest outdoor T/RH, condition `"Overcast"` if RH ≥ 80 else
+`"Partly cloudy"`, wind 0.
+
+**Analysis history (`history()`, Vantaa).** Daily weather for the sensor
+site, so rain and humidity line up with what the readings saw:
+- **Source:** Open-Meteo's archive API, which reaches up to today, so one
+  endpoint serves every window.
+- **Fields:** precipitation, mean/min/max T, mean RH and max wind.
+- **Caching:** in `weather` under `_id: vantaa:<start>:<end>` for 3 h.
+  On failure it serves a stale cached document, then `None`.
+- **Consumers:** the digest's weather block (§3), the events'
+  `outdoor_weather` (§4), the score's weather adjustments (§5) and the
+  narrator.
+
+The fans' outdoor transmitters still provide the AH comparison.
 
 ## 10. Demo leak simulation
 
@@ -576,7 +623,7 @@ modified.** While it is active:
 | --- | --- | --- | --- |
 | `analyses` | `(window, period_key)` | hourly (`day`), daily (`week`/`month`), monthly (`year`) | simulated runs, `no-data` results, `?refresh=true` recomputes |
 | `sensor_summaries` | `(sensor_id, range, period_key)` | hourly (`24h`), daily (`7d`/`30d`), monthly (`1y`) | simulated `24h` series |
-| `weather` | `_id: vaasa` | 30 min | — |
+| `weather` | `_id: vaasa` (pill), `vantaa:<start>:<end>` (history) | 30 min / 3 h | — |
 
 Consumers: `/api/house` and `/api/sensors/{id}` use the `day` analysis, and
 `/api/report` uses `year`. `week` and `month` are only reachable through
@@ -591,7 +638,10 @@ Consumers: `/api/house` and `/api/sensors/{id}` use the `day` analysis, and
 | Mould → `attention` severity | 0.8 | `score._score_event` |
 | Report "Moisture risk" | 0.6 | `house._report_structures` |
 | AH inversion | ≥ 0.5 g/m³ | `digest.AH_INVERSION_DELTA` |
-| RH weather discount | AH delta ≤ 0.2 → ×0.35 | `score.score_digest` |
+| RH weather discount | AH delta ≤ 0.2, or wet spell and AH delta < 0.5 → ×0.35 | `score._weather_adjust` |
+| Dry-weather AH inversion | ×1.5 | `score.DRY_WEATHER_MULTIPLIER` |
+| Rainy day | ≥ 1 mm | `weather.RAINY_DAY_MM` |
+| Weather `wet` / `dry` | ≥ 50 % rainy days or RH ≥ 90 / ≤ 20 % rainy and RH < 80 | `weather._condition` |
 | Run gap break | 12 h | `digest.MAX_GAP` |
 | Min RH run | 6 / 24 / 24 / 48 h | `digest.MIN_RUN` |
 | Fan stopped | rpm < 100 | `digest._events` |
@@ -645,34 +695,34 @@ Open as of the last-verified date. Remove an entry when its fix lands.
    chart and the report use 1 as the risk line, and the score page explains
    VILPE's 0–6 scale with an automatic alert at 2.5. The crawl space can be
    an `attention` finding while sitting below the chart's risk line.
-5. **Weather isn't an analysis input** (§9), although `VISION.md` says the
-   score is generated from the location's weather context. Outdoor context
-   comes only from the fans' transmitters.
-6. **Location mismatch.** The digest tells the narrator the site is
-   "Vantaa, Finland" (the real data site), while the UI, the weather and the
-   report present the demo home as Vaasa.
-7. **Latent TypeError in the weather discount.**
-   `ah_delta.get(device, 1) <= 0.2` raises if the device's AH delta is `None`,
-   i.e. the span has RH readings but no outdoor (or indoor) AH. The key exists
-   with a `None` value, so the default `1` doesn't apply.
-8. **Stale grid in short windows.** For `day`, the grid stats describe the
+5. **Weather adjustments rarely fire on this dataset.** Roof RH episodes
+   are already discounted by the AH check. The crawl space is clearly wetter
+   than outdoor air (so it is never excused by rain), and none of its spans
+   are `dry`. On 2026-10-04, `day`, `week`, `month` and `year` scored the
+   same with and without weather. Today weather mainly adds narration
+   context.
+6. **Location mismatch.** The analysis (site label and weather history)
+   uses Vantaa, where the data comes from. The UI, the sidebar weather pill
+   and the report present the demo home as Vaasa.
+7. **Stale grid in short windows.** For `day`, the grid stats describe the
    24 h before 2026-09-11, not today. `data_lag_days` reports this, but
    nothing downstream acts on it.
-9. **`FAN_STOPPED` can fire on very old data.** It reads the latest rpm
+8. **`FAN_STOPPED` can fire on very old data.** It reads the latest rpm
    within a 400-day lookback, not within the window.
-10. **Report details.** Roof coverage assumes hourly readings and divides
+9. **Report details.** Roof coverage assumes hourly readings and divides
     by the full fan-history span (from 2025-05). The grid is 12-hourly and
     only covers 2025-09 → 2026-09, so coverage is understated more than
     tenfold. Both slopes share one mould figure. `data_gaps` and
-    `weather_context` are not computed.
-11. **Seasonal normal band** (details in §7):
+    `weather_context` are not computed (`"FMI · Vaasa"` even though the
+    `year` analysis uses Open-Meteo history for Vantaa).
+10. **Seasonal normal band** (details in §7):
     - mostly self-referential on this dataset, with no flag saying which
       path was used
     - device-relative, so a saturated crawl space looks "normal"
     - the newest band isn't drawn on `1y` or fan-backed multi-band charts
     - month steps are offset by the window start's time of day
     - recomputed over the full history on every request
-12. **Downsampling aliasing** can drop every humidity point from the 30 d
+11. **Downsampling aliasing** can drop every humidity point from the 30 d
     crawl-space chart (§7).
 
 ## Tests
@@ -680,8 +730,13 @@ Open as of the last-verified date. Remove an entry when its fix lands.
 `backend/tests/test_analysis.py` covers:
 - the run detector (long episode, short spike, gap split)
 - healthy vs mould scoring
-- the weather discount
-- fallback wording
+- the weather discount (AH-tracking, wet spell, no excuse for a wet
+  structure) and the dry-weather AH penalty
+- weather summaries, `wet` / `mixed` / `dry` classification, the weather
+  block's baseline split and bucket alignment, and the digest with and
+  without weather (`tests/conftest.py` stubs the history fetch so the suite
+  stays offline)
+- fallback wording, including the weather variants
 - endpoint and cache behaviour, the `/api/house` and series contracts,
   normal-band shape, the report shape and the simulation flow
 

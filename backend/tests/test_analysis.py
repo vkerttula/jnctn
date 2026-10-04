@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.analysis import digest as digest_mod
-from app.analysis import fallback, llm
+from app.analysis import fallback, llm, weather
 from app.analysis import score as score_mod
 from app.db import db
 from app.main import app
@@ -86,6 +86,88 @@ def test_score_weather_tracking_rh_is_cheap():
     assert humid > wetter
 
 
+def _wx_days(start: str, n: int, precip: float, rh: float):
+    d0 = datetime.fromisoformat(start).date()
+    return [
+        {"date": (d0 + timedelta(days=i)).isoformat(), "precip_mm": precip,
+         "temp_mean": 8.0, "temp_min": 4.0, "temp_max": 11.0, "rh_mean": rh,
+         "wind_max_ms": 5.0}
+        for i in range(n)
+    ]
+
+
+def test_weather_summarize_classifies_conditions():
+    wet = weather.summarize(_wx_days("2026-09-26", 7, 4.0, 85))
+    assert wet["condition"] == "wet"
+    assert wet["rainy_days"] == 7 and wet["precip_mm"] == 28.0
+    assert weather.summarize(_wx_days("2026-09-26", 7, 0.0, 70))["condition"] == "dry"
+    assert weather.summarize(_wx_days("2026-09-26", 7, 0.0, 85))["condition"] == "mixed"
+    assert weather.summarize([]) is None
+
+
+def test_weather_block_buckets_and_baseline():
+    days = _wx_days("2026-09-19", 15, 0.0, 70)  # Sat 19th .. Sat 3rd
+    span_start, now = NOW - timedelta(days=7), NOW
+    block = digest_mod._weather_block(days, "day", span_start, span_start - timedelta(days=7),
+                                      now)
+    assert block["location"] == "Vantaa"
+    assert block["span"]["days"] == 8  # 26th .. 3rd, local dates incl. both ends
+    assert block["baseline"]["days"] == 7  # 19th .. 25th, no overlap with span
+    assert len(block["buckets"]) == 8
+    weekly = digest_mod._weather_block(days, "week", span_start, None, now)
+    assert [b["bucket"] for b in weekly["buckets"]] == ["2026-09-20", "2026-09-27"]
+    assert digest_mod._weather_block([], "day", span_start, None, now) is None
+
+
+def _rh_event(condition=None):
+    ev = {"type": "RH_SUSTAINED_HIGH", "device": "x", "label": "roof",
+          "duration_hours": 30, "peak_rh": 92, "ongoing": False}
+    if condition:
+        ev["outdoor_weather"] = {"condition": condition}
+    return ev
+
+
+def test_score_wet_weather_discounts_rh_without_ah_data():
+    d = _healthy_digest()
+    d["devices"][0]["span"] = {"indoor_ah_mean": 7.0, "outdoor_ah_mean": None}
+    d["events"] = [_rh_event()]
+    dry_r = score_mod.score_digest(d)  # no AH delta must not raise
+    assert dry_r["findings"][0]["detail"]["weather_driven"] is False
+    d["events"] = [_rh_event("wet")]
+    wet_r = score_mod.score_digest(d)
+    assert wet_r["findings"][0]["detail"]["weather_driven"] is True
+    assert wet_r["score"] > dry_r["score"]
+
+
+def test_score_wet_weather_does_not_excuse_a_wet_structure():
+    d = _healthy_digest()
+    d["devices"][0]["span"]["indoor_ah_mean"] = 9.0  # +1.8 over outdoor
+    d["events"] = [_rh_event("wet")]
+    r = score_mod.score_digest(d)
+    assert r["findings"][0]["detail"]["weather_driven"] is False
+
+
+def test_score_ah_inversion_weighs_more_in_dry_weather():
+    def scored(condition):
+        d = _healthy_digest()
+        d["events"] = [{"type": "AH_INVERSION", "device": "x", "label": "the crawl space",
+                        "indoor_ah": 9.0, "outdoor_ah": 7.2,
+                        "outdoor_weather": {"condition": condition}}]
+        return score_mod.score_digest(d)
+
+    dry, mixed = scored("dry"), scored("mixed")
+    assert dry["score"] < mixed["score"]
+    assert dry["findings"][0]["detail"]["dry_weather"] is True
+    assert "dry weather" in fallback.describe_finding(dry["findings"][0]).detail
+
+
+def test_fallback_mentions_weather_for_weather_driven_rh():
+    d = _healthy_digest()
+    d["events"] = [_rh_event()]  # AH tracks outdoor air -> weather-driven
+    finding = score_mod.score_digest(d)["findings"][0]
+    assert "weather" in fallback.describe_finding(finding).detail
+
+
 def test_fallback_all_good():
     scored = score_mod.score_digest(_healthy_digest())
     n = fallback.render(_healthy_digest(), scored)
@@ -157,10 +239,29 @@ def test_analysis_endpoint_and_cache(seeded_device):
     assert cached["generated_at"][:19] == body["generated_at"][:19]
 
 
-def test_analysis_digest_endpoint(seeded_device):
+def test_analysis_digest_endpoint(seeded_device, monkeypatch):
+    calls = []
+
+    def fake_history(start, end):
+        calls.append((start, end))
+        return _wx_days(start.isoformat(), (end - start).days + 1, 3.0, 88)
+
+    monkeypatch.setattr(weather, "history", fake_history)
     r = client.get("/api/analysis/digest", params={"window": "week"})
     assert r.status_code == 200
-    assert any(d["device"] == "test-device" for d in r.json()["devices"])
+    body = r.json()
+    assert any(d["device"] == "test-device" for d in body["devices"])
+    assert len(calls) == 1  # digest + events share one fetch
+    assert body["weather"]["span"]["condition"] == "wet"
+    assert body["weather"]["baseline"]["days"] == 7
+    for ev in body["events"]:
+        if ev["type"] in ("RH_SUSTAINED_HIGH", "AH_INVERSION"):
+            assert ev["outdoor_weather"]["condition"] == "wet"
+
+
+def test_digest_without_weather(seeded_device):
+    # conftest keeps history offline; a range never cached yields no weather
+    assert digest_mod.build_digest("day", NOW - timedelta(days=4000))["weather"] is None
 
 
 def test_analysis_rejects_bad_window():

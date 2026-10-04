@@ -6,10 +6,14 @@ same `build_digest(window)` path powers day/week/month/year analyses by just
 widening the span and bucketing coarser.
 """
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any, Literal
+from zoneinfo import ZoneInfo
 
+from app.analysis import weather
 from app.db import db
+
+SITE_TZ = ZoneInfo("Europe/Helsinki")
 
 Window = Literal["day", "week", "month", "year"]
 
@@ -69,11 +73,17 @@ def period_key(window: Window, now: datetime) -> str:
     return now.strftime(PERIOD_KEY_FORMAT[window])
 
 
-def build_digest(window: Window, now: datetime | None = None) -> dict[str, Any]:
-    """Build the context packet for a window from Mongo."""
+def build_digest(
+    window: Window,
+    now: datetime | None = None,
+    weather_days: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Build the context packet for a window from Mongo (+ daily weather)."""
     if window not in WINDOWS:
         raise ValueError(f"unknown window {window!r}")
     now = now or datetime.now(UTC)
+    if weather_days is None:
+        weather_days = _weather_days(window, now)
     cfg = WINDOWS[window]
     span_start = now - cfg["span"]
     baseline_start = span_start - cfg["baseline"] if cfg["baseline"] else None
@@ -98,15 +108,80 @@ def build_digest(window: Window, now: datetime | None = None) -> dict[str, Any]:
         "site": _site(),
         "devices": devices,
         "sensor_grid": _sensor_grid(span_start, now),
+        "weather": _weather_block(weather_days, cfg["bucket"], span_start, baseline_start, now),
         "events": [],  # filled in below; needs the sensor grid too
     }
 
 
 def build(window: Window, now: datetime | None = None) -> dict[str, Any]:
     now = now or datetime.now(UTC)
-    digest = build_digest(window, now)
-    digest["events"] = _events(digest, now)
+    days = _weather_days(window, now)
+    digest = build_digest(window, now, days)
+    digest["events"] = _events(digest, now, days)
     return digest
+
+
+def _local_date(ts: datetime) -> date:
+    return ts.astimezone(SITE_TZ).date()
+
+
+def _weather_days(window: Window, now: datetime) -> list[dict[str, Any]]:
+    """Daily weather covering baseline + span; [] when unavailable."""
+    cfg = WINDOWS[window]
+    start = now - cfg["span"] - (cfg["baseline"] or timedelta(0))
+    return weather.history(_local_date(start), _local_date(now)) or []
+
+
+def _days_between(days, start: datetime, end: datetime) -> list[dict[str, Any]]:
+    lo, hi = _local_date(start).isoformat(), _local_date(end).isoformat()
+    return [d for d in days if lo <= d["date"] <= hi]
+
+
+def _bucket_key(day: str, unit: str) -> str:
+    # Mirrors Mongo's $dateTrunc defaults used for the device buckets
+    # (weeks start on Sunday) so weather buckets line up with device buckets.
+    d = date.fromisoformat(day)
+    if unit == "week":
+        d -= timedelta(days=(d.weekday() + 1) % 7)
+    elif unit == "month":
+        d = d.replace(day=1)
+    return d.isoformat()
+
+
+def _weather_block(days, unit, span_start, baseline_start, now) -> dict[str, Any] | None:
+    """Outdoor weather at the sensor site over the span (and its baseline)."""
+    span_days = _days_between(days, span_start, now)
+    if not span_days:
+        return None
+    out: dict[str, Any] = {
+        "location": weather.SITE["location"],
+        "source": "Open-Meteo",
+        "span": weather.summarize(span_days),
+    }
+    if baseline_start:
+        # The span's first local day also belongs to the baseline's last;
+        # keep it on the span side.
+        first = span_days[0]["date"]
+        base = [d for d in _days_between(days, baseline_start, span_start) if d["date"] < first]
+        out["baseline"] = weather.summarize(base)
+    if unit:
+        groups: dict[str, list[dict]] = {}
+        for d in span_days:
+            groups.setdefault(_bucket_key(d["date"], unit), []).append(d)
+        out["buckets"] = [
+            {"bucket": k, **{f: s[f] for f in ("condition", "precip_mm", "rainy_days",
+                                               "temp_mean", "rh_mean")}}
+            for k, g in groups.items()
+            if (s := weather.summarize(g))
+        ]
+    return out
+
+
+def _brief(summary: dict[str, Any] | None) -> dict[str, Any] | None:
+    """The weather fields attached to an event (what scoring reads)."""
+    if not summary:
+        return None
+    return {f: summary[f] for f in ("condition", "days", "precip_mm", "rainy_days", "rh_mean")}
 
 
 def _season(now: datetime) -> str:
@@ -325,8 +400,12 @@ def _sustained_runs(
     return runs
 
 
-def _events(digest: dict[str, Any], now: datetime) -> list[dict[str, Any]]:
+def _events(
+    digest: dict[str, Any], now: datetime, weather_days: list[dict[str, Any]] | None = None
+) -> list[dict[str, Any]]:
     events = []
+    days = weather_days or []
+    span_weather = _brief((digest.get("weather") or {}).get("span"))
     window = digest["window"]
     span_start = datetime.fromisoformat(digest["period"]["start"])
     min_run = MIN_RUN[window]
@@ -349,6 +428,9 @@ def _events(digest: dict[str, Any], now: datetime) -> list[dict[str, Any]]:
                     "ongoing": run["end"] >= now - timedelta(hours=6),
                     "peak_rh": round(run["peak"], 1),
                     "duration_hours": round((run["end"] - run["start"]).total_seconds() / 3600),
+                    "outdoor_weather": _brief(
+                        weather.summarize(_days_between(days, run["start"], run["end"]))
+                    ),
                 }
             )
 
@@ -379,6 +461,7 @@ def _events(digest: dict[str, Any], now: datetime) -> list[dict[str, Any]]:
                     "— it is wetting, not drying",
                     "indoor_ah": ih,
                     "outdoor_ah": oh,
+                    "outdoor_weather": span_weather,
                 }
             )
 

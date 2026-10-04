@@ -42,8 +42,12 @@ Around that core:
   layout coordinates, the roof fan grouped from the `katto-*`/
   `viherkatto-*` units, the underfloor package split into a crawl-space
   sensor and a drying fan.
-- **Weather context.** Open-Meteo (Vaasa), Mongo-cached 30 min, with the
-  fans' own outdoor transmitters as fallback.
+- **Weather context.** Daily Open-Meteo history for the sensor site
+  (Vantaa) goes into the digest. It discounts RH episodes that only
+  followed a wet spell, weighs up structures that stay damp in dry
+  weather, and gives the narrator "after a rainy week" context. The
+  sidebar shows current Open-Meteo conditions for the demo home (Vaasa),
+  cached 30 min, with the fans' own outdoor transmitters as fallback.
 - **`POST /api/simulate/leak`.** Injects a synthetic moisture event the
   whole pipeline — digest, score, narrative, UI — reacts to. The demo
   moment is real data flow, not a scripted overlay.
