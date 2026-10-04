@@ -303,6 +303,14 @@ analysis alone can regenerate 24 times a day, and the score page loads the
 `1y` series of every mould-reporting sensor. Each failed call may use two
 attempts.
 
+**Narration version.** Every cached analysis and sensor summary is stamped
+with `llm.NARRATION_VERSION`. A cached document with any other version (or
+none) is ignored and regenerated on its next read, then overwritten in
+place. Bump the constant whenever the prompts or the narrator's input
+change. The next deploy then replaces stale wording lazily, as pages are
+viewed, without deleting anything. Version 2 covers the weather context and
+the one-source catalog.
+
 **A fallback result is cached like an LLM result.** Once a call fails (for
 example on quota), that `(window, period)` serves template copy until the
 period rolls over. For `day` that's at most an hour, for `year` the rest of

@@ -14,6 +14,11 @@ from app.analysis.models import Narrative, SensorSummary
 
 MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
 
+# Stamped on every cached analysis / sensor summary; cached text with another
+# version is regenerated on its next read. Bump it whenever the prompts or
+# what the narrator is fed changes, so stale wording doesn't outlive a deploy.
+NARRATION_VERSION = 2
+
 SYSTEM = """\
 You are the voice of a home-monitoring product — "Oura for a house". \
 You interpret building sensor data (roof structures, crawl spaces, \

@@ -34,7 +34,11 @@ def get_analysis(
         # Never serve a cached no-data result: the ingest may have landed after
         # it was computed, and we don't want an empty-DB moment to stick for the
         # whole cache period.
-        if cached and cached.get("source") != "no-data":
+        if (
+            cached
+            and cached.get("source") != "no-data"
+            and cached.get("version") == llm.NARRATION_VERSION
+        ):
             return _response(cached)
 
     digest = digest_mod.build(window, now)  # type: ignore[arg-type]
@@ -72,6 +76,7 @@ def get_analysis(
         "attention_items": [i.model_dump() for i in narrative.attention_items],
         "recommendations": narrative.recommendations,
         "source": source,
+        "version": llm.NARRATION_VERSION,
         "period": digest["period"],
         "digest": digest,
     }

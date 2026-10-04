@@ -89,7 +89,7 @@ def get_summary(
     key = {"sensor_id": sensor["id"], "range": range_, "period_key": pkey}
     if not simulated:
         cached = summaries.find_one(key)
-        if cached:
+        if cached and cached.get("version") == llm.NARRATION_VERSION:
             return {"summary": cached["summary"], "source": cached["source"]}
 
     end = datetime.fromisoformat(points[-1]["t"].replace("Z", "+00:00"))
@@ -119,7 +119,7 @@ def get_summary(
     if not simulated:
         summaries.replace_one(
             key, {**key, "generated_at": now, "summary": narrative.summary,
-                  "source": source},
+                  "source": source, "version": llm.NARRATION_VERSION},
             upsert=True,
         )
     return {"summary": narrative.summary, "source": source}
