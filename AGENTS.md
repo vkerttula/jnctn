@@ -4,9 +4,10 @@ Guidance for agents working on this repository. Read this first.
 
 ## Project context
 
-**jnctn** is a weekend hackathon project. Speed of iteration matters, but keep the
-codebase coherent — another agent or human may pick up where you left off at any
-point. Leave the repo in a state you could hand over without explanation.
+**jnctn** is a hackathon project built in under 24 hours. Speed of iteration
+matters, but keep the codebase coherent — another agent or human may pick up
+where you left off at any point. Leave the repo in a state you could hand over
+without explanation.
 
 **Read `docs/VISION.md` first.** It is written for you, the agent — it states
 what the product is, who it's for, and what the demo should prove. Treat it as

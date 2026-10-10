@@ -2,10 +2,10 @@
 
 *no time for vowels*
 
-> **Concept project — archived.** jnctn was built in a weekend at the
-> Junction X Vaasa 2026 hackathon as a product concept, not a production
-> service. The repository is kept as a reference and is no longer
-> maintained; there is no live deployment.
+> **Concept project — archived.** jnctn was built in under 24 hours at
+> the Junction X Vaasa 2026 hackathon as a product concept, not a
+> production service. The repository is kept as a reference and is no
+> longer maintained; there is no live deployment.
 
 [![CI](https://github.com/vkerttula/jnctn/actions/workflows/ci.yml/badge.svg)](https://github.com/vkerttula/jnctn/actions/workflows/ci.yml)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm--NC-blue)](LICENSE)
@@ -14,7 +14,7 @@
 temperature inside building structures — but measuring isn't understanding.
 jnctn is the interpretation layer: raw sensor series in; a deterministic
 0–100 condition score, LLM-written plain-language summaries, attention
-items and a printable moisture report out. Built in a weekend —
+items and a printable moisture report out. Built in under 24 hours —
 `docs/VISION.md` is the product contract, `docs/specs/` the design specs,
 `docs/architecture/` how the analysis actually works. During the
 hackathon `docs/topics/` held our notes on the event's challenge topics;
@@ -80,7 +80,7 @@ surfaces in the exported PDF.
 
 ## Deliberate cuts — what's not built
 
-The weekend was scoped hard; these are known gaps, not bugs:
+Under 24 hours meant scoping hard; these are known gaps, not bugs:
 
 - **No real auth or multi-tenancy.** Sign-in is three preset users plus
   localStorage, and the access code ships in the JS bundle. Real accounts,
