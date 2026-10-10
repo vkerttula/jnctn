@@ -1,6 +1,11 @@
 # jnctn
 
-*no time for vowels — see [HCKTN.md](HCKTN.md)*
+*no time for vowels*
+
+> **Concept project — archived.** jnctn was built in a weekend at the
+> Junction X Vaasa 2026 hackathon as a product concept, not a production
+> service. The repository is kept as a reference and is no longer
+> maintained; there is no live deployment.
 
 [![CI](https://github.com/vkerttula/jnctn/actions/workflows/ci.yml/badge.svg)](https://github.com/vkerttula/jnctn/actions/workflows/ci.yml)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm--NC-blue)](LICENSE)
@@ -11,9 +16,11 @@ jnctn is the interpretation layer: raw sensor series in; a deterministic
 0–100 condition score, LLM-written plain-language summaries, attention
 items and a printable moisture report out. Built in a weekend —
 `docs/VISION.md` is the product contract, `docs/specs/` the design specs,
-`docs/architecture/` how the analysis actually works.
+`docs/architecture/` how the analysis actually works. During the
+hackathon `docs/topics/` held our notes on the event's challenge topics;
+it was removed when the project was archived.
 
-**Live demo:**
+**Demo:**
 
 <img width="720" height="405" alt="demo" src="https://github.com/user-attachments/assets/53d9277d-e4b8-48ce-8ad3-e4afaeab80a8" />
 

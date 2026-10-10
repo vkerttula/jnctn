@@ -116,8 +116,8 @@ Dev scaffolding plus a minimal, verified app skeleton:
   `specs/2026-10-03-onboarding-design.md`), `architecture/` (living as-built
   references: `deterministic-analysis.md` — digest, events, score, normal
   band; `llm-narration.md` — Gemini prompts, fallback, caching; update them
-  when you change `app/analysis/`), plus `topics/` and `ideas/` for
-  hackathon brainstorming
+  when you change `app/analysis/`), plus `ideas/` for hackathon
+  brainstorming
 - `data/` — VILPE Sense demo-site dataset (Vantaa): `site.json`,
   `devices.json` (7 MCU-2 ventilation fans), `sensors.json` (51 RHT-2
   sensors), `readings/` CSV time series; see `data/README.md`. Refresh from
@@ -181,8 +181,7 @@ cd frontend && npm run lint && npm run build
 - **Don't commit secrets.** No `.env` files, API keys, or credentials. MongoDB in
   dev has no auth — don't add code that assumes any.
 - **Don't commit third-party materials.** Sponsor decks, challenge PDFs and
-  other binary/proprietary handouts stay out of version control — capture
-  their content as markdown notes in `docs/topics/` instead.
+  other binary/proprietary handouts stay out of version control.
 - **Keep diffs focused.** One logical change per commit; don't bundle unrelated
   cleanup into feature work.
 - **Match existing conventions.** Look at neighboring files before introducing a

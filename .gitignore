@@ -22,12 +22,6 @@ dist/
 data/site-layout.pdf
 data/site-layout.png
 
-# Sponsor/challenge materials — keep notes in markdown, binaries stay out
-docs/topics/**/*.pdf
-docs/topics/**/*.pptx
-docs/topics/**/*.docx
-docs/topics/**/*.xlsx
-
 # OS / editor / tooling artifacts
 .DS_Store
 .idea/
