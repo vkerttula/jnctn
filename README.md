@@ -17,6 +17,23 @@ items and a printable moisture report out.
 > 2026 hackathon by Valtteri Kerttula and Lauri Alanen. Archived — kept as
 > a reference, not maintained, no live deployment.
 
+## Highlights
+
+- **Real data** — ~111k readings from 51 humidity sensors and 7
+  ventilation fans: over a year of one real building, ingested
+  idempotently into MongoDB.
+- **The LLM never picks the number** — the 0–100 score is computed in
+  code; Gemini only narrates a compact digest, returned as
+  Pydantic-validated JSON with a same-shape template fallback.
+- **Weather-aware** — Open-Meteo history discounts humidity episodes that
+  merely followed rain.
+- **End-to-end leak simulation** — one API call injects a moisture event
+  that the digest, score, narrative and UI all react to.
+- **Contract-first frontend** — the React + three.js UI runs entirely on
+  fixtures generated from the real data; no backend needed.
+- **Tested and reproducible** — 47 pytest tests against a real MongoDB in
+  CI; one devcontainer for the whole stack.
+
 Further reading: `docs/VISION.md` (the product), `docs/specs/` (design
 specs), `docs/architecture/` (how the analysis actually works). The
 hackathon's challenge-topic notes (`docs/topics/`) were removed on archiving.
@@ -24,8 +41,8 @@ hackathon's challenge-topic notes (`docs/topics/`) were removed on archiving.
 ## The pipeline
 
 Interpretation is a staged pipeline over MongoDB. The `sense_*` collections
-hold a real demo site — 51 RHT-2 sensors and 7 MCU-2 fans (Vantaa) — plus
-CSV history from `data/`:
+hold a real demo site — 51 RHT-2 sensors and 7 MCU-2 fans (Vantaa), ~111k
+readings — plus CSV history from `data/`:
 
 ```
 ingest    idempotent upserts, unique on (device, ts) — safe to re-run
