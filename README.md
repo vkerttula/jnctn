@@ -2,11 +2,6 @@
 
 *no time for vowels*
 
-> **Concept project — archived.** jnctn was built in under 24 hours at
-> the Junction X Vaasa 2026 hackathon as a product concept, not a
-> production service. The repository is kept as a reference and is no
-> longer maintained; there is no live deployment.
-
 [![CI](https://github.com/vkerttula/jnctn/actions/workflows/ci.yml/badge.svg)](https://github.com/vkerttula/jnctn/actions/workflows/ci.yml)
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-PolyForm--NC-blue)](LICENSE)
 
@@ -14,15 +9,17 @@
 temperature inside building structures — but measuring isn't understanding.
 jnctn is the interpretation layer: raw sensor series in; a deterministic
 0–100 condition score, LLM-written plain-language summaries, attention
-items and a printable moisture report out. Built in under 24 hours —
-`docs/VISION.md` is the product contract, `docs/specs/` the design specs,
-`docs/architecture/` how the analysis actually works. During the
-hackathon `docs/topics/` held our notes on the event's challenge topics;
-it was removed when the project was archived.
+items and a printable moisture report out.
 
-**Demo:**
+<img width="720" height="405" alt="jnctn demo" src="https://github.com/user-attachments/assets/53d9277d-e4b8-48ce-8ad3-e4afaeab80a8" />
 
-<img width="720" height="405" alt="demo" src="https://github.com/user-attachments/assets/53d9277d-e4b8-48ce-8ad3-e4afaeab80a8" />
+> **Concept project, built in under 24 hours** at the Junction X Vaasa
+> 2026 hackathon by Valtteri Kerttula and Lauri Alanen. Archived — kept as
+> a reference, not maintained, no live deployment.
+
+Further reading: `docs/VISION.md` (the product), `docs/specs/` (design
+specs), `docs/architecture/` (how the analysis actually works). The
+hackathon's challenge-topic notes (`docs/topics/`) were removed on archiving.
 
 ## The pipeline
 
@@ -112,7 +109,19 @@ Under 24 hours meant scoping hard; these are known gaps, not bugs:
   the host; no auth in dev. mongo-express provides a browser UI with full
   CRUD at `http://localhost:8081`
 
-## Quickstart
+## Try it
+
+The quickest way: the frontend's default mock mode runs the whole UI from
+generated fixtures — no backend, database or Docker needed (Node.js 24):
+
+```bash
+cd frontend && npm install && npm run dev
+```
+
+Open http://localhost:5173, enter the access code `sense-demo` and sign in
+as **Demo Family**. The sidebar's *Simulate leak* triggers the demo moment.
+
+## Quickstart (full stack)
 
 After `make rebuild` (see below), the dev servers start automatically with
 the container — the compose `command` runs `scripts/dev.sh` detached,
@@ -166,8 +175,8 @@ Copy each `.env.example` to `.env` in the same directory to override:
   API; a signed-in preset user's `dataMode` overrides it), `VITE_API_URL`
   (only when serving the frontend without the dev proxy).
 
-The access code is a casual-traffic gate, not a secret — it ships in the
-frontend bundle. It keeps bots and random traffic off a public demo.
+The access code was a casual-traffic gate for the hosted demo, not a
+secret — it ships in the frontend bundle.
 
 ## Development environment
 
@@ -182,34 +191,11 @@ make stop     # stop everything
 make rebuild  # rebuild after changing .devcontainer
 ```
 
-### New developer onboarding
-
-1. On the host: Docker + `npm i -g @devcontainers/cli`, clone the repo.
-2. `make start` — post-create installs `uv`, dev servers auto-start; open
-   http://localhost:5173. That's all — development needs nothing else.
-3. For live mode: `cd backend && uv run python -m app.ingest` once, and
-   add `GEMINI_API_KEY` to `backend/.env` if you want LLM narration.
-4. To commit/push from inside the container: `gh auth login` once, then
-   `./scripts/git-identity.sh` — it sets a repo-local git identity (GitHub
-   noreply email) and wires gh as the credential helper. Both survive
-   rebuilds via the gh-data volume and the workspace mount.
-
-MongoDB runs in a sidecar container on the same compose network. From VS
-Code, use "Dev Containers: Reopen in Container" instead of the Makefile.
-
-The Docker VM needs **~8 GB of RAM and 4 CPUs** (half of the M1 Pro's 16 GB
-is a good fit) — the remote server and extension hosts alone use ~1.5 GB,
-and a starved VM causes OOM kills and dropped IDE connections. Resize it
-per runtime:
-
-```bash
-colima stop && colima start --cpu 4 --memory 8   # colima/lima
-# Docker Desktop: Settings → Resources → Memory → 8 GB
-# OrbStack: Settings → System → Memory → 8 GB
-```
-
-Verify with `docker info | grep -i "total memory"` on the host, or
-`free -h` inside the container.
+For live mode, run `cd backend && uv run python -m app.ingest` once to
+populate MongoDB, and add `GEMINI_API_KEY` to `backend/.env` if you want
+LLM narration. From VS Code, "Dev Containers: Reopen in Container" works
+instead of the Makefile. Give the Docker VM ~8 GB of RAM and 4 CPUs — less
+causes OOM kills inside the container.
 
 ## License
 
